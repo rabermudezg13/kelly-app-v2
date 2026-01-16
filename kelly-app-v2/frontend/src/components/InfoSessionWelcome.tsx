@@ -68,10 +68,7 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
   useEffect(() => {
     const allCompleted = steps.every(step => step.is_completed)
     setAllStepsCompleted(allCompleted)
-    // Show questions form when all steps are completed
-    if (allCompleted && !isCompleted) {
-      setShowQuestionsForm(true)
-    }
+    // Don't automatically show questions - wait for user to click "Info Session Completed"
   }, [steps, isCompleted])
 
   const handleStepComplete = async (stepName: string) => {
@@ -239,12 +236,33 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
             </div>
           </div>
 
+          {/* Show warning and button FIRST, before questions */}
+          {allStepsCompleted && !isCompleted && !showQuestionsForm && (
+            <div className="mb-6 p-6 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
+              <p className="text-yellow-800 font-bold text-lg mb-4">
+                ⚠️ Please do not close this screen until you complete the Info Session
+              </p>
+              <p className="text-yellow-700 mb-4">
+                Once the Info Session is finished, please click the button below to continue.
+              </p>
+              <div className="text-center">
+                <button
+                  onClick={() => setShowQuestionsForm(true)}
+                  className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-bold text-lg"
+                >
+                  Info Session Completed - Continue
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Show questions AFTER clicking the button */}
           {allStepsCompleted && !isCompleted && showQuestionsForm && (
             <div className="mb-6 p-6 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
               <h2 className="text-2xl font-bold mb-4 text-gray-800">
                 Please answer the following questions:
               </h2>
-              
+
               <div className="space-y-6">
                 {/* Question 1 */}
                 <div>
@@ -305,31 +323,11 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
 
               <div className="mt-6 flex gap-4 justify-end">
                 <button
-                  onClick={handleSaveQuestions}
-                  disabled={isSavingQuestions}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSavingQuestions ? 'Saving...' : 'Save Answers'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {allStepsCompleted && !isCompleted && questionsSaved && (
-            <div className="mb-6 p-6 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
-              <p className="text-yellow-800 font-bold text-lg mb-4">
-                ⚠️ Do not close this screen
-              </p>
-              <p className="text-yellow-700 mb-4">
-                Please, once the Info Session is finished, click the "Info Session Completed" button.
-              </p>
-              <div className="text-center">
-                <button
                   onClick={handleCompleteSession}
                   disabled={isCompleting}
                   className="px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isCompleting ? 'Completing...' : 'Info Session Completed'}
+                  {isCompleting ? 'Submitting...' : 'Submit Answers and Complete'}
                 </button>
               </div>
             </div>
