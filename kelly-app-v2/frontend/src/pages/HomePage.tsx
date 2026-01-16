@@ -14,9 +14,16 @@ function HomePage() {
   const loadAnnouncements = async () => {
     try {
       const data = await getAnnouncements()
-      setAnnouncements(data)
+      // Ensure data is an array
+      if (Array.isArray(data)) {
+        setAnnouncements(data)
+      } else {
+        console.error('Announcements data is not an array:', data)
+        setAnnouncements([])
+      }
     } catch (error) {
       console.error('Error loading announcements:', error)
+      setAnnouncements([])
     }
   }
 
