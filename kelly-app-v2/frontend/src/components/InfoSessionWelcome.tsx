@@ -203,7 +203,7 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
             <div className="space-y-4">
               {steps.map((step, index) => (
                 <div
-                  key={step.step_name}
+                  key={`${step.step_name}-${index}`}
                   className={`p-6 rounded-lg border-2 ${
                     step.is_completed
                       ? 'bg-green-50 border-green-500'
@@ -213,8 +213,14 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
                   <div className="flex items-start gap-4">
                     <input
                       type="checkbox"
+                      id={`step-${index}`}
                       checked={step.is_completed}
-                      onChange={() => !step.is_completed && handleStepComplete(step.step_name)}
+                      onChange={(e) => {
+                        e.preventDefault()
+                        if (!step.is_completed) {
+                          handleStepComplete(step.step_name)
+                        }
+                      }}
                       className="mt-1 w-6 h-6 text-green-600 border-gray-300 rounded focus:ring-green-500"
                       disabled={step.is_completed}
                     />

@@ -5,25 +5,33 @@ import type { InfoSessionRegistration, InfoSessionWithSteps, Announcement, CHRCa
 // Si se accede desde localhost, usa localhost. Si se accede desde una IP, usa esa IP.
 function getApiBaseUrl(): string {
   const envUrl = (import.meta as any).env?.VITE_API_URL
+  console.log('🔧 VITE_API_URL from env:', envUrl)
+
   if (envUrl) {
+    console.log('✅ Using VITE_API_URL:', envUrl)
     return envUrl
   }
-  
+
   // Si no hay VITE_API_URL configurado, detectar automáticamente
   const hostname = window.location.hostname
   const protocol = window.location.protocol
-  
+
   // Si es localhost o 127.0.0.1, usar localhost
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return 'http://localhost:3026/api'
+    const url = 'http://localhost:3026/api'
+    console.log('🏠 Using localhost:', url)
+    return url
   }
-  
+
   // Si se accede desde una IP o dominio, usar esa misma IP/dominio para el backend
   // Asumimos que el backend está en el mismo host pero puerto 3026
-  return `${protocol}//${hostname}:3026/api`
+  const url = `${protocol}//${hostname}:3026/api`
+  console.log('⚠️ Using auto-detected URL (should use VITE_API_URL instead):', url)
+  return url
 }
 
 const API_BASE_URL = getApiBaseUrl()
+console.log('🌐 Final API_BASE_URL:', API_BASE_URL)
 
 const api = axios.create({
   baseURL: API_BASE_URL,
