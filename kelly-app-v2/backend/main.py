@@ -131,16 +131,19 @@ app = FastAPI(
 import os
 # Permitir acceso desde cualquier origen en desarrollo (para acceso desde red local)
 # En producción, usar CORS_ORIGINS con dominios específicos
-cors_origins_str = os.getenv("CORS_ORIGINS", "*")  # Permitir todos los orígenes por defecto
-if cors_origins_str == "*":
-    cors_origins = ["*"]
-else:
+cors_origins_str = os.getenv("CORS_ORIGINS", "")
+if cors_origins_str:
     cors_origins = [origin.strip() for origin in cors_origins_str.split(",") if origin.strip()]
+    allow_credentials = True
+else:
+    # Default: allow all origins but disable credentials
+    cors_origins = ["*"]
+    allow_credentials = False
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
-    allow_credentials=True,
+    allow_credentials=allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
