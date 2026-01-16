@@ -1,0 +1,43 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: kelly-backend
+    ports:
+      - "3026:3026"
+    volumes:
+      # Montar la base de datos para persistencia
+      - ./backend/kelly_app.db:/app/kelly_app.db
+      # Montar código para desarrollo (hot reload)
+      - ./backend:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:3026/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: kelly-frontend
+    ports:
+      - "3025:3025"
+    volumes:
+      # Montar código para desarrollo (hot reload)
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:3026/api
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  # Volumen para node_modules (para evitar conflictos con el host)
+  node_modules:

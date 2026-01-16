@@ -1,0 +1,32 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: kelly-backend-prod
+    ports:
+      - "127.0.0.1:3026:3026"  # Solo escuchar en localhost (nginx hará proxy)
+    volumes:
+      # Solo montar la base de datos (no el código para producción)
+      - ./backend/kelly_app.db:/app/kelly_app.db
+      - ./backend/backups:/app/backups
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: always
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:3026/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: kelly-frontend-prod
+    ports:
+      - "127.0.0.1:3025:80"  # Solo escuchar en localhost (nginx hará proxy)
+    depends_on:
+      - backend
+    restart: always

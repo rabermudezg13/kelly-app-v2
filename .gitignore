@@ -1,0 +1,119 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+*.db
+*.sqlite
+*.sqlite3
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Build outputs
+dist/
+build/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+*.env
+
+# Secrets and credentials
+secrets/
+*.key
+*.pem
+*.p12
+*.pfx
+credentials.json
+config.json
+secrets.json
+
+# Database files (contain sensitive data)
+*.db
+*.sqlite
+*.sqlite3
+kelly_app.db
+*.db-journal
+
+# Logs (may contain sensitive info)
+*.log
+logs/
+*.log.*
+
+# Database backups (may contain sensitive data)
+backups/
+*.db.backup
+*.sql.backup
+*.dump
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+venv*/
+
+# Node modules
+node_modules/
+.pnpm-store/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# SSL certificates (if any)
+*.crt
+*.csr
+ssl/
+certs/
+
+

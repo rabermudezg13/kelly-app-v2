@@ -1,0 +1,69 @@
+name: kelly-app
+region: nyc
+
+# Backend Service
+services:
+  - name: backend
+    github:
+      repo: rabermudezg13/NewKellyApp2026
+      branch: main
+      deploy_on_push: true
+    source_dir: new Kelly App/kelly-app-v2/backend
+    build_command: pip install -r requirements.txt
+    run_command: python -m uvicorn main:app --host 0.0.0.0 --port 8080
+    environment_slug: python
+    instance_count: 1
+    instance_size_slug: basic-xxs  # $5/mes
+    http_port: 8080
+    health_check:
+      http_path: /health
+    routes:
+      - path: /api
+    envs:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+        scope: RUN_TIME
+      - key: DATABASE_URL
+        value: ${db.DATABASE_URL}
+        scope: RUN_TIME
+      - key: SECRET_KEY
+        value: ${SECRET_KEY}
+        scope: RUN_TIME
+        type: SECRET
+      - key: CORS_ORIGINS
+        value: ${frontend.PUBLIC_URL}
+        scope: RUN_TIME
+      - key: ALGORITHM
+        value: "HS256"
+        scope: RUN_TIME
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "43200"
+        scope: RUN_TIME
+
+# Frontend Static Site
+static_sites:
+  - name: frontend
+    github:
+      repo: rabermudezg13/NewKellyApp2026
+      branch: main
+      deploy_on_push: true
+    source_dir: new Kelly App/kelly-app-v2/frontend
+    build_command: npm ci && npm run build
+    output_dir: dist
+    routes:
+      - path: /
+    envs:
+      - key: VITE_API_URL
+        value: ${backend.PUBLIC_URL}/api
+        scope: BUILD_TIME
+
+# PostgreSQL Database
+databases:
+  - name: db
+    engine: PG
+    version: "15"
+    production: true
+    cluster_name: kelly-app-db
+    db_name: kelly_app
+    db_user: kelly_app_user
+    size_slug: db-s-dev-database  # $15/mes - 1GB RAM, 10GB storage
