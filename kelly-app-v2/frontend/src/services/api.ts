@@ -4,8 +4,10 @@ import type { InfoSessionRegistration, InfoSessionWithSteps, Announcement, CHRCa
 // Detectar automáticamente la URL del backend basándose en la URL actual
 // Si se accede desde localhost, usa localhost. Si se accede desde una IP, usa esa IP.
 function getApiBaseUrl(): string {
-  const envUrl = (import.meta as any).env?.VITE_API_URL
-  console.log('🔧 VITE_API_URL from env:', envUrl)
+  // Check multiple ways to get the env variable
+  const envUrl = import.meta.env.VITE_API_URL || (import.meta as any).env?.VITE_API_URL
+  console.log('🔧 VITE_API_URL from import.meta.env:', import.meta.env.VITE_API_URL)
+  console.log('🔧 Full import.meta.env:', import.meta.env)
 
   if (envUrl) {
     console.log('✅ Using VITE_API_URL:', envUrl)
@@ -20,6 +22,13 @@ function getApiBaseUrl(): string {
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
     const url = 'http://localhost:3026/api'
     console.log('🏠 Using localhost:', url)
+    return url
+  }
+
+  // For Railway production - hardcoded fallback if env var fails
+  if (hostname.includes('railway.app')) {
+    const url = 'https://perceptive-nourishment-production-e92a.up.railway.app/api'
+    console.log('🚂 Using Railway backend (hardcoded fallback):', url)
     return url
   }
 
