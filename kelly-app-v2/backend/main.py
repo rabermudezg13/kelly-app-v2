@@ -127,21 +127,35 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# CORS configuration - TEMPORARY FIX: Allow all origins for Railway deployment
-import os
+# CORS configuration - AGGRESSIVE FIX for Railway
 print("="*80)
-print("🔧 RAILWAY DEPLOYMENT v2: Using permissive CORS for debugging")
-print(f"🔧 Backend will accept requests from ANY origin")
+print("🔧 RAILWAY DEPLOYMENT v3: AGGRESSIVE CORS CONFIGURATION")
 print("="*80)
 
+# Add CORS middleware - MUST be before any routes
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Allow all origins
     allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
+    expose_headers=["*"],
 )
-print("✅ CORS middleware configured: allow_origins=['*'], credentials=False")
+
+# Additional middleware to ensure CORS headers are always present
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+
+class ForceCORSMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        return response
+
+app.add_middleware(ForceCORSMiddleware)
+print("✅ CORS configured: allow_origins=['*'] + Force CORS headers middleware")
 
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
