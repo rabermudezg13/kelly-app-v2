@@ -23,6 +23,13 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
     q4: ''
   })
 
+  // Debug logging
+  console.log('🔍 Component state:', {
+    isCompleted,
+    showQuestions,
+    sessionStatus: currentSessionData.status
+  })
+
   // Sync with backend periodically to get latest state
   useEffect(() => {
     const syncSession = async () => {
@@ -32,7 +39,9 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
         setSteps(latest.steps)
 
         // Check if session was initiated (process begins after info session completion)
+        console.log('📡 Sync detected status:', latest.status, 'isCompleted:', isCompleted)
         if (latest.status === 'initiated' && !isCompleted) {
+          console.log('✅ Setting isCompleted=true and showQuestions=true')
           setIsCompleted(true)
           setShowQuestions(true)
           if (onSessionCompleted) {
@@ -182,15 +191,18 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
             <div className="mt-8 text-center">
               <button
                 onClick={() => {
+                  console.log('🔘 Button clicked - starting completion')
                   setIsCompleting(true)
                   completeInfoSession(sessionData.id)
-                    .then(() => {
+                    .then((response) => {
+                      console.log('✅ Completion successful:', response)
                       setIsCompleted(true)
                       setShowQuestions(true)
+                      console.log('📝 Set showQuestions=true')
                       alert('Session completed! Please answer the questions below.')
                     })
                     .catch((err) => {
-                      console.error(err)
+                      console.error('❌ Completion error:', err)
                       alert('Error: ' + (err.message || 'Unknown error'))
                       setIsCompleting(false)
                     })
@@ -206,7 +218,7 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
 
           {showQuestions && (
             <div className="mt-8 p-6 bg-blue-50 border-2 border-blue-500 rounded-lg">
-              <h2 className="text-2xl font-bold mb-6 text-blue-900">Please Answer These Questions:</h2>
+              <h2 className="text-2xl font-bold mb-6 text-blue-900">📋 Please Answer These Questions:</h2>
 
               <div className="space-y-6">
                 <div>
