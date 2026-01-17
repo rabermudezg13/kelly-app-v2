@@ -157,8 +157,11 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
                           handleStepComplete(step.step_name)
                         }
                       }}
-                      className="mt-1 w-6 h-6 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      className={`mt-1 w-6 h-6 text-green-600 border-gray-300 rounded focus:ring-green-500 ${
+                        step.is_completed ? 'cursor-not-allowed' : 'cursor-pointer'
+                      }`}
                       disabled={step.is_completed}
+                      style={{ pointerEvents: step.is_completed ? 'none' : 'auto' }}
                     />
                     <div className="flex-1">
                       <h3 className="font-bold text-lg mb-2">
@@ -189,8 +192,14 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
                       console.log('✅ Completion successful:', response)
                       setIsCompleted(true)
                       setShowQuestions(true)
-                      console.log('📝 Set showQuestions=true')
-                      alert('Session completed! Please answer the questions below.')
+                      console.log('📝 Set showQuestions=true, now scrolling to questions')
+                      // Scroll to questions after a brief delay to ensure render
+                      setTimeout(() => {
+                        const questionsSection = document.querySelector('.questions-section')
+                        if (questionsSection) {
+                          questionsSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                        }
+                      }, 100)
                     })
                     .catch((err) => {
                       console.error('❌ Completion error:', err)
@@ -208,8 +217,8 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
 
           {console.log('🎯 Rendering questions check - showQuestions:', showQuestions)}
           {showQuestions ? (
-            <div className="mt-8 p-6 bg-blue-50 border-2 border-blue-500 rounded-lg">
-              <h2 className="text-2xl font-bold mb-6 text-blue-900">📋 Please Answer These Questions:</h2>
+            <div className="questions-section mt-8 p-6 bg-blue-50 border-2 border-blue-500 rounded-lg">
+              <h2 className="text-2xl font-bold mb-6 text-blue-900">Please Answer These Questions:</h2>
 
               <div className="space-y-6">
                 <div>
