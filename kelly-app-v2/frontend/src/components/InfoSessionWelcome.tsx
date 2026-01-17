@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { completeStep, completeInfoSession, getInfoSession } from '../services/api'
+import { completeStep, completeInfoSession, getInfoSession, updateInterviewQuestions } from '../services/api'
 import type { InfoSessionWithSteps } from '../types'
 
 interface Props {
@@ -17,18 +17,28 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
   const [currentSessionData, setCurrentSessionData] = useState(sessionData)
   const [showQuestions, setShowQuestions] = useState(false)
   const [questions, setQuestions] = useState({
-    q1: '',
-    q2: '',
-    q3: '',
-    q4: ''
+    q1: sessionData.question_1_response || '',
+    q2: sessionData.question_2_response || '',
+    q3: sessionData.question_3_response || '',
+    q4: sessionData.question_4_response || ''
   })
 
-  // Debug logging
-  console.log('🔍 Component state:', {
-    isCompleted,
-    showQuestions,
-    sessionStatus: currentSessionData.status
-  })
+  // Load questions responses from sessionData when component mounts or sessionData changes
+  useEffect(() => {
+    if (sessionData) {
+      setQuestions({
+        q1: sessionData.question_1_response || '',
+        q2: sessionData.question_2_response || '',
+        q3: sessionData.question_3_response || '',
+        q4: sessionData.question_4_response || ''
+      })
+      // Show questions if responses already exist
+      if (sessionData.question_1_response || sessionData.question_2_response || 
+          sessionData.question_3_response || sessionData.question_4_response) {
+        setShowQuestions(true)
+      }
+    }
+  }, [sessionData])
 
   // Sync with backend periodically to get latest state
   useEffect(() => {
@@ -38,20 +48,98 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
         setCurrentSessionData(latest)
         setSteps(latest.steps)
 
+        // Show questions if session is completed OR if there are responses
+        const shouldShowQuestions = latest.status === 'completed' || 
+                                   latest.question_1_response || 
+                                   latest.question_2_response || 
+                                   latest.question_3_response || 
+                                   latest.question_4_response
+
+        if (shouldShowQuestions) {
+          // Update questions from latest session data
+          setQuestions({
+            q1: latest.question_1_response || '',
+            q2: latest.question_2_response || '',
+            q3: latest.question_3_response || '',
+            q4: latest.question_4_response || ''
+          })
+          // Show questions section
+          setShowQuestions(true)
+          console.log('✅ Sync: Showing questions - status:', latest.status, 'has responses:', !!(latest.question_1_response || latest.question_2_response || latest.question_3_response || latest.question_4_response))
+        }
+
+        // Update isCompleted state if session is completed
+        if (latest.status === 'completed' && !isCompleted) {
+          setIsCompleted(true)
+          console.log('✅ Sync: Session marked as completed')
+        }
+
         // Only log, don't change state here to avoid conflicts with button handler
         console.log('📡 Sync detected status:', latest.status)
+        console.log('📡 Sync questions:', {
+          q1: latest.question_1_response?.substring(0, 20) || 'empty',
+          q2: latest.question_2_response?.substring(0, 20) || 'empty',
+          q3: latest.question_3_response?.substring(0, 20) || 'empty',
+          q4: latest.question_4_response?.substring(0, 20) || 'empty'
+        })
       } catch (error) {
         console.error('Error syncing session:', error)
       }
     }
 
-    // Only sync if not yet completed (avoid interference)
-    if (!isCompleted) {
-      syncSession()
-      const interval = setInterval(syncSession, 5000)
-      return () => clearInterval(interval)
-    }
+    // Sync immediately on mount and periodically
+    syncSession()
+    const interval = setInterval(syncSession, 5000)
+    return () => clearInterval(interval)
   }, [sessionData.id, isCompleted])
+
+  // Sync questions from latest session data when currentSessionData changes
+  useEffect(() => {
+    if (currentSessionData) {
+      const hasResponses = currentSessionData.question_1_response || 
+                          currentSessionData.question_2_response || 
+                          currentSessionData.question_3_response || 
+                          currentSessionData.question_4_response
+      
+      if (hasResponses) {
+        setQuestions({
+          q1: currentSessionData.question_1_response || '',
+          q2: currentSessionData.question_2_response || '',
+          q3: currentSessionData.question_3_response || '',
+          q4: currentSessionData.question_4_response || ''
+        })
+        setShowQuestions(true)
+      }
+    }
+  }, [currentSessionData])
+
+  // Show questions if session is completed or if there are responses
+  useEffect(() => {
+    const shouldShow = currentSessionData.status === 'completed' || 
+                      isCompleted ||
+                      currentSessionData.question_1_response ||
+                      currentSessionData.question_2_response ||
+                      currentSessionData.question_3_response ||
+                      currentSessionData.question_4_response
+    if (shouldShow && !showQuestions) {
+      console.log('✅ Auto-showing questions section - session completed or has responses')
+      setShowQuestions(true)
+    }
+  }, [currentSessionData.status, isCompleted, currentSessionData.question_1_response, 
+      currentSessionData.question_2_response, currentSessionData.question_3_response, 
+      currentSessionData.question_4_response, showQuestions])
+
+  // Debug logging
+  console.log('🔍 Component state:', {
+    isCompleted,
+    showQuestions,
+    sessionStatus: currentSessionData.status,
+    questionsLoaded: questions.q1 || questions.q2 || questions.q3 || questions.q4,
+    currentSessionQuestions: {
+      q1: currentSessionData.question_1_response?.substring(0, 20) || 'empty',
+      q2: currentSessionData.question_2_response?.substring(0, 20) || 'empty'
+    }
+  })
 
   useEffect(() => {
     const allCompleted = steps.every(step => step.is_completed)
@@ -131,10 +219,51 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
             </p>
           </div>
 
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">
-              Follow the steps below and check each step as you complete each stage:
-            </h2>
+          <div className="mb-8 relative">
+            <div className="sticky top-0 bg-white z-20 py-4 mb-4 border-b-2 border-gray-300 shadow-lg -mx-8 px-8">
+              <h2 className="text-2xl font-bold text-gray-800 mb-3">
+                Follow the steps below and check each step as you complete each stage:
+              </h2>
+              {/* Compact view of all checkboxes when sticky */}
+              <div className="flex flex-wrap gap-3 mt-3">
+                {steps.map((step, index) => (
+                  <div 
+                    key={`sticky-step-${index}`}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all ${
+                      step.is_completed
+                        ? 'bg-green-100 border-green-500 shadow-sm'
+                        : 'bg-gray-100 border-gray-300'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      id={`sticky-step-${index}`}
+                      checked={step.is_completed}
+                      onChange={(e) => {
+                        e.preventDefault()
+                        if (!step.is_completed) {
+                          handleStepComplete(step.step_name)
+                        }
+                      }}
+                      className={`w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 ${
+                        step.is_completed ? 'cursor-not-allowed' : 'cursor-pointer'
+                      }`}
+                      disabled={step.is_completed}
+                      style={{ pointerEvents: step.is_completed ? 'none' : 'auto' }}
+                    />
+                    <label 
+                      htmlFor={`sticky-step-${index}`}
+                      className={`text-sm font-semibold cursor-pointer select-none ${
+                        step.is_completed ? 'text-green-700' : 'text-gray-700'
+                      }`}
+                    >
+                      Step {index + 1}
+                      {step.is_completed && <span className="ml-1">✓</span>}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
             
             <div className="space-y-4">
               {steps.map((step, index) => (
@@ -184,28 +313,53 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
           {allStepsCompleted && !isCompleted && (
             <div className="mt-8 text-center">
               <button
-                onClick={() => {
+                onClick={async () => {
                   console.log('🔘 Button clicked - starting completion')
                   setIsCompleting(true)
-                  completeInfoSession(sessionData.id)
-                    .then((response) => {
-                      console.log('✅ Completion successful:', response)
-                      setIsCompleted(true)
-                      setShowQuestions(true)
-                      console.log('📝 Set showQuestions=true, now scrolling to questions')
-                      // Scroll to questions after a brief delay to ensure render
-                      setTimeout(() => {
-                        const questionsSection = document.querySelector('.questions-section')
-                        if (questionsSection) {
-                          questionsSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                        }
-                      }, 100)
-                    })
-                    .catch((err) => {
-                      console.error('❌ Completion error:', err)
-                      alert('Error: ' + (err.message || 'Unknown error'))
-                      setIsCompleting(false)
-                    })
+                  try {
+                    const response = await completeInfoSession(sessionData.id)
+                    console.log('✅ Completion successful:', response)
+                    
+                    // Refresh session data FIRST to get latest state
+                    const updated = await getInfoSession(sessionData.id)
+                    console.log('📝 Refreshed session data - status:', updated.status)
+                    
+                    // Update all state variables
+                    setCurrentSessionData(updated)
+                    setSteps(updated.steps)
+                    setIsCompleted(true)
+                    
+                    // Force show questions immediately
+                    setShowQuestions(true)
+                    
+                    // Also update questions from the response
+                    if (updated.question_1_response || updated.question_2_response || 
+                        updated.question_3_response || updated.question_4_response) {
+                      setQuestions({
+                        q1: updated.question_1_response || '',
+                        q2: updated.question_2_response || '',
+                        q3: updated.question_3_response || '',
+                        q4: updated.question_4_response || ''
+                      })
+                    }
+                    
+                    console.log('📝 Set showQuestions=true, isCompleted=true, status=', updated.status)
+                    
+                    // Scroll to questions after a brief delay to ensure render
+                    setTimeout(() => {
+                      const questionsSection = document.querySelector('.questions-section')
+                      if (questionsSection) {
+                        questionsSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                        console.log('✅ Scrolled to questions section')
+                      } else {
+                        console.warn('⚠️ Questions section not found in DOM after 200ms')
+                      }
+                    }, 300)
+                  } catch (err: any) {
+                    console.error('❌ Completion error:', err)
+                    alert('Error: ' + (err.message || 'Unknown error'))
+                    setIsCompleting(false)
+                  }
                 }}
                 disabled={isCompleting}
                 className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-lg text-xl disabled:opacity-50"
@@ -215,8 +369,21 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
             </div>
           )}
 
-          {console.log('🎯 Rendering questions check - showQuestions:', showQuestions)}
-          {showQuestions ? (
+          {/* Always show questions section if showQuestions is true OR if session is completed */}
+          {(() => {
+            const shouldShow = showQuestions || isCompleted || currentSessionData.status === 'completed'
+            console.log('🎯 Rendering questions check:', {
+              showQuestions,
+              isCompleted,
+              allStepsCompleted,
+              sessionStatus: currentSessionData.status,
+              shouldShow,
+              condition1: showQuestions,
+              condition2: isCompleted,
+              condition3: currentSessionData.status === 'completed'
+            })
+            return shouldShow
+          })() ? (
             <div className="questions-section mt-8 p-6 bg-blue-50 border-2 border-blue-500 rounded-lg">
               <h2 className="text-2xl font-bold mb-6 text-blue-900">Please Answer These Questions:</h2>
 
@@ -275,10 +442,61 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
 
                 <div className="text-center pt-4">
                   <button
-                    onClick={() => {
-                      alert('Questions submitted! Thank you.')
-                      setShowQuestions(false)
-                      if (onSessionCompleted) onSessionCompleted()
+                    onClick={async () => {
+                      try {
+                        // Validate that at least some questions are answered
+                        const hasAnyAnswer = questions.q1.trim() || questions.q2.trim() || 
+                                            questions.q3.trim() || questions.q4.trim()
+                        
+                        if (!hasAnyAnswer) {
+                          alert('Please answer at least one question before submitting.')
+                          return
+                        }
+
+                        console.log('💾 Saving questions:', {
+                          sessionId: sessionData.id,
+                          q1: questions.q1?.substring(0, 50) || 'empty',
+                          q2: questions.q2?.substring(0, 50) || 'empty',
+                          q3: questions.q3?.substring(0, 50) || 'empty',
+                          q4: questions.q4?.substring(0, 50) || 'empty'
+                        })
+
+                        // Prepare questions data - send empty strings as null
+                        const questionsData = {
+                          question_1_response: questions.q1.trim() || null,
+                          question_2_response: questions.q2.trim() || null,
+                          question_3_response: questions.q3.trim() || null,
+                          question_4_response: questions.q4.trim() || null
+                        }
+
+                        // Save questions to backend
+                        const saveResult = await updateInterviewQuestions(sessionData.id, questionsData)
+                        console.log('✅ Questions saved successfully:', saveResult)
+                        
+                        // Refresh session data to get latest state
+                        const updated = await getInfoSession(sessionData.id)
+                        console.log('✅ Refreshed session data:', {
+                          q1: updated.question_1_response?.substring(0, 50) || 'empty',
+                          q2: updated.question_2_response?.substring(0, 50) || 'empty',
+                          q3: updated.question_3_response?.substring(0, 50) || 'empty',
+                          q4: updated.question_4_response?.substring(0, 50) || 'empty'
+                        })
+                        setCurrentSessionData(updated)
+                        setQuestions({
+                          q1: updated.question_1_response || '',
+                          q2: updated.question_2_response || '',
+                          q3: updated.question_3_response || '',
+                          q4: updated.question_4_response || ''
+                        })
+                        
+                        alert('Questions submitted successfully! Thank you.')
+                        setShowQuestions(false)
+                        if (onSessionCompleted) onSessionCompleted()
+                      } catch (error: any) {
+                        console.error('❌ Error saving questions:', error)
+                        console.error('Error details:', error.response?.data || error.message)
+                        alert(`Error saving questions: ${error.response?.data?.detail || error.message || 'Unknown error'}. Please try again.`)
+                      }
                     }}
                     className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg"
                   >
@@ -287,9 +505,7 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
                 </div>
               </div>
             </div>
-          ) : (
-            console.log('❌ Questions NOT showing because showQuestions is false')
-          )}
+          ) : null}
 
           <div className="text-center">
             <button

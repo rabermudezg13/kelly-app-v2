@@ -9,6 +9,7 @@ import {
   updateSessionDocuments,
   getLiveInfoSessions,
   getInfoSessions,
+  deleteInfoSession,
   downloadAnswersPDF,
   getRowTemplates,
   getRowTemplate,
@@ -101,9 +102,11 @@ function RecruiterDashboard() {
       
       try {
         orientationsData = await getNewHireOrientations()
+        console.log('✅ Initial load - New Hire Orientations:', orientationsData?.length || 0)
       } catch (error) {
-        console.error('Error loading orientations:', error)
+        console.error('❌ Error loading orientations:', error)
         // Continue with empty array
+        orientationsData = []
       }
       
       try {
@@ -274,8 +277,10 @@ function RecruiterDashboard() {
       let orientationsData: any[] = []
       if (orientationsResult.status === 'fulfilled' && Array.isArray(orientationsResult.value)) {
         orientationsData = orientationsResult.value
+        console.log('✅ Loaded New Hire Orientations:', orientationsData.length)
       } else {
-        console.error('Error loading orientations:', orientationsResult.reason)
+        console.error('❌ Error loading orientations:', orientationsResult.reason)
+        orientationsData = []
       }
       
       let fingerprintsData: any[] = []
@@ -375,12 +380,13 @@ function RecruiterDashboard() {
     const timeout = setTimeout(() => {
       intervalId = setInterval(() => {
         refreshDataInBackground()
-      }, 30000) // Reload every 30 seconds
-    }, 5000) // Start refreshing 5 seconds after initial load
+      }, 10000) // Reload every 10 seconds (more frequent to catch new registrations)
+    }, 3000) // Start refreshing 3 seconds after initial load
     return () => {
       clearTimeout(timeout)
       if (intervalId) clearInterval(intervalId)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recruiterId])
 
   const handleStatusToggle = async () => {
@@ -563,6 +569,7 @@ function RecruiterDashboard() {
                   <th className="px-4 py-2 text-left">Registered At</th>
                   <th className="px-4 py-2 text-left">Assigned Recruiter</th>
                   <th className="px-4 py-2 text-left">Status</th>
+                  <th className="px-4 py-2 text-left">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -572,7 +579,7 @@ function RecruiterDashboard() {
                     <React.Fragment key={dateKey}>
                       {dateIndex > 0 && (
                         <tr>
-                          <td colSpan={9} className="px-4 py-3 bg-gray-100 border-t-2 border-gray-300">
+                          <td colSpan={10} className="px-4 py-3 bg-gray-100 border-t-2 border-gray-300">
                             <div className="text-center">
                               <span className="text-gray-700 font-bold text-lg">
                                 ─── {formatMiamiDateDisplay(sessionsForDate[0].created_at)} ───
@@ -627,6 +634,34 @@ function RecruiterDashboard() {
                             }`}>
                               {session.status}
                             </span>
+                          </td>
+                          <td className="px-4 py-2">
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation()
+                                const confirmed = window.confirm(
+                                  `¿Estás seguro de que quieres borrar el registro de ${session.first_name} ${session.last_name}?\n\nEsta acción no se puede deshacer.`
+                                )
+                                if (confirmed) {
+                                  try {
+                                    await deleteInfoSession(session.id)
+                                    alert('Registro borrado exitosamente')
+                                    // Reload data
+                                    await loadData()
+                                    // Also refresh all info sessions
+                                    const allSessions = await getInfoSessions()
+                                    setAllInfoSessions(allSessions || [])
+                                  } catch (error: any) {
+                                    console.error('Error deleting session:', error)
+                                    alert(`Error al borrar: ${error.response?.data?.detail || error.message || 'Unknown error'}`)
+                                  }
+                                }
+                              }}
+                              className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm font-semibold transition-colors"
+                              title="Borrar registro"
+                            >
+                              🗑️ Borrar
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -1031,8 +1066,27 @@ function RecruiterDashboard() {
     
     return (
       <div className="space-y-4">
-        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
+        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 flex justify-between items-center">
           <p className="text-blue-800 font-bold">🎓 New Hire Orientations</p>
+          <button
+            onClick={async () => {
+              try {
+                setLoading(true)
+                const orientationsData = await getNewHireOrientations()
+                setNewHireOrientations(orientationsData || [])
+                console.log('✅ Refreshed New Hire Orientations:', orientationsData?.length || 0)
+                alert(`Refreshed! Found ${orientationsData?.length || 0} orientations.`)
+              } catch (error) {
+                console.error('Error refreshing orientations:', error)
+                alert('Error refreshing data')
+              } finally {
+                setLoading(false)
+              }
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-semibold"
+          >
+            🔄 Refresh
+          </button>
         </div>
         {newHireOrientations.length === 0 ? (
           <p className="text-center py-8 text-gray-500">No new hire orientations registered</p>
@@ -1539,7 +1593,27 @@ function RecruiterDashboard() {
             {/* Sessions List */}
             <div className="lg:col-span-2">
               <div className="bg-white rounded-lg shadow-lg p-6">
-                <h2 className="text-2xl font-bold mb-4">All Info Sessions</h2>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-bold">📋 My Sessions</h2>
+                  <button
+                    onClick={async () => {
+                      try {
+                        setRefreshing(true)
+                        await loadData()
+                        alert('Data refreshed!')
+                      } catch (error) {
+                        console.error('Error refreshing:', error)
+                        alert('Error refreshing data')
+                      } finally {
+                        setRefreshing(false)
+                      }
+                    }}
+                    disabled={refreshing}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {refreshing ? '🔄 Refreshing...' : '🔄 Refresh'}
+                  </button>
+                </div>
               <div className="space-y-4">
                 {loading ? (
                   <p className="text-gray-500 text-center py-8">Loading sessions...</p>
@@ -1716,6 +1790,28 @@ function RecruiterDashboard() {
                               Can view and edit
                             </p>
                           )}
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation()
+                              const confirmed = window.confirm(
+                                `¿Estás seguro de que quieres borrar el registro de ${session.first_name} ${session.last_name}?\n\nEsta acción no se puede deshacer.`
+                              )
+                              if (confirmed) {
+                                try {
+                                  await deleteInfoSession(session.id)
+                                  alert('Registro borrado exitosamente')
+                                  await loadData()
+                                } catch (error: any) {
+                                  console.error('Error deleting session:', error)
+                                  alert(`Error al borrar: ${error.response?.data?.detail || error.message || 'Unknown error'}`)
+                                }
+                              }
+                            }}
+                            className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 font-semibold"
+                            title="Borrar registro"
+                          >
+                            🗑️ Borrar
+                          </button>
                         </div>
                       </div>
                     </div>

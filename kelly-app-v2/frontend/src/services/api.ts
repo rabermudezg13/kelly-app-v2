@@ -25,10 +25,17 @@ function getApiBaseUrl(): string {
     return url
   }
 
-  // For production (Railway or Vercel) - hardcoded backend URL
+  // For production (Railway or Vercel) - check VITE_API_URL first
   if (hostname.includes('railway.app') || hostname.includes('vercel.app')) {
+    const backendUrl = import.meta.env.VITE_API_URL || (import.meta as any).env?.VITE_API_URL
+    if (backendUrl) {
+      console.log('✅ Using VITE_API_URL from environment:', backendUrl)
+      return backendUrl.endsWith('/api') ? backendUrl : `${backendUrl}/api`
+    }
+    // Fallback - use a common Railway backend URL (update with your actual backend URL)
     const url = 'https://perceptive-nourishment-production-e92a.up.railway.app/api'
-    console.log('🚀 Using production backend:', url)
+    console.warn('⚠️ VITE_API_URL not set, using fallback URL:', url)
+    console.warn('   Please set VITE_API_URL in Vercel environment variables')
     return url
   }
 
@@ -86,6 +93,11 @@ export const registerInfoSession = async (
 
 export const getInfoSession = async (id: number): Promise<InfoSessionWithSteps> => {
   const response = await api.get(`/info-session/${id}`)
+  return response.data
+}
+
+export const deleteInfoSession = async (sessionId: number): Promise<{ message: string; session_id: number }> => {
+  const response = await api.delete(`/info-session/${sessionId}`)
   return response.data
 }
 

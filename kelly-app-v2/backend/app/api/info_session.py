@@ -491,21 +491,35 @@ async def update_interview_questions(
     db: Session = Depends(get_db)
 ):
     """Update interview questions responses for an info session"""
+    print(f"💾 Saving interview questions for session {session_id}")
+    print(f"   Question 1: {questions_data.question_1_response[:50] if questions_data.question_1_response else 'None'}...")
+    print(f"   Question 2: {questions_data.question_2_response[:50] if questions_data.question_2_response else 'None'}...")
+    print(f"   Question 3: {questions_data.question_3_response[:50] if questions_data.question_3_response else 'None'}...")
+    print(f"   Question 4: {questions_data.question_4_response[:50] if questions_data.question_4_response else 'None'}...")
+    
     info_session = db.query(InfoSession).filter(InfoSession.id == session_id).first()
     if not info_session:
+        print(f"❌ Session {session_id} not found")
         raise HTTPException(status_code=404, detail="Info session not found")
     
+    # Update responses - convert empty strings to None
     if questions_data.question_1_response is not None:
-        info_session.question_1_response = questions_data.question_1_response
+        info_session.question_1_response = questions_data.question_1_response.strip() if questions_data.question_1_response.strip() else None
     if questions_data.question_2_response is not None:
-        info_session.question_2_response = questions_data.question_2_response
+        info_session.question_2_response = questions_data.question_2_response.strip() if questions_data.question_2_response.strip() else None
     if questions_data.question_3_response is not None:
-        info_session.question_3_response = questions_data.question_3_response
+        info_session.question_3_response = questions_data.question_3_response.strip() if questions_data.question_3_response.strip() else None
     if questions_data.question_4_response is not None:
-        info_session.question_4_response = questions_data.question_4_response
+        info_session.question_4_response = questions_data.question_4_response.strip() if questions_data.question_4_response.strip() else None
     
     db.commit()
     db.refresh(info_session)
+    
+    print(f"✅ Saved responses for session {session_id}:")
+    print(f"   Q1: {info_session.question_1_response[:50] if info_session.question_1_response else 'None'}...")
+    print(f"   Q2: {info_session.question_2_response[:50] if info_session.question_2_response else 'None'}...")
+    print(f"   Q3: {info_session.question_3_response[:50] if info_session.question_3_response else 'None'}...")
+    print(f"   Q4: {info_session.question_4_response[:50] if info_session.question_4_response else 'None'}...")
     
     return {"message": "Interview questions updated successfully", "session_id": session_id}
 
@@ -674,6 +688,25 @@ async def list_info_sessions(
         result.append(session_data)
     return result
 
+
+@router.delete("/{session_id}")
+async def delete_info_session(
+    session_id: int,
+    db: Session = Depends(get_db)
+):
+    """Delete an info session"""
+    info_session = db.query(InfoSession).filter(InfoSession.id == session_id).first()
+    if not info_session:
+        raise HTTPException(status_code=404, detail="Info session not found")
+    
+    # Delete associated steps (cascade should handle this, but being explicit)
+    db.query(InfoSessionStep).filter(InfoSessionStep.info_session_id == session_id).delete()
+    
+    # Delete the session
+    db.delete(info_session)
+    db.commit()
+    
+    return {"message": "Info session deleted successfully", "session_id": session_id}
 
 @router.get("/exclusion-check/{first_name}/{last_name}")
 async def check_exclusion(
