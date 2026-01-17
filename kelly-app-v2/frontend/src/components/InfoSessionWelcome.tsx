@@ -38,29 +38,20 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
         setCurrentSessionData(latest)
         setSteps(latest.steps)
 
-        // Check if session was initiated (process begins after info session completion)
-        console.log('📡 Sync detected status:', latest.status, 'isCompleted:', isCompleted)
-        if (latest.status === 'initiated' && !isCompleted) {
-          console.log('✅ Setting isCompleted=true and showQuestions=true')
-          setIsCompleted(true)
-          setShowQuestions(true)
-          if (onSessionCompleted) {
-            onSessionCompleted()
-          }
-        }
+        // Only log, don't change state here to avoid conflicts with button handler
+        console.log('📡 Sync detected status:', latest.status)
       } catch (error) {
         console.error('Error syncing session:', error)
       }
     }
 
-    // Sync immediately
-    syncSession()
-
-    // Sync every 5 seconds
-    const interval = setInterval(syncSession, 5000)
-
-    return () => clearInterval(interval)
-  }, [sessionData.id, isCompleted, onSessionCompleted])
+    // Only sync if not yet completed (avoid interference)
+    if (!isCompleted) {
+      syncSession()
+      const interval = setInterval(syncSession, 5000)
+      return () => clearInterval(interval)
+    }
+  }, [sessionData.id, isCompleted])
 
   useEffect(() => {
     const allCompleted = steps.every(step => step.is_completed)
@@ -215,8 +206,8 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
             </div>
           )}
 
-
-          {showQuestions && (
+          {console.log('🎯 Rendering questions check - showQuestions:', showQuestions)}
+          {showQuestions ? (
             <div className="mt-8 p-6 bg-blue-50 border-2 border-blue-500 rounded-lg">
               <h2 className="text-2xl font-bold mb-6 text-blue-900">📋 Please Answer These Questions:</h2>
 
@@ -287,6 +278,8 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
                 </div>
               </div>
             </div>
+          ) : (
+            console.log('❌ Questions NOT showing because showQuestions is false')
           )}
 
           <div className="text-center">
