@@ -25,10 +25,10 @@ function getApiBaseUrl(): string {
     return url
   }
 
-  // For Railway production - hardcoded fallback if env var fails
+  // For Railway production - hardcoded backend URL
   if (hostname.includes('railway.app')) {
     const url = 'https://perceptive-nourishment-production-e92a.up.railway.app/api'
-    console.log('🚂 Using Railway backend (hardcoded fallback):', url)
+    console.log('🚂 Using Railway backend (hardcoded):', url)
     return url
   }
 
