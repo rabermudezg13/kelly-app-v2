@@ -22,4 +22,4 @@ COPY . .
 EXPOSE $PORT
 
 # Comando para iniciar el servidor
-CMD python -m uvicorn main:app --host 0.0.0.0 --port ${PORT:-3026}
+CMD sh -c "echo 'Starting server on port: '${PORT:-3026} && python -m uvicorn main:app --host 0.0.0.0 --port ${PORT:-3026}"
