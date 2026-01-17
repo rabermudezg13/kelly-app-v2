@@ -447,19 +447,23 @@ async def complete_info_session(
     # Mark as completed
     info_session.status = "completed"
     info_session.completed_at = datetime.utcnow()
-    
+
     # Calculate duration from registration (created_at) to completion (completed_at)
     if info_session.created_at:
         duration = info_session.completed_at - info_session.created_at
         info_session.duration_minutes = int(duration.total_seconds() / 60)
-    
+
     # Assign recruiter if not already assigned
     if not info_session.assigned_recruiter_id:
-        initialize_default_recruiters(db)
-        recruiter = get_next_recruiter(db, info_session.time_slot, date.today())
-        if recruiter:
-            info_session.assigned_recruiter_id = recruiter.id
-    
+        try:
+            initialize_default_recruiters(db)
+            recruiter = get_next_recruiter(db, info_session.time_slot, date.today())
+            if recruiter:
+                info_session.assigned_recruiter_id = recruiter.id
+        except Exception as e:
+            print(f"⚠️  Error assigning recruiter on completion: {e}")
+            # Continue anyway - completion is more important than assignment
+
     db.commit()
     db.refresh(info_session)
     
