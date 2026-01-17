@@ -129,8 +129,10 @@ app = FastAPI(
 
 # CORS configuration - TEMPORARY FIX: Allow all origins for Railway deployment
 import os
-print("🔧 RAILWAY DEPLOYMENT: Using permissive CORS for debugging")
+print("="*80)
+print("🔧 RAILWAY DEPLOYMENT v2: Using permissive CORS for debugging")
 print(f"🔧 Backend will accept requests from ANY origin")
+print("="*80)
 
 app.add_middleware(
     CORSMiddleware,
