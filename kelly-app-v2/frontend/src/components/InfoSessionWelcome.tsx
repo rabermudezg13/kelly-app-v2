@@ -15,6 +15,13 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
   const [isCompleting, setIsCompleting] = useState(false)
   const [isCompleted, setIsCompleted] = useState(false)
   const [currentSessionData, setCurrentSessionData] = useState(sessionData)
+  const [showQuestions, setShowQuestions] = useState(false)
+  const [questions, setQuestions] = useState({
+    q1: '',
+    q2: '',
+    q3: '',
+    q4: ''
+  })
 
   // Sync with backend periodically to get latest state
   useEffect(() => {
@@ -178,8 +185,8 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
                   completeInfoSession(sessionData.id)
                     .then(() => {
                       setIsCompleted(true)
-                      alert('Session completed!')
-                      if (onSessionCompleted) onSessionCompleted()
+                      setShowQuestions(true)
+                      alert('Session completed! Please answer the questions below.')
                     })
                     .catch((err) => {
                       console.error(err)
@@ -195,7 +202,7 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
             </div>
           )}
 
-          {isCompleted && (
+          {isCompleted && !showQuestions && (
             <div className="mb-6 p-6 bg-green-50 border-l-4 border-green-500 rounded-lg">
               <p className="text-green-800 font-bold text-lg mb-2">
                 ✅ Info Session Completed
@@ -208,6 +215,79 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
                   Assigned Recruiter: <span className="font-bold">{currentSessionData.assigned_recruiter_name}</span>
                 </p>
               )}
+            </div>
+          )}
+
+          {showQuestions && (
+            <div className="mt-8 p-6 bg-blue-50 border-2 border-blue-500 rounded-lg">
+              <h2 className="text-2xl font-bold mb-6 text-blue-900">Please Answer These Questions:</h2>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-gray-800 font-semibold mb-2">
+                    1. Tell me about a time where you were asked to sub for another instructor or were asked to fill in for someone and the instructions were either missing or illegible. What did you do in this situation? What was the outcome? Would you handle this situation differently and why?
+                  </label>
+                  <textarea
+                    value={questions.q1}
+                    onChange={(e) => setQuestions({...questions, q1: e.target.value})}
+                    rows={4}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="Your answer..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-800 font-semibold mb-2">
+                    2. Tell me about a time when you lost order or control either in a classroom or similar environment. What did you do to regain the students' or group's attention? What was the outcome of your efforts? How would you handle this situation differently based on the outcome and why?
+                  </label>
+                  <textarea
+                    value={questions.q2}
+                    onChange={(e) => setQuestions({...questions, q2: e.target.value})}
+                    rows={4}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="Your answer..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-800 font-semibold mb-2">
+                    3. What would you do if you had warned a student about his/her behavior and the student continued to misbehave?
+                  </label>
+                  <textarea
+                    value={questions.q3}
+                    onChange={(e) => setQuestions({...questions, q3: e.target.value})}
+                    rows={4}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="Your answer..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-800 font-semibold mb-2">
+                    4. If you disagreed with the policies or procedures of the school/school district/Center in which you were working, what would you do?
+                  </label>
+                  <textarea
+                    value={questions.q4}
+                    onChange={(e) => setQuestions({...questions, q4: e.target.value})}
+                    rows={4}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="Your answer..."
+                  />
+                </div>
+
+                <div className="text-center pt-4">
+                  <button
+                    onClick={() => {
+                      alert('Questions submitted! Thank you.')
+                      setShowQuestions(false)
+                      if (onSessionCompleted) onSessionCompleted()
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg"
+                  >
+                    Submit Answers
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
