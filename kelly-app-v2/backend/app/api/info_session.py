@@ -436,38 +436,47 @@ async def complete_info_session(
     session_id: int,
     db: Session = Depends(get_db)
 ):
-    """Mark info session as completed and assign recruiter"""
-    info_session = db.query(InfoSession).filter(InfoSession.id == session_id).first()
-    if not info_session:
-        raise HTTPException(status_code=404, detail="Info session not found")
-    
-    if info_session.status == "completed":
-        return {"message": "Session already completed", "session_id": session_id}
-    
-    # Mark as completed
-    info_session.status = "completed"
-    info_session.completed_at = datetime.utcnow()
+    """Mark info session as completed"""
+    try:
+        info_session = db.query(InfoSession).filter(InfoSession.id == session_id).first()
+        if not info_session:
+            raise HTTPException(status_code=404, detail="Info session not found")
 
-    # Calculate duration from registration (created_at) to completion (completed_at)
-    if info_session.created_at:
-        duration = info_session.completed_at - info_session.created_at
-        info_session.duration_minutes = int(duration.total_seconds() / 60)
+        if info_session.status == "completed":
+            return {"message": "Session already completed", "session_id": session_id}
 
-    # Assign recruiter if not already assigned
-    if not info_session.assigned_recruiter_id:
+        # Mark as completed - THIS IS THE MOST IMPORTANT PART
+        info_session.status = "completed"
+        info_session.completed_at = datetime.utcnow()
+
+        # Try to calculate duration (non-critical)
         try:
-            initialize_default_recruiters(db)
-            recruiter = get_next_recruiter(db, info_session.time_slot, date.today())
-            if recruiter:
-                info_session.assigned_recruiter_id = recruiter.id
-        except Exception as e:
-            print(f"⚠️  Error assigning recruiter on completion: {e}")
-            # Continue anyway - completion is more important than assignment
+            if info_session.created_at:
+                duration = info_session.completed_at - info_session.created_at
+                info_session.duration_minutes = int(duration.total_seconds() / 60)
+        except:
+            pass
 
-    db.commit()
-    db.refresh(info_session)
-    
-    return {"message": "Info session completed successfully", "session_id": session_id}
+        # Try to assign recruiter (non-critical)
+        try:
+            if not info_session.assigned_recruiter_id:
+                initialize_default_recruiters(db)
+                recruiter = get_next_recruiter(db, info_session.time_slot, date.today())
+                if recruiter:
+                    info_session.assigned_recruiter_id = recruiter.id
+        except:
+            pass
+
+        db.commit()
+        db.refresh(info_session)
+
+        return {"message": "Info session completed successfully", "session_id": session_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"ERROR completing session {session_id}: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 class InterviewQuestionsUpdate(BaseModel):
     question_1_response: Optional[str] = None
