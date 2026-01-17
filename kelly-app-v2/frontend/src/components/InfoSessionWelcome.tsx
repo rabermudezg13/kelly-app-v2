@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { completeStep, completeInfoSession, getInfoSession, updateInterviewQuestions, downloadAnswersPDF } from '../services/api'
+import { completeStep, completeInfoSession, getInfoSession } from '../services/api'
 import type { InfoSessionWithSteps } from '../types'
 
 interface Props {
@@ -15,15 +15,6 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
   const [isCompleting, setIsCompleting] = useState(false)
   const [isCompleted, setIsCompleted] = useState(false)
   const [currentSessionData, setCurrentSessionData] = useState(sessionData)
-  const [showQuestionsForm, setShowQuestionsForm] = useState(false)
-  const [questions, setQuestions] = useState({
-    question_1: '',
-    question_2: '',
-    question_3: '',
-    question_4: ''
-  })
-  const [isSavingQuestions, setIsSavingQuestions] = useState(false)
-  const [questionsSaved, setQuestionsSaved] = useState(false)
 
   // Sync with backend periodically to get latest state
   useEffect(() => {
@@ -32,18 +23,7 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
         const latest = await getInfoSession(sessionData.id)
         setCurrentSessionData(latest)
         setSteps(latest.steps)
-        
-        // Load existing question responses if any
-        if (latest.question_1_response || latest.question_2_response || latest.question_3_response || latest.question_4_response) {
-          setQuestions({
-            question_1: latest.question_1_response || '',
-            question_2: latest.question_2_response || '',
-            question_3: latest.question_3_response || '',
-            question_4: latest.question_4_response || ''
-          })
-          setQuestionsSaved(true)
-        }
-        
+
         // Check if session was completed
         if (latest.status === 'completed' && !isCompleted) {
           setIsCompleted(true)
@@ -68,8 +48,7 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
   useEffect(() => {
     const allCompleted = steps.every(step => step.is_completed)
     setAllStepsCompleted(allCompleted)
-    // Don't automatically show questions - wait for user to click "Info Session Completed"
-  }, [steps, isCompleted])
+  }, [steps])
 
   const handleStepComplete = async (stepName: string) => {
     try {
@@ -93,29 +72,6 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
     }
   }
 
-  const handleSaveQuestions = async () => {
-    try {
-      setIsSavingQuestions(true)
-      await updateInterviewQuestions(sessionData.id, {
-        question_1_response: questions.question_1,
-        question_2_response: questions.question_2,
-        question_3_response: questions.question_3,
-        question_4_response: questions.question_4
-      })
-      
-      // Don't download PDF for visitors - only save the answers
-      // The PDF will be available for recruiters in the dashboard
-      
-      setQuestionsSaved(true)
-      alert('Questions saved successfully!')
-    } catch (error: any) {
-      console.error('Error saving questions:', error)
-      alert(`Error saving questions: ${error.response?.data?.detail || error.message}`)
-    } finally {
-      setIsSavingQuestions(false)
-    }
-  }
-
   const handleCompleteSession = async () => {
     if (!allStepsCompleted) {
       alert('Please complete all steps before marking the session as completed.')
@@ -126,34 +82,17 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
       return
     }
 
-    // Save questions before completing session
-    if (showQuestionsForm && (questions.question_1 || questions.question_2 || questions.question_3 || questions.question_4)) {
-      try {
-        await updateInterviewQuestions(sessionData.id, {
-          question_1_response: questions.question_1,
-          question_2_response: questions.question_2,
-          question_3_response: questions.question_3,
-          question_4_response: questions.question_4
-        })
-      } catch (error: any) {
-        console.error('Error saving questions before completion:', error)
-        // Continue with completion even if questions save fails
-      }
-    }
-
     try {
       setIsCompleting(true)
       await completeInfoSession(sessionData.id)
       setIsCompleted(true)
-      
-      // Clear localStorage
+
       if (onSessionCompleted) {
         onSessionCompleted()
       }
-      
-      alert('Info Session marked as completed! You will now appear in the completed sessions list.')
-      
-      // Sync with backend to get latest state
+
+      alert('Info Session marked as completed!')
+
       const latest = await getInfoSession(sessionData.id)
       setCurrentSessionData(latest)
       setSteps(latest.steps)
@@ -242,98 +181,21 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
             </div>
           </div>
 
-          {/* Show warning and button FIRST, before questions */}
-          {allStepsCompleted && !isCompleted && !showQuestionsForm && (
+          {allStepsCompleted && !isCompleted && (
             <div className="mb-6 p-6 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
               <p className="text-yellow-800 font-bold text-lg mb-4">
                 ⚠️ Please do not close this screen until you complete the Info Session
               </p>
               <p className="text-yellow-700 mb-4">
-                Once the Info Session is finished, please click the button below to continue.
+                Once the Info Session is finished, click the button below to mark it as completed.
               </p>
               <div className="text-center">
                 <button
-                  onClick={() => setShowQuestionsForm(true)}
-                  className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-bold text-lg"
-                >
-                  Info Session Completed - Continue
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Show questions AFTER clicking the button */}
-          {allStepsCompleted && !isCompleted && showQuestionsForm && (
-            <div className="mb-6 p-6 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
-              <h2 className="text-2xl font-bold mb-4 text-gray-800">
-                Please answer the following questions:
-              </h2>
-
-              <div className="space-y-6">
-                {/* Question 1 */}
-                <div>
-                  <label className="block text-gray-700 font-semibold mb-2">
-                    1. Tell me about a time where you were asked to sub for another instructor or were asked to fill in for someone and the instructions were either missing or illegible. What did you do in this situation? What was the outcome? Would you handle this situation differently and why?
-                  </label>
-                  <textarea
-                    value={questions.question_1}
-                    onChange={(e) => setQuestions({ ...questions, question_1: e.target.value })}
-                    rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter your response here..."
-                  />
-                </div>
-
-                {/* Question 2 */}
-                <div>
-                  <label className="block text-gray-700 font-semibold mb-2">
-                    2. Tell me about a time when you lost order or control either in a classroom or similar environment. What did you do to regain the students' or group's attention? What was the outcome of your efforts? How would you handle this situation differently based on the outcome and why?
-                  </label>
-                  <textarea
-                    value={questions.question_2}
-                    onChange={(e) => setQuestions({ ...questions, question_2: e.target.value })}
-                    rows={6}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter your response here..."
-                  />
-                </div>
-
-                {/* Question 3 */}
-                <div>
-                  <label className="block text-gray-700 font-semibold mb-2">
-                    3. What would you do if you had warned a student about his/her behavior and the student continued to misbehave?
-                  </label>
-                  <textarea
-                    value={questions.question_3}
-                    onChange={(e) => setQuestions({ ...questions, question_3: e.target.value })}
-                    rows={6}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter your response here..."
-                  />
-                </div>
-
-                {/* Question 4 */}
-                <div>
-                  <label className="block text-gray-700 font-semibold mb-2">
-                    4. If you disagreed with the policies or procedures of the school/school district/Center in which you were working, what would you do?
-                  </label>
-                  <textarea
-                    value={questions.question_4}
-                    onChange={(e) => setQuestions({ ...questions, question_4: e.target.value })}
-                    rows={6}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter your response here..."
-                  />
-                </div>
-              </div>
-
-              <div className="mt-6 flex gap-4 justify-end">
-                <button
                   onClick={handleCompleteSession}
                   disabled={isCompleting}
-                  className="px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isCompleting ? 'Submitting...' : 'Submit Answers and Complete'}
+                  {isCompleting ? 'Completing...' : 'Complete Info Session'}
                 </button>
               </div>
             </div>
