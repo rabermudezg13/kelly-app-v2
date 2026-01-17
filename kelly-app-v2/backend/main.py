@@ -127,31 +127,18 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# CORS configuration - Load from environment variables
+# CORS configuration - TEMPORARY FIX: Allow all origins
 import os
-# Permitir acceso desde cualquier origen en desarrollo (para acceso desde red local)
-# En producción, usar CORS_ORIGINS con dominios específicos
-cors_origins_str = os.getenv("CORS_ORIGINS", "")
-print(f"🔧 CORS_ORIGINS environment variable: '{cors_origins_str}'")
-
-if cors_origins_str:
-    cors_origins = [origin.strip() for origin in cors_origins_str.split(",") if origin.strip()]
-    allow_credentials = True
-    print(f"✅ CORS configured with specific origins: {cors_origins}")
-else:
-    # Default: allow all origins but disable credentials
-    cors_origins = ["*"]
-    allow_credentials = False
-    print("⚠️  CORS configured with wildcard (*) - credentials disabled")
+print("🔧 Using permissive CORS for debugging")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=cors_origins,
-    allow_credentials=allow_credentials,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-print(f"✅ CORS middleware configured: origins={cors_origins}, credentials={allow_credentials}")
+print("✅ CORS middleware configured: allow_origins=['*'], credentials=False")
 
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
