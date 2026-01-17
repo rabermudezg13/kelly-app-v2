@@ -173,11 +173,24 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
           {allStepsCompleted && !isCompleted && (
             <div className="mt-8 text-center">
               <button
-                onClick={finishSession}
+                onClick={() => {
+                  setIsCompleting(true)
+                  completeInfoSession(sessionData.id)
+                    .then(() => {
+                      setIsCompleted(true)
+                      alert('Session completed!')
+                      if (onSessionCompleted) onSessionCompleted()
+                    })
+                    .catch((err) => {
+                      console.error(err)
+                      alert('Error: ' + (err.message || 'Unknown error'))
+                      setIsCompleting(false)
+                    })
+                }}
                 disabled={isCompleting}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg text-xl"
+                className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-lg text-xl disabled:opacity-50"
               >
-                {isCompleting ? 'Processing...' : 'Finish Session'}
+                {isCompleting ? 'Wait...' : 'COMPLETE SESSION'}
               </button>
             </div>
           )}
