@@ -148,6 +148,19 @@ from starlette.requests import Request
 
 class ForceCORSMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        # Handle preflight OPTIONS requests
+        if request.method == "OPTIONS":
+            from fastapi.responses import Response
+            return Response(
+                status_code=200,
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "*",
+                    "Access-Control-Allow-Headers": "*",
+                    "Access-Control-Max-Age": "3600",
+                }
+            )
+
         response = await call_next(request)
         response.headers["Access-Control-Allow-Origin"] = "*"
         response.headers["Access-Control-Allow-Methods"] = "*"
@@ -155,7 +168,7 @@ class ForceCORSMiddleware(BaseHTTPMiddleware):
         return response
 
 app.add_middleware(ForceCORSMiddleware)
-print("✅ CORS configured: allow_origins=['*'] + Force CORS headers middleware")
+print("✅ CORS configured: allow_origins=['*'] + Force CORS with OPTIONS handler")
 
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
