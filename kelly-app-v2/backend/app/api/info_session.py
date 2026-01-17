@@ -436,17 +436,17 @@ async def complete_info_session(
     session_id: int,
     db: Session = Depends(get_db)
 ):
-    """Mark info session as completed"""
+    """Mark info session as initiated (process begins after completing info session)"""
     try:
         info_session = db.query(InfoSession).filter(InfoSession.id == session_id).first()
         if not info_session:
             raise HTTPException(status_code=404, detail="Info session not found")
 
-        if info_session.status == "completed":
-            return {"message": "Session already completed", "session_id": session_id}
+        if info_session.status == "initiated":
+            return {"message": "Session already initiated", "session_id": session_id}
 
-        # Mark as completed - THIS IS THE MOST IMPORTANT PART
-        info_session.status = "completed"
+        # Mark as initiated - the process begins when info session is completed
+        info_session.status = "initiated"
         info_session.completed_at = datetime.utcnow()
 
         # Try to calculate duration (non-critical)
@@ -470,7 +470,7 @@ async def complete_info_session(
         db.commit()
         db.refresh(info_session)
 
-        return {"message": "Info session completed successfully", "session_id": session_id}
+        return {"message": "Info session completed - process initiated", "session_id": session_id}
     except HTTPException:
         raise
     except Exception as e:

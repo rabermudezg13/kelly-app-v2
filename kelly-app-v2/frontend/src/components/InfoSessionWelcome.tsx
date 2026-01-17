@@ -31,8 +31,8 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
         setCurrentSessionData(latest)
         setSteps(latest.steps)
 
-        // Check if session was completed
-        if (latest.status === 'completed' && !isCompleted) {
+        // Check if session was initiated (process begins after info session completion)
+        if (latest.status === 'initiated' && !isCompleted) {
           setIsCompleted(true)
           setShowQuestions(true)
           if (onSessionCompleted) {
