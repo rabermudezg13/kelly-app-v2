@@ -72,33 +72,22 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
     }
   }
 
-  const handleCompleteSession = async () => {
-    if (!allStepsCompleted) {
-      alert('Please complete all steps before marking the session as completed.')
-      return
-    }
+  const finishSession = async () => {
+    if (isCompleting || isCompleted) return
 
-    if (isCompleting || isCompleted) {
-      return
-    }
+    setIsCompleting(true)
 
     try {
-      setIsCompleting(true)
-      await completeInfoSession(sessionData.id)
+      const response = await completeInfoSession(sessionData.id)
       setIsCompleted(true)
+      alert('Session completed successfully!')
 
       if (onSessionCompleted) {
         onSessionCompleted()
       }
-
-      alert('Info Session marked as completed!')
-
-      const latest = await getInfoSession(sessionData.id)
-      setCurrentSessionData(latest)
-      setSteps(latest.steps)
-    } catch (error: any) {
-      console.error('Error completing session:', error)
-      alert(`Error completing session: ${error.response?.data?.detail || error.message}`)
+    } catch (err) {
+      console.error('Error:', err)
+      alert('Error completing session')
     } finally {
       setIsCompleting(false)
     }
@@ -182,22 +171,14 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
           </div>
 
           {allStepsCompleted && !isCompleted && (
-            <div className="mb-6 p-6 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
-              <p className="text-yellow-800 font-bold text-lg mb-4">
-                ⚠️ Please do not close this screen until you complete the Info Session
-              </p>
-              <p className="text-yellow-700 mb-4">
-                Once the Info Session is finished, click the button below to mark it as completed.
-              </p>
-              <div className="text-center">
-                <button
-                  onClick={handleCompleteSession}
-                  disabled={isCompleting}
-                  className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isCompleting ? 'Completing...' : 'Complete Info Session'}
-                </button>
-              </div>
+            <div className="mt-8 text-center">
+              <button
+                onClick={finishSession}
+                disabled={isCompleting}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg text-xl"
+              >
+                {isCompleting ? 'Processing...' : 'Finish Session'}
+              </button>
             </div>
           )}
 
