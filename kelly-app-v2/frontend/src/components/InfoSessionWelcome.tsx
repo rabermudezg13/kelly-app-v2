@@ -34,6 +34,7 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
         // Check if session was completed
         if (latest.status === 'completed' && !isCompleted) {
           setIsCompleted(true)
+          setShowQuestions(true)
           if (onSessionCompleted) {
             onSessionCompleted()
           }
@@ -45,10 +46,10 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
 
     // Sync immediately
     syncSession()
-    
+
     // Sync every 5 seconds
     const interval = setInterval(syncSession, 5000)
-    
+
     return () => clearInterval(interval)
   }, [sessionData.id, isCompleted, onSessionCompleted])
 
@@ -202,21 +203,6 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
             </div>
           )}
 
-          {isCompleted && !showQuestions && (
-            <div className="mb-6 p-6 bg-green-50 border-l-4 border-green-500 rounded-lg">
-              <p className="text-green-800 font-bold text-lg mb-2">
-                ✅ Info Session Completed
-              </p>
-              <p className="text-green-700 mb-2">
-                Your session has been marked as completed and will appear in the completed sessions list.
-              </p>
-              {currentSessionData.assigned_recruiter_name && (
-                <p className="text-green-800 font-semibold">
-                  Assigned Recruiter: <span className="font-bold">{currentSessionData.assigned_recruiter_name}</span>
-                </p>
-              )}
-            </div>
-          )}
 
           {showQuestions && (
             <div className="mt-8 p-6 bg-blue-50 border-2 border-blue-500 rounded-lg">
