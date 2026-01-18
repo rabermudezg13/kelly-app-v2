@@ -122,8 +122,8 @@ function NewHireOrientationWelcome({ orientationData, onOrientationCompleted }: 
               <div className="flex flex-wrap gap-3 mt-3">
                 {steps.map((step, index) => (
                   <div 
-                    key={`sticky-step-${index}`}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all ${
+                    key={`sticky-step-${step.step_name}`}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-colors flex-shrink-0 min-w-fit ${
                       step.is_completed
                         ? 'bg-green-100 border-green-500 shadow-sm'
                         : 'bg-gray-100 border-gray-300'
