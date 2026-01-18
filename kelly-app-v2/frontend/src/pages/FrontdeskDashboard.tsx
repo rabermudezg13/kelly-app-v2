@@ -51,6 +51,7 @@ function FrontdeskDashboard() {
       switch (activeTab) {
         case 'info-session':
           const live = await getLiveInfoSessions()
+          console.log('📊 FrontdeskDashboard: Loaded live sessions:', live.length)
           setLiveSessions(live)
           break
         case 'info-session-completed':
@@ -88,6 +89,7 @@ function FrontdeskDashboard() {
       switch (activeTab) {
         case 'info-session':
           const live = await getLiveInfoSessions()
+          console.log('🔄 FrontdeskDashboard: Refreshed live sessions:', live.length)
           setLiveSessions(live)
           break
         case 'info-session-completed':
