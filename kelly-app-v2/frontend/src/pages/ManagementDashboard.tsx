@@ -28,7 +28,7 @@ function ManagementDashboard() {
       refreshDataInBackground()
     }, 5000)
     return () => clearInterval(interval)
-  }, [activeTab])
+  }, [activeTab, refreshDataInBackground])
 
   const checkAuth = async () => {
     const token = localStorage.getItem('token')

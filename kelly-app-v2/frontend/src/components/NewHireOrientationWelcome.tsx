@@ -108,7 +108,7 @@ function NewHireOrientationWelcome({ orientationData, onOrientationCompleted }: 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-500 to-green-700 py-8">
       <div className="container mx-auto px-4 max-w-4xl">
-        <div className="bg-white rounded-lg shadow-lg p-8">
+        <div className="bg-white rounded-lg shadow-lg p-8" style={{ maxHeight: 'calc(100vh - 64px)', overflowY: 'auto' }}>
           <h1 className="text-4xl font-bold text-center mb-6 text-gray-800">
             Welcome to New Hire Orientation
           </h1>

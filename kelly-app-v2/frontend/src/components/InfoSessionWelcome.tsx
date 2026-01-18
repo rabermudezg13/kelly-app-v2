@@ -227,8 +227,8 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-500 to-green-700 py-8">
-      <div className="container mx-auto px-4 max-w-4xl" style={{ overflowY: 'auto' }}>
-        <div className="bg-white rounded-lg shadow-lg p-8">
+      <div className="container mx-auto px-4 max-w-4xl">
+        <div className="bg-white rounded-lg shadow-lg p-8" style={{ maxHeight: 'calc(100vh - 64px)', overflowY: 'auto' }}>
           <h1 className="text-4xl font-bold text-center mb-6 text-gray-800">
             Welcome to Kelly Education Miami Dade
           </h1>
@@ -255,8 +255,8 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
             </p>
           </div>
 
-          <div className="mb-8" style={{ position: 'relative' }}>
-            <div className="bg-white z-50 py-4 mb-4 border-b-2 border-gray-300 shadow-lg" style={{ position: 'sticky', top: 0, width: '100%' }}>
+          <div className="mb-8">
+            <div className="bg-white z-50 py-4 mb-4 border-b-2 border-gray-300 shadow-lg" style={{ position: 'sticky', top: 0, zIndex: 50, backgroundColor: 'white' }}>
               <h2 className="text-2xl font-bold text-gray-800 mb-3">
                 Follow the steps below and check each step as you complete each stage:
               </h2>
