@@ -113,10 +113,51 @@ function NewHireOrientationWelcome({ orientationData, onOrientationCompleted }: 
             Welcome to New Hire Orientation
           </h1>
 
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">
-              Please read and confirm each requirement below:
-            </h2>
+          <div className="mb-8 relative">
+            <div className="sticky top-0 bg-white z-20 py-4 mb-4 border-b-2 border-gray-300 shadow-lg -mx-8 px-8">
+              <h2 className="text-2xl font-bold text-gray-800 mb-3">
+                Please read and confirm each requirement below:
+              </h2>
+              {/* Compact view of all checkboxes when sticky */}
+              <div className="flex flex-wrap gap-3 mt-3">
+                {steps.map((step, index) => (
+                  <div 
+                    key={`sticky-step-${index}`}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all ${
+                      step.is_completed
+                        ? 'bg-green-100 border-green-500 shadow-sm'
+                        : 'bg-gray-100 border-gray-300'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      id={`sticky-step-${index}`}
+                      checked={step.is_completed}
+                      onChange={(e) => {
+                        e.preventDefault()
+                        if (!step.is_completed) {
+                          handleStepComplete(step.step_name)
+                        }
+                      }}
+                      className={`w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 ${
+                        step.is_completed ? 'cursor-not-allowed' : 'cursor-pointer'
+                      }`}
+                      disabled={step.is_completed}
+                      style={{ pointerEvents: step.is_completed ? 'none' : 'auto' }}
+                    />
+                    <label 
+                      htmlFor={`sticky-step-${index}`}
+                      className={`text-sm font-semibold cursor-pointer select-none ${
+                        step.is_completed ? 'text-green-700' : 'text-gray-700'
+                      }`}
+                    >
+                      Step {index + 1}
+                      {step.is_completed && <span className="ml-1">✓</span>}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
             
             <div className="space-y-4">
               {steps.map((step, index) => (
