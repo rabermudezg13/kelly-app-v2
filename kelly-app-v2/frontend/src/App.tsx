@@ -8,6 +8,7 @@ import BadgePage from './pages/BadgePage'
 import TeamVisitPage from './pages/TeamVisitPage'
 import StaffLoginPage from './pages/StaffLoginPage'
 import StaffDashboard from './pages/StaffDashboard'
+import ManagementDashboard from './pages/ManagementDashboard'
 import AdminLoginPage from './pages/AdminLoginPage'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminInfoSessionConfig from './pages/AdminInfoSessionConfig'
@@ -29,6 +30,7 @@ function App() {
         <Route path="/team-visit" element={<TeamVisitPage />} />
         <Route path="/staff/login" element={<StaffLoginPage />} />
         <Route path="/staff/dashboard" element={<StaffDashboard />} />
+        <Route path="/management/dashboard" element={<ManagementDashboard />} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/info-session-config" element={<AdminInfoSessionConfig />} />
