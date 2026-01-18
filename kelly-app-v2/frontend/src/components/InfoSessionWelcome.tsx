@@ -46,7 +46,26 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
       try {
         const latest = await getInfoSession(sessionData.id)
         setCurrentSessionData(latest)
-        setSteps(latest.steps)
+        
+        // Only update steps if backend has changes (don't overwrite optimistic local updates)
+        // Compare current steps with latest steps to see if there are real changes
+        const currentStepMap = new Map(steps.map(s => [s.step_name, s.is_completed]))
+        const latestStepMap = new Map(latest.steps.map(s => [s.step_name, s.is_completed]))
+        
+        // Check if any step status changed on the backend
+        let hasChanges = false
+        for (const [stepName, isCompleted] of latestStepMap) {
+          if (currentStepMap.get(stepName) !== isCompleted) {
+            hasChanges = true
+            break
+          }
+        }
+        
+        // Only update if backend has changes we don't have locally
+        if (hasChanges) {
+          console.log('🔄 Backend has step changes, updating steps')
+          setSteps(latest.steps)
+        }
 
         // Show questions if session is completed OR if there are responses
         const shouldShowQuestions = latest.status === 'completed' || 
