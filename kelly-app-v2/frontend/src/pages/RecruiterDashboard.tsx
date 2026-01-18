@@ -1217,8 +1217,13 @@ function RecruiterDashboard() {
         const colNameLower = col.name.toLowerCase().trim()
         const colNameUpper = col.name.toUpperCase().trim()
         
+        // Map Talent Email FIRST (before date/number checks) - exact match or contains both "talent" and "email"
+        if (colNameLower === 'talent email' || (colNameLower.includes('talent') && colNameLower.includes('email'))) {
+          initialData[col.name] = session.email
+          console.log('✅ Mapped Talent Email:', col.name, '→', session.email)
+        }
         // Leave FP expiration date blank
-        if (colNameLower.includes('fp') && colNameLower.includes('expiration')) {
+        else if (colNameLower.includes('fp') && colNameLower.includes('expiration')) {
           initialData[col.name] = ''  // Leave blank
         } 
         // Map Applicant Name
@@ -1229,23 +1234,19 @@ function RecruiterDashboard() {
         else if (colNameLower === 'talent phone' || (colNameLower.includes('talent') && colNameLower.includes('phone'))) {
           initialData[col.name] = session.phone
         } 
-        // Map Talent Email
-        else if (colNameLower === 'talent email' || (colNameLower.includes('talent') && colNameLower.includes('email'))) {
-          initialData[col.name] = session.email
-        } 
         // Fallback for other phone/numero patterns
         else if (colNameLower.includes('numero') || (colNameLower.includes('phone') && colNameLower.includes('numero'))) {
           initialData[col.name] = session.phone
         } 
-        // Fallback for other email patterns - but exclude "Onboarding Introduction Email"
-        else if (colNameLower.includes('email') && !colNameLower.includes('talent') && !colNameLower.includes('onboarding introduction')) {
+        // Fallback for other email patterns - but exclude "Onboarding Introduction Email" and ensure it's not a date/number field
+        else if (colNameLower.includes('email') && !colNameLower.includes('talent') && !colNameLower.includes('onboarding introduction') && col.column_type !== 'date' && col.column_type !== 'number') {
           initialData[col.name] = session.email
         } 
         // Map recruiter initials to R and O columns
         else if (colNameUpper === 'R' || colNameUpper === 'O') {
           initialData[col.name] = recruiterInitials
         } 
-        // Set date fields to today
+        // Set date fields to today (only if not already set)
         else if (col.column_type === 'date') {
           initialData[col.name] = new Date().toISOString().split('T')[0]
         } 
@@ -1327,8 +1328,13 @@ function RecruiterDashboard() {
         const colNameLower = col.name.toLowerCase().trim()
         const colNameUpper = col.name.toUpperCase().trim()
         
+        // Map Talent Email FIRST (before date/number checks) - exact match or contains both "talent" and "email"
+        if (colNameLower === 'talent email' || (colNameLower.includes('talent') && colNameLower.includes('email'))) {
+          initialData[col.name] = selectedSession.email
+          console.log('✅ Mapped Talent Email:', col.name, '→', selectedSession.email)
+        }
         // Leave FP expiration date blank
-        if (colNameLower.includes('fp') && colNameLower.includes('expiration')) {
+        else if (colNameLower.includes('fp') && colNameLower.includes('expiration')) {
           initialData[col.name] = ''
         } 
         // Map Applicant Name
@@ -1339,23 +1345,19 @@ function RecruiterDashboard() {
         else if (colNameLower === 'talent phone' || (colNameLower.includes('talent') && colNameLower.includes('phone'))) {
           initialData[col.name] = selectedSession.phone
         } 
-        // Map Talent Email
-        else if (colNameLower === 'talent email' || (colNameLower.includes('talent') && colNameLower.includes('email'))) {
-          initialData[col.name] = selectedSession.email
-        } 
         // Fallback for other phone/numero patterns
         else if (colNameLower.includes('numero') || (colNameLower.includes('phone') && colNameLower.includes('numero'))) {
           initialData[col.name] = selectedSession.phone
         } 
-        // Fallback for other email patterns - but exclude "Onboarding Introduction Email"
-        else if (colNameLower.includes('email') && !colNameLower.includes('talent') && !colNameLower.includes('onboarding introduction')) {
+        // Fallback for other email patterns - but exclude "Onboarding Introduction Email" and ensure it's not a date/number field
+        else if (colNameLower.includes('email') && !colNameLower.includes('talent') && !colNameLower.includes('onboarding introduction') && col.column_type !== 'date' && col.column_type !== 'number') {
           initialData[col.name] = selectedSession.email
         } 
         // Map recruiter initials to R and O columns
         else if (colNameUpper === 'R' || colNameUpper === 'O') {
           initialData[col.name] = recruiterInitials
         } 
-        // Set date fields to today
+        // Set date fields to today (only if not already set)
         else if (col.column_type === 'date') {
           initialData[col.name] = new Date().toISOString().split('T')[0]
         } 
