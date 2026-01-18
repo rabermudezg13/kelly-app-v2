@@ -91,9 +91,26 @@ def get_next_recruiter(db: Session, time_slot: str, session_date: date = None) -
             if total_assignments.get(recruiter.id, 0) == min_total
         ]
     
-    # Return first candidate (or random if still multiple)
-    import random
-    return random.choice(candidates) if candidates else available_recruiters[0]
+    # If still multiple candidates with same assignments, use round-robin
+    # Sort consistently by ID to ensure fair rotation
+    if len(candidates) > 1:
+        candidates.sort(key=lambda r: r.id)
+        
+        # Count all sessions for today (including completed) to determine round-robin position
+        # This ensures fair rotation even when all have same active assignments
+        all_sessions_today = db.query(InfoSession).filter(
+            func.date(InfoSession.created_at) == session_date
+        ).count()
+        
+        # Use modulo to rotate through candidates
+        selected_index = all_sessions_today % len(candidates)
+        selected_recruiter = candidates[selected_index]
+        
+        print(f"🔄 Round-robin selection: {len(candidates)} candidates, total sessions today: {all_sessions_today}, selected index: {selected_index}, recruiter: {selected_recruiter.name}")
+        return selected_recruiter
+    
+    # Return the single candidate or first available recruiter
+    return candidates[0] if candidates else available_recruiters[0]
 
 def initialize_default_recruiters(db: Session):
     """
