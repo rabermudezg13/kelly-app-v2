@@ -640,12 +640,12 @@ function RecruiterDashboard() {
                               onClick={async (e) => {
                                 e.stopPropagation()
                                 const confirmed = window.confirm(
-                                  `¿Estás seguro de que quieres borrar el registro de ${session.first_name} ${session.last_name}?\n\nEsta acción no se puede deshacer.`
+                                  `Are you sure you want to delete the registration for ${session.first_name} ${session.last_name}?\n\nThis action cannot be undone.`
                                 )
                                 if (confirmed) {
                                   try {
                                     await deleteInfoSession(session.id)
-                                    alert('Registro borrado exitosamente')
+                                    alert('Registration deleted successfully')
                                     // Reload data
                                     await loadData()
                                     // Also refresh all info sessions
@@ -653,14 +653,14 @@ function RecruiterDashboard() {
                                     setAllInfoSessions(allSessions || [])
                                   } catch (error: any) {
                                     console.error('Error deleting session:', error)
-                                    alert(`Error al borrar: ${error.response?.data?.detail || error.message || 'Unknown error'}`)
+                                    alert(`Error deleting registration: ${error.response?.data?.detail || error.message || 'Unknown error'}`)
                                   }
                                 }
                               }}
                               className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm font-semibold transition-colors"
-                              title="Borrar registro"
+                              title="Delete registration"
                             >
-                              🗑️ Borrar
+                              🗑️ Delete
                             </button>
                           </td>
                         </tr>
@@ -692,10 +692,20 @@ function RecruiterDashboard() {
     // Sort date keys (most recent first)
     const sortedDateKeys = Object.keys(groupedVisits).sort().reverse()
     
+    // Count unread/pending visits
+    const unreadVisits = myVisits.filter(v => v.status === 'pending')
+    
     return (
       <div className="space-y-4">
         <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 flex justify-between items-center">
-          <p className="text-blue-800 font-bold">👥 My Visits</p>
+          <div className="flex items-center gap-3">
+            <p className="text-blue-800 font-bold">👥 My Visits</p>
+            {unreadVisits.length > 0 && (
+              <span className="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">
+                🔔 {unreadVisits.length} New
+              </span>
+            )}
+          </div>
           <button
             onClick={async () => {
               try {
@@ -1176,11 +1186,19 @@ function RecruiterDashboard() {
       questions: session.questions,
     })
     
+    // Ensure template is selected - use first template if none selected
+    let templateToUse = selectedTemplate
+    if (!templateToUse && templates.length > 0) {
+      templateToUse = templates[0]
+      setSelectedTemplate(templates[0])
+      console.log('✅ Auto-selected first template:', templates[0].name)
+    }
+    
     // Load row data if session has a generated_row
-    if (session.generated_row && selectedTemplate) {
+    if (session.generated_row && templateToUse) {
       setSessionGeneratedRow(session.generated_row)
       loadRowDataFromGeneratedRow(session.generated_row, session)
-    } else if ((session.status === 'in-progress' || session.status === 'registered' || session.status === 'completed') && session.started_at && selectedTemplate) {
+    } else if ((session.status === 'in-progress' || session.status === 'registered' || session.status === 'completed') && templateToUse) {
       // If no generated_row exists but session is in-progress, generate initial data
       const initialData: Record<string, any> = {}
       
@@ -1195,7 +1213,7 @@ function RecruiterDashboard() {
         }
       }
       
-      selectedTemplate.columns.forEach((col) => {
+      templateToUse.columns.forEach((col) => {
         const colNameLower = col.name.toLowerCase().trim()
         const colNameUpper = col.name.toUpperCase().trim()
         
@@ -1318,7 +1336,14 @@ function RecruiterDashboard() {
   }
 
   const handleUpdateSessionRow = async () => {
-    if (!selectedTemplate || !selectedSession || !recruiterId) return
+    // Use selectedTemplate or first available template
+    const templateToUse = selectedTemplate || (templates.length > 0 ? templates[0] : null)
+    if (!templateToUse || !selectedSession || !recruiterId) {
+      if (!templateToUse) {
+        alert('No row template available. Please contact admin to create a template.')
+      }
+      return
+    }
     
     try {
       // Get recruiter initials
@@ -1335,7 +1360,7 @@ function RecruiterDashboard() {
       const currentDate = new Date().toISOString().split('T')[0]
       const dataToSend: Record<string, any> = { ...sessionRowData }
       
-      selectedTemplate.columns.forEach((col) => {
+      templateToUse.columns.forEach((col) => {
         const colNameUpper = col.name.toUpperCase().trim()
         const colNameLower = col.name.toLowerCase().trim()
         
@@ -1372,7 +1397,7 @@ function RecruiterDashboard() {
         }
       })
       
-      const result = await generateRow(selectedTemplate.id, dataToSend)
+      const result = await generateRow(templateToUse.id, dataToSend)
       setSessionGeneratedRow(result.row_text)
       setSessionRowCopied(false)
       
@@ -1794,21 +1819,21 @@ function RecruiterDashboard() {
                             onClick={async (e) => {
                               e.stopPropagation()
                               const confirmed = window.confirm(
-                                `¿Estás seguro de que quieres borrar el registro de ${session.first_name} ${session.last_name}?\n\nEsta acción no se puede deshacer.`
+                                `Are you sure you want to delete the registration for ${session.first_name} ${session.last_name}?\n\nThis action cannot be undone.`
                               )
                               if (confirmed) {
                                 try {
                                   await deleteInfoSession(session.id)
-                                  alert('Registro borrado exitosamente')
+                                  alert('Registration deleted successfully')
                                   await loadData()
                                 } catch (error: any) {
                                   console.error('Error deleting session:', error)
-                                  alert(`Error al borrar: ${error.response?.data?.detail || error.message || 'Unknown error'}`)
+                                  alert(`Error deleting registration: ${error.response?.data?.detail || error.message || 'Unknown error'}`)
                                 }
                               }
                             }}
                             className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 font-semibold"
-                            title="Borrar registro"
+                            title="Delete registration"
                           >
                             🗑️ Borrar
                           </button>
@@ -1894,11 +1919,34 @@ function RecruiterDashboard() {
                   )}
 
                   {/* Row Generator for In-Progress, Registered, and Completed Sessions */}
-                  {(selectedSession.status === 'in-progress' || selectedSession.status === 'registered' || selectedSession.status === 'completed') && selectedTemplate && (
+                  {(() => {
+                    const shouldShowRowGenerator = selectedSession.status === 'in-progress' || selectedSession.status === 'registered' || selectedSession.status === 'completed'
+                    console.log('🔍 Row Generator check:', {
+                      status: selectedSession.status,
+                      shouldShow: shouldShowRowGenerator,
+                      selectedTemplate: selectedTemplate?.name || 'null',
+                      templatesCount: templates.length
+                    })
+                    
+                    if (!shouldShowRowGenerator) return null
+                    
+                    // Use selectedTemplate or fallback to first available template
+                    const templateToShow = selectedTemplate || (templates.length > 0 ? templates[0] : null)
+                    if (!templateToShow) {
+                      console.log('⚠️ No template available - selectedTemplate:', selectedTemplate, 'templates.length:', templates.length)
+                      return (
+                        <div className="border-t pt-4 mt-4">
+                          <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4">
+                            <p className="text-yellow-800 text-sm">⚠️ Row Generator not available: No template configured. Please contact admin.</p>
+                          </div>
+                        </div>
+                      )
+                    }
+                    return (
                     <div className="border-t pt-4 mt-4">
                       <h3 className="font-bold mb-3">Row Generator</h3>
                       <div className="space-y-3">
-                        {selectedTemplate.columns
+                        {templateToShow.columns
                           .sort((a, b) => a.order - b.order)
                           .map((column) => (
                             <div key={column.id || column.order}>
@@ -2013,7 +2061,8 @@ function RecruiterDashboard() {
                         )}
                       </div>
                     </div>
-                  )}
+                    )
+                  })()}
 
                   <div className="border-t pt-4">
                     <h3 className="font-bold mb-3">Document Status</h3>

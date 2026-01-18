@@ -161,11 +161,20 @@ async def register_team_visit(
         team_member_id=data.team_member_id,
         team_member_name=team_member_name,
         team_member_email=team_member_email,
-        reason=data.reason
+        reason=data.reason,
+        status="pending"  # Will be marked as notified when staff member is notified
     )
     db.add(team_visit)
     db.commit()
     db.refresh(team_visit)
+    
+    # Automatically mark as notified when team member is assigned (notification sent)
+    if team_visit.team_member_id:
+        print(f"🔔 New team visit registered: {team_visit.visitor_name} for {team_member_name} ({team_member_email})")
+        print(f"   Visit ID: {team_visit.id}, Reason: {team_visit.reason}")
+        # The frontend should handle notification display, but we log it here
+        # Optionally, you could mark it as notified automatically, but typically you want the staff member to acknowledge it
+    
     return VisitResponse.model_validate(team_visit).model_dump()
 
 @router.get("/team-visit/my-visits", response_model=List[VisitResponse])
