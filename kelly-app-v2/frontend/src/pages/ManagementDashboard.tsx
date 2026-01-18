@@ -53,6 +53,7 @@ function ManagementDashboard() {
       switch (activeTab) {
         case 'info-session':
           const live = await getLiveInfoSessions()
+          console.log('📊 ManagementDashboard: Loaded live sessions:', live.length)
           setLiveSessions(live)
           break
         case 'info-session-completed':
@@ -90,6 +91,7 @@ function ManagementDashboard() {
       switch (activeTab) {
         case 'info-session':
           const live = await getLiveInfoSessions()
+          console.log('🔄 ManagementDashboard: Refreshed live sessions:', live.length)
           setLiveSessions(live)
           break
         case 'info-session-completed':
