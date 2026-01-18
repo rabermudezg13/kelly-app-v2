@@ -1347,8 +1347,8 @@ function RecruiterDashboard() {
         else if (colNameLower.includes('numero') || (colNameLower.includes('phone') && colNameLower.includes('numero'))) {
           initialData[col.name] = selectedSession.phone
         } 
-        // Fallback for other email patterns
-        else if (colNameLower.includes('email') && !colNameLower.includes('talent')) {
+        // Fallback for other email patterns - but exclude "Onboarding Introduction Email"
+        else if (colNameLower.includes('email') && !colNameLower.includes('talent') && !colNameLower.includes('onboarding introduction')) {
           initialData[col.name] = selectedSession.email
         } 
         // Map recruiter initials to R and O columns
@@ -1498,8 +1498,8 @@ function RecruiterDashboard() {
         else if ((colNameLower.includes('numero') || (colNameLower.includes('phone') && colNameLower.includes('numero'))) && !dataToSend[col.name]) {
           dataToSend[col.name] = selectedSession.phone
         }
-        // Fallback for other email patterns
-        else if (colNameLower.includes('email') && !colNameLower.includes('talent') && !dataToSend[col.name]) {
+        // Fallback for other email patterns - but exclude "Onboarding Introduction Email"
+        else if (colNameLower.includes('email') && !colNameLower.includes('talent') && !colNameLower.includes('onboarding introduction') && !dataToSend[col.name]) {
           dataToSend[col.name] = selectedSession.email
         }
         else if (col.column_type === 'date' && !dataToSend[col.name]) {
