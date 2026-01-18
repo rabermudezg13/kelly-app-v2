@@ -1237,8 +1237,8 @@ function RecruiterDashboard() {
         else if (colNameLower.includes('numero') || (colNameLower.includes('phone') && colNameLower.includes('numero'))) {
           initialData[col.name] = session.phone
         } 
-        // Fallback for other email patterns
-        else if (colNameLower.includes('email') && !colNameLower.includes('talent')) {
+        // Fallback for other email patterns - but exclude "Onboarding Introduction Email"
+        else if (colNameLower.includes('email') && !colNameLower.includes('talent') && !colNameLower.includes('onboarding introduction')) {
           initialData[col.name] = session.email
         } 
         // Map recruiter initials to R and O columns
