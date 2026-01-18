@@ -255,8 +255,8 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
             </p>
           </div>
 
-          <div className="mb-8 relative">
-            <div className="sticky top-0 bg-white z-50 py-4 mb-4 border-b-2 border-gray-300 shadow-lg -mx-8 px-8" style={{ position: 'sticky', top: 0 }}>
+          <div className="mb-8" style={{ position: 'relative' }}>
+            <div className="bg-white z-50 py-4 mb-4 border-b-2 border-gray-300 shadow-lg" style={{ position: 'sticky', top: 0, width: '100%' }}>
               <h2 className="text-2xl font-bold text-gray-800 mb-3">
                 Follow the steps below and check each step as you complete each stage:
               </h2>

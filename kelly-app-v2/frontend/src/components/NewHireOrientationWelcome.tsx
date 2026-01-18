@@ -113,8 +113,8 @@ function NewHireOrientationWelcome({ orientationData, onOrientationCompleted }: 
             Welcome to New Hire Orientation
           </h1>
 
-          <div className="mb-8 relative">
-            <div className="sticky top-0 bg-white z-20 py-4 mb-4 border-b-2 border-gray-300 shadow-lg -mx-8 px-8">
+          <div className="mb-8" style={{ position: 'relative' }}>
+            <div className="bg-white z-50 py-4 mb-4 border-b-2 border-gray-300 shadow-lg" style={{ position: 'sticky', top: 0, width: '100%' }}>
               <h2 className="text-2xl font-bold text-gray-800 mb-3">
                 Please read and confirm each requirement below:
               </h2>
