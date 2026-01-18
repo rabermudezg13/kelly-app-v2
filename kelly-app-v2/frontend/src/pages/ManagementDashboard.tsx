@@ -24,7 +24,9 @@ function ManagementDashboard() {
     checkAuth()
     loadData()
     // Set up polling for live updates every 5 seconds
-    const interval = setInterval(loadData, 5000)
+    const interval = setInterval(() => {
+      refreshDataInBackground()
+    }, 5000)
     return () => clearInterval(interval)
   }, [activeTab])
 

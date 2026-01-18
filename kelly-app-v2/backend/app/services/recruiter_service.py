@@ -22,17 +22,13 @@ def get_next_recruiter(db: Session, time_slot: str, session_date: date = None) -
     # Ensure default recruiters exist
     initialize_default_recruiters(db)
     
-    # First, try to get all active AND available recruiters (not busy)
+    # Get all active recruiters for fair distribution
+    # Use ALL active recruiters, not just "available" ones, to ensure fair rotation
     available_recruiters = db.query(Recruiter).filter(
-        Recruiter.is_active == True,
-        Recruiter.status == "available"
-    ).all()
+        Recruiter.is_active == True
+    ).order_by(Recruiter.id).all()  # Order by ID for consistent sorting
     
-    # If no available recruiters, use all active recruiters (including busy ones)
-    if not available_recruiters:
-        available_recruiters = db.query(Recruiter).filter(
-            Recruiter.is_active == True
-        ).all()
+    print(f"📊 Found {len(available_recruiters)} active recruiters for assignment")
     
     # If still no recruiters, get ANY recruiter (even inactive ones) - we need to assign someone
     if not available_recruiters:
