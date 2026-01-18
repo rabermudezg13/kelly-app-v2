@@ -227,7 +227,7 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-500 to-green-700 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
+      <div className="container mx-auto px-4 max-w-4xl" style={{ overflowY: 'auto' }}>
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h1 className="text-4xl font-bold text-center mb-6 text-gray-800">
             Welcome to Kelly Education Miami Dade
