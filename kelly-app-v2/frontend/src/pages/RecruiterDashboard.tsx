@@ -1266,7 +1266,99 @@ function RecruiterDashboard() {
       setSessionGeneratedRow('')
       setSessionRowData({})
     }
+    
+    // Log what was loaded for debugging
+    console.log('📊 Session details opened:', {
+      sessionId: session.id,
+      status: session.status,
+      hasGeneratedRow: !!session.generated_row,
+      templateToUse: templateToUse?.name || 'none',
+      sessionRowDataKeys: Object.keys(sessionRowData).length
+    })
   }
+  
+  // Effect to initialize row data when session or template changes
+  useEffect(() => {
+    if (!selectedSession || !templates.length) return
+    
+    // Ensure template is selected
+    const templateToUse = selectedTemplate || templates[0]
+    if (!templateToUse) return
+    
+    // Only initialize if sessionRowData is empty and session is in valid status
+    const shouldHaveRowData = selectedSession.status === 'in-progress' || 
+                               selectedSession.status === 'registered' || 
+                               selectedSession.status === 'completed'
+    
+    if (shouldHaveRowData && Object.keys(sessionRowData).length === 0) {
+      console.log('🔄 Initializing row data from useEffect - session:', selectedSession.id, 'template:', templateToUse.name)
+      
+      // Generate initial data
+      const initialData: Record<string, any> = {}
+      
+      // Get recruiter initials
+      let recruiterInitials = ''
+      if (recruiter) {
+        const nameParts = recruiter.name.split(' ')
+        if (nameParts.length >= 2) {
+          recruiterInitials = nameParts[0][0].toUpperCase() + nameParts[nameParts.length - 1][0].toUpperCase()
+        } else if (nameParts.length === 1) {
+          recruiterInitials = nameParts[0][0].toUpperCase()
+        }
+      }
+      
+      templateToUse.columns.forEach((col) => {
+        const colNameLower = col.name.toLowerCase().trim()
+        const colNameUpper = col.name.toUpperCase().trim()
+        
+        // Leave FP expiration date blank
+        if (colNameLower.includes('fp') && colNameLower.includes('expiration')) {
+          initialData[col.name] = ''
+        } 
+        // Map Applicant Name
+        else if (colNameLower === 'applicant name' || (colNameLower.includes('applicant') && colNameLower.includes('name'))) {
+          initialData[col.name] = `${selectedSession.first_name} ${selectedSession.last_name}`
+        } 
+        // Map Talent Phone
+        else if (colNameLower === 'talent phone' || (colNameLower.includes('talent') && colNameLower.includes('phone'))) {
+          initialData[col.name] = selectedSession.phone
+        } 
+        // Map Talent Email
+        else if (colNameLower === 'talent email' || (colNameLower.includes('talent') && colNameLower.includes('email'))) {
+          initialData[col.name] = selectedSession.email
+        } 
+        // Fallback for other phone/numero patterns
+        else if (colNameLower.includes('numero') || (colNameLower.includes('phone') && colNameLower.includes('numero'))) {
+          initialData[col.name] = selectedSession.phone
+        } 
+        // Fallback for other email patterns
+        else if (colNameLower.includes('email') && !colNameLower.includes('talent')) {
+          initialData[col.name] = selectedSession.email
+        } 
+        // Map recruiter initials to R and O columns
+        else if (colNameUpper === 'R' || colNameUpper === 'O') {
+          initialData[col.name] = recruiterInitials
+        } 
+        // Set date fields to today
+        else if (col.column_type === 'date') {
+          initialData[col.name] = new Date().toISOString().split('T')[0]
+        } 
+        // Use default value for other fields
+        else {
+          initialData[col.name] = col.default_value || ''
+        }
+      })
+      
+      setSessionRowData(initialData)
+      
+      // Also ensure template is selected
+      if (!selectedTemplate) {
+        setSelectedTemplate(templateToUse)
+      }
+      
+      console.log('✅ Row data initialized:', Object.keys(initialData).length, 'columns')
+    }
+  }, [selectedSession?.id, templates.length, selectedTemplate?.id, recruiter?.id])
 
   const loadRowDataFromGeneratedRow = (rowText: string, session: AssignedSession) => {
     if (!selectedTemplate) {
