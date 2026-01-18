@@ -148,9 +148,7 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
 
   const handleStepComplete = async (stepName: string) => {
     try {
-      await completeStep(sessionData.id, stepName)
-      
-      // Update local state
+      // Update local state IMMEDIATELY for instant feedback
       const updatedSteps = steps.map(step => 
         step.step_name === stepName 
           ? { ...step, is_completed: true }
@@ -158,12 +156,31 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
       )
       setSteps(updatedSteps)
       
-      // Sync with backend to get latest state
-      const latest = await getInfoSession(sessionData.id)
-      setCurrentSessionData(latest)
-      setSteps(latest.steps)
+      // Then save to backend
+      await completeStep(sessionData.id, stepName)
+      
+      // Sync with backend to get latest state (with a small delay to ensure backend has saved)
+      setTimeout(async () => {
+        try {
+          const latest = await getInfoSession(sessionData.id)
+          setCurrentSessionData(latest)
+          // Only update steps if backend confirms the step is completed
+          if (latest.steps.find(s => s.step_name === stepName)?.is_completed) {
+            setSteps(latest.steps)
+          }
+        } catch (error) {
+          console.error('Error syncing after step complete:', error)
+        }
+      }, 500)
     } catch (error) {
       console.error('Error completing step:', error)
+      // Revert local state if backend call failed
+      const revertedSteps = steps.map(step => 
+        step.step_name === stepName 
+          ? { ...step, is_completed: false }
+          : step
+      )
+      setSteps(revertedSteps)
       alert('Error completing step. Please try again.')
     }
   }
