@@ -1835,7 +1835,7 @@ function RecruiterDashboard() {
                             className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 font-semibold"
                             title="Delete registration"
                           >
-                            🗑️ Borrar
+                            🗑️ Delete
                           </button>
                         </div>
                       </div>
