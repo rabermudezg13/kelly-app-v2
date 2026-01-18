@@ -1279,18 +1279,33 @@ function RecruiterDashboard() {
   
   // Effect to initialize row data when session or template changes
   useEffect(() => {
-    if (!selectedSession || !templates.length) return
+    if (!selectedSession || !templates.length) {
+      console.log('⚠️ useEffect skip - selectedSession:', !!selectedSession, 'templates.length:', templates.length)
+      return
+    }
     
     // Ensure template is selected
     const templateToUse = selectedTemplate || templates[0]
-    if (!templateToUse) return
+    if (!templateToUse) {
+      console.log('⚠️ useEffect skip - no template available')
+      return
+    }
     
     // Only initialize if sessionRowData is empty and session is in valid status
     const shouldHaveRowData = selectedSession.status === 'in-progress' || 
                                selectedSession.status === 'registered' || 
                                selectedSession.status === 'completed'
     
-    if (shouldHaveRowData && Object.keys(sessionRowData).length === 0) {
+    const hasRowData = Object.keys(sessionRowData).length > 0
+    console.log('🔍 useEffect check:', {
+      sessionId: selectedSession.id,
+      status: selectedSession.status,
+      shouldHaveRowData,
+      hasRowData,
+      template: templateToUse.name
+    })
+    
+    if (shouldHaveRowData && !hasRowData) {
       console.log('🔄 Initializing row data from useEffect - session:', selectedSession.id, 'template:', templateToUse.name)
       
       // Generate initial data
@@ -1356,9 +1371,11 @@ function RecruiterDashboard() {
         setSelectedTemplate(templateToUse)
       }
       
-      console.log('✅ Row data initialized:', Object.keys(initialData).length, 'columns')
+      console.log('✅ Row data initialized:', Object.keys(initialData).length, 'columns', 'Keys:', Object.keys(initialData).slice(0, 5))
+    } else {
+      console.log('⏭️ useEffect skip - already has row data or status not valid')
     }
-  }, [selectedSession?.id, templates.length, selectedTemplate?.id, recruiter?.id])
+  }, [selectedSession?.id, templates.length, selectedTemplate?.id, recruiter?.id, sessionRowData])
 
   const loadRowDataFromGeneratedRow = (rowText: string, session: AssignedSession) => {
     if (!selectedTemplate) {
