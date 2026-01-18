@@ -9,6 +9,9 @@ import TeamVisitPage from './pages/TeamVisitPage'
 import StaffLoginPage from './pages/StaffLoginPage'
 import StaffDashboard from './pages/StaffDashboard'
 import ManagementDashboard from './pages/ManagementDashboard'
+import FrontdeskDashboard from './pages/FrontdeskDashboard'
+import TalentDashboard from './pages/TalentDashboard'
+import UserDashboard from './pages/UserDashboard'
 import AdminLoginPage from './pages/AdminLoginPage'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminInfoSessionConfig from './pages/AdminInfoSessionConfig'
@@ -31,6 +34,9 @@ function App() {
         <Route path="/staff/login" element={<StaffLoginPage />} />
         <Route path="/staff/dashboard" element={<StaffDashboard />} />
         <Route path="/management/dashboard" element={<ManagementDashboard />} />
+        <Route path="/frontdesk/dashboard" element={<FrontdeskDashboard />} />
+        <Route path="/talent/dashboard" element={<TalentDashboard />} />
+        <Route path="/user/dashboard" element={<UserDashboard />} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/info-session-config" element={<AdminInfoSessionConfig />} />

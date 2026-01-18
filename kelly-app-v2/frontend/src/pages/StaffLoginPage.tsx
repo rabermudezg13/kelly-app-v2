@@ -44,6 +44,12 @@ function StaffLoginPage() {
         navigate('/staff/dashboard')
       } else if (response.user.role === 'management') {
         navigate('/management/dashboard')
+      } else if (response.user.role === 'frontdesk') {
+        navigate('/frontdesk/dashboard')
+      } else if (response.user.role === 'talent') {
+        navigate('/talent/dashboard')
+      } else if (response.user.role === 'user') {
+        navigate('/user/dashboard')
       } else {
         navigate('/staff/dashboard')
       }
