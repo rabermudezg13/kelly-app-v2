@@ -754,8 +754,8 @@ export const generateRow = async (templateId: number, data: Record<string, any>)
 
 // ========== Event API ==========
 
-export const createEvent = async (name: string): Promise<Event> => {
-  const response = await api.post('/event/events', { name })
+export const createEvent = async (name: string, kelly_representative?: string): Promise<Event> => {
+  const response = await api.post('/event/events', { name, kelly_representative })
   return response.data
 }
 
@@ -769,13 +769,18 @@ export const getEventByCode = async (unique_code: string): Promise<Event> => {
   return response.data
 }
 
-export const updateEvent = async (eventId: number, name: string): Promise<Event> => {
-  const response = await api.put(`/event/events/${eventId}`, { name })
+export const updateEvent = async (eventId: number, name: string, kelly_representative?: string): Promise<Event> => {
+  const response = await api.put(`/event/events/${eventId}`, { name, kelly_representative })
   return response.data
 }
 
 export const toggleEventActive = async (eventId: number): Promise<{ message: string, is_active: boolean }> => {
   const response = await api.patch(`/event/events/${eventId}/toggle-active`)
+  return response.data
+}
+
+export const deleteEvent = async (eventId: number): Promise<{ message: string }> => {
+  const response = await api.delete(`/event/events/${eventId}`)
   return response.data
 }
 

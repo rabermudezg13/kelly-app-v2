@@ -24,9 +24,11 @@ router = APIRouter()
 # Pydantic models
 class EventCreate(BaseModel):
     name: str
+    kelly_representative: Optional[str] = None
 
 class EventUpdate(BaseModel):
     name: str
+    kelly_representative: Optional[str] = None
 
 class EventAttendeeCreate(BaseModel):
     first_name: str
@@ -48,6 +50,7 @@ class EventResponse(BaseModel):
     name: str
     unique_code: str
     qr_code_data: Optional[str] = None
+    kelly_representative: Optional[str] = None
     is_active: bool
     created_at: datetime
     updated_at: Optional[datetime] = None
@@ -136,6 +139,7 @@ async def create_event(
         name=data.name,
         unique_code=unique_code,
         qr_code_data=qr_code_data,
+        kelly_representative=data.kelly_representative,
         is_active=True
     )
 
@@ -222,6 +226,7 @@ async def update_event(
         )
 
     event.name = data.name
+    event.kelly_representative = data.kelly_representative
     db.commit()
     db.refresh(event)
 
@@ -254,6 +259,28 @@ async def toggle_event_active(
     db.commit()
 
     return {"message": "Event status updated", "is_active": event.is_active}
+
+# Delete event
+@router.delete("/events/{event_id}")
+async def delete_event(
+    event_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Delete an event and all its attendees (staff only)"""
+    event = db.query(Event).filter(Event.id == event_id).first()
+
+    if not event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Event not found"
+        )
+
+    # Delete event (cascade will delete all attendees)
+    db.delete(event)
+    db.commit()
+
+    return {"message": "Event deleted successfully"}
 
 # Register attendee (public endpoint)
 @router.post("/events/{unique_code}/register", response_model=EventAttendeeResponse)

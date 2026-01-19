@@ -185,6 +185,7 @@ export interface Event {
   name: string
   unique_code: string
   qr_code_data?: string | null
+  kelly_representative?: string | null
   is_active: boolean
   created_at: string
   updated_at?: string | null
