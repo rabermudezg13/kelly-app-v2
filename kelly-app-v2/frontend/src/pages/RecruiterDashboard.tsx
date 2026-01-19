@@ -189,22 +189,15 @@ function RecruiterDashboard() {
       
       setNewHireOrientations(orientationsData)
       setFingerprints(fingerprintsData)
-      
-      // Update selected session if it exists
+
+      // Update selected session if it exists, but DON'T reset documentStatus
+      // to prevent checkbox jumping when user is actively interacting with the modal
       if (selectedSession) {
         const updatedSession = convertedSessions.find(s => s.id === selectedSession.id)
         if (updatedSession) {
           setSelectedSession(updatedSession)
-          setDocumentStatus({
-            ob365_sent: updatedSession.ob365_sent,
-            i9_sent: updatedSession.i9_sent,
-            existing_i9: updatedSession.existing_i9,
-            ineligible: updatedSession.ineligible,
-            rejected: updatedSession.rejected,
-            drug_screen: updatedSession.drug_screen,
-            questions: updatedSession.questions,
-          })
-          
+          // Do NOT update documentStatus here - user might be actively checking boxes
+          // The current documentStatus should be preserved until modal is closed
         }
       }
     } catch (error: any) {
@@ -340,21 +333,15 @@ function RecruiterDashboard() {
       setTemplates(templatesData)
       setNewHireOrientations(orientationsData)
       setFingerprints(fingerprintsData)
-      
-      // Update selected session if it exists
+
+      // Update selected session if it exists, but DON'T update documentStatus
+      // to prevent checkbox jumping during background refresh
       if (selectedSession) {
         const updatedSession = convertedSessions.find(s => s.id === selectedSession.id)
         if (updatedSession) {
           setSelectedSession(updatedSession)
-          setDocumentStatus({
-            ob365_sent: updatedSession.ob365_sent,
-            i9_sent: updatedSession.i9_sent,
-            existing_i9: updatedSession.existing_i9,
-            ineligible: updatedSession.ineligible,
-            rejected: updatedSession.rejected,
-            drug_screen: updatedSession.drug_screen,
-            questions: updatedSession.questions,
-          })
+          // Do NOT update documentStatus here - user might be actively checking boxes
+          // Only update it when explicitly saved or when modal is first opened
         }
       }
     } catch (error: any) {
