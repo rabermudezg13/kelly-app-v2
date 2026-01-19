@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react'
-import { getLiveInfoSessions, getCompletedInfoSessions, getNewHireOrientations, getBadges, getFingerprints, getMyVisits, getCurrentUser, notifyTeamVisit, getNewHireOrientation, updateNewHireOrientation } from '../services/api'
+import { getLiveInfoSessions, getNewHireOrientations, getBadges, getFingerprints, getMyVisits, getCurrentUser, notifyTeamVisit, getNewHireOrientation, updateNewHireOrientation } from '../services/api'
 import type { InfoSessionWithSteps, NewHireOrientation, NewHireOrientationWithSteps } from '../types'
 import { formatMiamiTime, getMiamiDateKey, formatMiamiDateDisplay } from '../utils/dateUtils'
 import CHRPage from './CHRPage'
 import StatisticsDashboard from './StatisticsDashboard'
 
-type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr'
+type TabType = 'info-session' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr'
 
 function ManagementDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('info-session')
   const [liveSessions, setLiveSessions] = useState<InfoSessionWithSteps[]>([])
-  const [completedSessions, setCompletedSessions] = useState<InfoSessionWithSteps[]>([])
   const [newHireOrientations, setNewHireOrientations] = useState<NewHireOrientation[]>([])
   const [selectedOrientation, setSelectedOrientation] = useState<NewHireOrientationWithSteps | null>(null)
   const [badges, setBadges] = useState<any[]>([])
@@ -57,10 +56,6 @@ function ManagementDashboard() {
           console.log('📊 ManagementDashboard: Loaded live sessions:', live.length)
           setLiveSessions(live)
           break
-        case 'info-session-completed':
-          const completed = await getCompletedInfoSessions()
-          setCompletedSessions(completed)
-          break
         case 'new-hire-orientation':
           const orientations = await getNewHireOrientations()
           setNewHireOrientations(orientations)
@@ -94,10 +89,6 @@ function ManagementDashboard() {
           const live = await getLiveInfoSessions()
           console.log('🔄 ManagementDashboard: Refreshed live sessions:', live.length)
           setLiveSessions(live)
-          break
-        case 'info-session-completed':
-          const completed = await getCompletedInfoSessions()
-          setCompletedSessions(completed)
           break
         case 'new-hire-orientation':
           const orientations = await getNewHireOrientations()
@@ -235,142 +226,6 @@ function ManagementDashboard() {
                                 ⚠️ Possible PC/RR
                               </span>
                             ) : null}
-                          </td>
-                        </tr>
-                      ))}
-                    </React.Fragment>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  const renderInfoSessionCompleted = () => {
-    if (loading) return <p className="text-center py-8">Loading...</p>
-    
-    // Group sessions by date (based on created_at)
-    const groupedSessions: { [key: string]: InfoSessionWithSteps[] } = {}
-    completedSessions.forEach((session) => {
-      const dateKey = getMiamiDateKey(session.created_at)
-      if (!groupedSessions[dateKey]) {
-        groupedSessions[dateKey] = []
-      }
-      groupedSessions[dateKey].push(session)
-    })
-    
-    // Sort date keys (most recent first)
-    const sortedDateKeys = Object.keys(groupedSessions).sort().reverse()
-    
-    return (
-      <div className="space-y-4">
-        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
-          <p className="text-blue-800 font-bold">✅ Completed Info Sessions - Recruiters Assigned</p>
-        </div>
-        {completedSessions.length === 0 ? (
-          <p className="text-center py-8 text-gray-500">No completed sessions</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full table-auto">
-              <thead>
-                <tr className="bg-gray-200">
-                  <th className="px-4 py-2 text-left">#</th>
-                  <th className="px-4 py-2 text-left">Name</th>
-                  <th className="px-4 py-2 text-left">Email</th>
-                  <th className="px-4 py-2 text-left">Assigned Recruiter</th>
-                  <th className="px-4 py-2 text-left">Registered At</th>
-                  <th className="px-4 py-2 text-left">Completed At</th>
-                  <th className="px-4 py-2 text-left">Total Duration</th>
-                  <th className="px-4 py-2 text-left">Exclusion</th>
-                  <th className="px-4 py-2 text-left">Documents</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedDateKeys.map((dateKey, dateIndex) => {
-                  const sessionsForDate = groupedSessions[dateKey]
-                  return (
-                    <React.Fragment key={dateKey}>
-                      {dateIndex > 0 && (
-                        <tr>
-                          <td colSpan={9} className="px-4 py-3 bg-gray-100 border-t-2 border-gray-300">
-                            <div className="text-center">
-                              <span className="text-gray-700 font-bold text-lg">
-                                ─── {formatMiamiDateDisplay(sessionsForDate[0].created_at)} ───
-                              </span>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                      {sessionsForDate.map((session, sessionIndex) => (
-                        <tr key={session.id} className="border-b">
-                          <td className="px-4 py-2 font-semibold text-gray-600">
-                            {sessionIndex + 1}
-                          </td>
-                          <td className="px-4 py-2 font-semibold">
-                            {session.first_name} {session.last_name}
-                          </td>
-                          <td className="px-4 py-2">{session.email}</td>
-                          <td className="px-4 py-2">
-                            {session.assigned_recruiter_name ? (
-                              <a
-                                href={`/recruiter/${session.assigned_recruiter_id}/dashboard`}
-                                className="px-2 py-1 rounded bg-blue-100 text-blue-800 hover:bg-blue-200"
-                              >
-                                {session.assigned_recruiter_name}
-                              </a>
-                            ) : (
-                              <span className="text-gray-400">Not assigned</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-2">
-                            <span className="text-gray-700">
-                              {formatMiamiTime(session.created_at)}
-                            </span>
-                          </td>
-                          <td className="px-4 py-2">
-                            <span className="text-gray-700">
-                              {formatMiamiTime(session.completed_at)}
-                            </span>
-                          </td>
-                          <td className="px-4 py-2">
-                            {session.duration_minutes ? (
-                              <span className="text-blue-600 font-semibold">
-                                {Math.floor(session.duration_minutes / 60)}h {session.duration_minutes % 60}m
-                              </span>
-                            ) : (
-                              <span className="text-gray-400">N/A</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-2">
-                            {session.is_in_exclusion_list && session.exclusion_match ? (
-                              <div className="bg-red-100 border-2 border-red-500 rounded p-2 text-red-800">
-                                <div className="font-bold text-sm mb-1">⚠️ POSIBLE PC o RR</div>
-                                <div className="text-xs space-y-1">
-                                  <div><strong>Name:</strong> {session.exclusion_match.name}</div>
-                                  {session.exclusion_match.code && (
-                                    <div><strong>Code:</strong> {session.exclusion_match.code}</div>
-                                  )}
-                                  {session.exclusion_match.ssn && (
-                                    <div><strong>SSN:</strong> {session.exclusion_match.ssn}</div>
-                                  )}
-                                </div>
-                              </div>
-                            ) : session.is_in_exclusion_list ? (
-                              <span className="px-2 py-1 rounded bg-red-100 text-red-800 font-bold text-xs">
-                                ⚠️ Possible PC/RR
-                              </span>
-                            ) : null}
-                          </td>
-                          <td className="px-4 py-2">
-                            <div className="flex flex-wrap gap-1">
-                              {session.ob365_sent && <span className="px-2 py-1 rounded bg-green-100 text-green-800 text-xs">OB365</span>}
-                              {session.i9_sent && <span className="px-2 py-1 rounded bg-green-100 text-green-800 text-xs">I9</span>}
-                              {session.drug_screen && <span className="px-2 py-1 rounded bg-purple-100 text-purple-800 text-xs">Drug</span>}
-                              {session.questions && <span className="px-2 py-1 rounded bg-indigo-100 text-indigo-800 text-xs">Q</span>}
-                            </div>
                           </td>
                         </tr>
                       ))}
@@ -938,16 +793,6 @@ function ManagementDashboard() {
               📋 Info Session (Live)
             </button>
             <button
-              onClick={() => setActiveTab('info-session-completed')}
-              className={`px-6 py-3 font-semibold transition-colors ${
-                activeTab === 'info-session-completed'
-                  ? 'bg-green-600 text-white border-b-2 border-green-600'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              ✅ Info Session Completed
-            </button>
-            <button
               onClick={() => setActiveTab('new-hire-orientation')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'new-hire-orientation'
@@ -1013,7 +858,6 @@ function ManagementDashboard() {
         {/* Content */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           {activeTab === 'info-session' && renderInfoSessionLive()}
-          {activeTab === 'info-session-completed' && renderInfoSessionCompleted()}
           {activeTab === 'new-hire-orientation' && renderNewHireOrientations()}
           {activeTab === 'badges' && renderBadges()}
           {activeTab === 'fingerprints' && renderFingerprints()}
