@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { InfoSessionRegistration, InfoSessionWithSteps, Announcement, CHRCase, CHRDashboardStats, CHRStatusBreakdown, NewHireOrientationRegistration, NewHireOrientationWithSteps } from '../types'
+import type { InfoSessionRegistration, InfoSessionWithSteps, Announcement, CHRCase, CHRDashboardStats, CHRStatusBreakdown, NewHireOrientationRegistration, NewHireOrientationWithSteps, Event, EventAttendee, EventAttendeeCreate, RecruiterList } from '../types'
 
 // Detectar automáticamente la URL del backend basándose en la URL actual
 // Si se accede desde localhost, usa localhost. Si se accede desde una IP, usa esa IP.
@@ -260,6 +260,17 @@ export const updateNewHireOrientationConfig = async (config: {
 
 
 // Recruiter API
+export const getRecruiters = async (): Promise<Array<{
+  id: number
+  name: string
+  email: string
+  is_active: boolean
+  status: 'available' | 'busy'
+}>> => {
+  const response = await api.get('/recruiter/')
+  return response.data
+}
+
 export const getRecruiterStatus = async (recruiterId: number): Promise<{
   id: number
   name: string
@@ -738,6 +749,85 @@ export const generateRow = async (templateId: number, data: Record<string, any>)
     template_id: templateId,
     data
   })
+  return response.data
+}
+
+// ========== Event API ==========
+
+export const createEvent = async (name: string): Promise<Event> => {
+  const response = await api.post('/event/events', { name })
+  return response.data
+}
+
+export const getEvents = async (): Promise<Event[]> => {
+  const response = await api.get('/event/events')
+  return response.data
+}
+
+export const getEventByCode = async (unique_code: string): Promise<Event> => {
+  const response = await api.get(`/event/events/code/${unique_code}`)
+  return response.data
+}
+
+export const updateEvent = async (eventId: number, name: string): Promise<Event> => {
+  const response = await api.put(`/event/events/${eventId}`, { name })
+  return response.data
+}
+
+export const toggleEventActive = async (eventId: number): Promise<{ message: string, is_active: boolean }> => {
+  const response = await api.patch(`/event/events/${eventId}/toggle-active`)
+  return response.data
+}
+
+export const registerAttendee = async (unique_code: string, data: EventAttendeeCreate): Promise<EventAttendee> => {
+  const response = await api.post(`/event/events/${unique_code}/register`, data)
+  return response.data
+}
+
+export const getEventAttendees = async (eventId: number): Promise<EventAttendee[]> => {
+  const response = await api.get(`/event/events/${eventId}/attendees`)
+  return response.data
+}
+
+export const updateAttendee = async (
+  attendeeId: number,
+  data: {
+    is_checked?: boolean
+    is_duplicate?: boolean
+    assigned_recruiter_id?: number
+  }
+): Promise<EventAttendee> => {
+  const response = await api.patch(`/event/attendees/${attendeeId}`, data)
+  return response.data
+}
+
+export const bulkUpdateAttendees = async (
+  attendeeIds: number[],
+  data: {
+    is_checked?: boolean
+    is_duplicate?: boolean
+    assigned_recruiter_id?: number
+  }
+): Promise<{ message: string }> => {
+  const response = await api.post('/event/attendees/bulk-update', {
+    attendee_ids: attendeeIds,
+    ...data
+  })
+  return response.data
+}
+
+export const removeDuplicates = async (eventId: number): Promise<{ message: string }> => {
+  const response = await api.delete(`/event/events/${eventId}/remove-duplicates`)
+  return response.data
+}
+
+export const getRecruiterLists = async (eventId: number): Promise<RecruiterList[]> => {
+  const response = await api.get(`/event/events/${eventId}/recruiter-lists`)
+  return response.data
+}
+
+export const deleteAttendee = async (attendeeId: number): Promise<{ message: string }> => {
+  const response = await api.delete(`/event/attendees/${attendeeId}`)
   return response.data
 }
 

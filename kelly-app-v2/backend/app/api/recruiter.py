@@ -36,6 +36,14 @@ class InfoSessionUpdate(BaseModel):
     status: Optional[str] = None  # "in-progress" or "completed"
     generated_row: Optional[str] = None  # Updated generated row
 
+@router.get("/", response_model=List[RecruiterResponse])
+async def get_all_recruiters(
+    db: Session = Depends(get_db)
+):
+    """Get all active recruiters"""
+    recruiters = db.query(Recruiter).filter(Recruiter.is_active == True).all()
+    return [RecruiterResponse.model_validate(r).model_dump() for r in recruiters]
+
 @router.get("/by-email/{email}", response_model=RecruiterResponse)
 async def get_recruiter_by_email(
     email: str,

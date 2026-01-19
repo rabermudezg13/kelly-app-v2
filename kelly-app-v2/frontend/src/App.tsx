@@ -18,6 +18,7 @@ import AdminInfoSessionConfig from './pages/AdminInfoSessionConfig'
 import AdminConfigurations from './pages/AdminConfigurations'
 import AdminRowGenerator from './pages/AdminRowGenerator'
 import RecruiterDashboard from './pages/RecruiterDashboard'
+import EventRegistrationPage from './pages/EventRegistrationPage'
 import './index.css'
 
 function App() {
@@ -43,6 +44,7 @@ function App() {
         <Route path="/admin/configurations" element={<AdminConfigurations />} />
         <Route path="/admin/row-generator" element={<AdminRowGenerator />} />
         <Route path="/recruiter/:recruiterId/dashboard" element={<RecruiterDashboard />} />
+        <Route path="/event/:unique_code/register" element={<EventRegistrationPage />} />
       </Routes>
     </BrowserRouter>
   )

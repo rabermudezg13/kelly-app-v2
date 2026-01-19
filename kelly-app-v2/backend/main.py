@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 import uvicorn
 import os
 
-from app.api import info_session, admin, announcements, info_session_config, new_hire_orientation_config, new_hire_orientation, recruiter, auth, visits, exclusion_list, row_template, chr, statistics
+from app.api import info_session, admin, announcements, info_session_config, new_hire_orientation_config, new_hire_orientation, recruiter, auth, visits, exclusion_list, row_template, chr, statistics, event
 from app.database import engine, Base, SessionLocal
 from app.services.user_service import initialize_default_admin
 import sqlite3
@@ -29,7 +29,8 @@ from app.models import (
     exclusion_list as exclusion_list_model,
     row_template as row_template_model,
     chr as chr_model,
-    visit as visit_model
+    visit as visit_model,
+    event as event_model
 )
 
 # Ensure generated_row and question response fields exist in info_sessions table (migration)
@@ -184,6 +185,7 @@ app.include_router(exclusion_list.router, prefix="/api/exclusion-list", tags=["E
 app.include_router(row_template.router, prefix="/api/row-template", tags=["Row Template"])
 app.include_router(chr.router, prefix="/api/chr", tags=["CHR"])
 app.include_router(statistics.router, prefix="/api/statistics", tags=["Statistics"])
+app.include_router(event.router, prefix="/api/event", tags=["Event"])
 
 @app.get("/")
 async def root():

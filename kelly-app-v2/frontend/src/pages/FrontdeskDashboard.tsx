@@ -4,8 +4,9 @@ import type { InfoSessionWithSteps, NewHireOrientation, NewHireOrientationWithSt
 import { formatMiamiTime, getMiamiDateKey, formatMiamiDateDisplay } from '../utils/dateUtils'
 import CHRPage from './CHRPage'
 import StatisticsDashboard from './StatisticsDashboard'
+import EventManagement from '../components/EventManagement'
 
-type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr'
+type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event'
 
 function FrontdeskDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('info-session')
@@ -1004,6 +1005,16 @@ function FrontdeskDashboard() {
             >
               📝 CHR
             </button>
+            <button
+              onClick={() => setActiveTab('event')}
+              className={`px-6 py-3 font-semibold transition-colors ${
+                activeTab === 'event'
+                  ? 'bg-purple-600 text-white border-b-2 border-purple-600'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              🎟️ Event
+            </button>
           </div>
         </div>
 
@@ -1017,6 +1028,7 @@ function FrontdeskDashboard() {
           {activeTab === 'my-visits' && renderMyVisits()}
           {activeTab === 'statistics' && <StatisticsDashboard />}
           {activeTab === 'chr' && <CHRPage />}
+          {activeTab === 'event' && <EventManagement />}
         </div>
       </div>
 

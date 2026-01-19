@@ -7,6 +7,7 @@ from app.models.new_hire_orientation_config import NewHireOrientationConfig
 from app.models.row_template import RowTemplate, ColumnDefinition
 from app.models.user import User, UserRole
 from app.models.visit import NewHireOrientation, NewHireOrientationStep, Badge, Fingerprint, TeamVisit
+from app.models.event import Event, EventAttendee
 
-__all__ = ["InfoSession", "InfoSessionStep", "ExclusionList", "Announcement", "Recruiter", "InfoSessionConfig", "NewHireOrientationConfig", "RowTemplate", "ColumnDefinition", "User", "UserRole", "NewHireOrientation", "NewHireOrientationStep", "Badge", "Fingerprint", "TeamVisit"]
+__all__ = ["InfoSession", "InfoSessionStep", "ExclusionList", "Announcement", "Recruiter", "InfoSessionConfig", "NewHireOrientationConfig", "RowTemplate", "ColumnDefinition", "User", "UserRole", "NewHireOrientation", "NewHireOrientationStep", "Badge", "Fingerprint", "TeamVisit", "Event", "EventAttendee"]
 

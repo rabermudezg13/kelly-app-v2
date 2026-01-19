@@ -180,3 +180,47 @@ export interface CHRStatusBreakdown {
   pending: number
 }
 
+export interface Event {
+  id: number
+  name: string
+  unique_code: string
+  qr_code_data?: string | null
+  is_active: boolean
+  created_at: string
+  updated_at?: string | null
+  attendee_count?: number
+}
+
+export interface EventAttendee {
+  id: number
+  event_id: number
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  zip_code: string
+  english_communication: boolean
+  education_proof: boolean
+  assigned_recruiter_id?: number | null
+  assigned_recruiter_name?: string | null
+  is_duplicate: boolean
+  is_checked: boolean
+  created_at: string
+}
+
+export interface EventAttendeeCreate {
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  zip_code: string
+  english_communication: boolean
+  education_proof: boolean
+}
+
+export interface RecruiterList {
+  recruiter_id: number
+  recruiter_name: string
+  attendees: EventAttendee[]
+}
+
