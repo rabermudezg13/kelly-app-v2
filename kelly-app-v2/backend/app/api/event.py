@@ -255,6 +255,28 @@ async def toggle_event_active(
 
     return {"message": "Event status updated", "is_active": event.is_active}
 
+# Delete event
+@router.delete("/events/{event_id}")
+async def delete_event(
+    event_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Delete an event and all its attendees (staff only)"""
+    event = db.query(Event).filter(Event.id == event_id).first()
+
+    if not event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Event not found"
+        )
+
+    # Delete event (cascade will delete all attendees)
+    db.delete(event)
+    db.commit()
+
+    return {"message": "Event deleted successfully"}
+
 # Register attendee (public endpoint)
 @router.post("/events/{unique_code}/register", response_model=EventAttendeeResponse)
 async def register_attendee(

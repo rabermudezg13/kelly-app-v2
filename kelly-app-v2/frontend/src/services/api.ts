@@ -779,6 +779,11 @@ export const toggleEventActive = async (eventId: number): Promise<{ message: str
   return response.data
 }
 
+export const deleteEvent = async (eventId: number): Promise<{ message: string }> => {
+  const response = await api.delete(`/event/events/${eventId}`)
+  return response.data
+}
+
 export const registerAttendee = async (unique_code: string, data: EventAttendeeCreate): Promise<EventAttendee> => {
   const response = await api.post(`/event/events/${unique_code}/register`, data)
   return response.data

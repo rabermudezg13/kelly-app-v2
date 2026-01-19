@@ -4,6 +4,7 @@ import {
   getEvents,
   updateEvent,
   toggleEventActive,
+  deleteEvent,
   getEventAttendees,
   updateAttendee,
   bulkUpdateAttendees,
@@ -118,6 +119,25 @@ function EventManagement() {
     } catch (error) {
       console.error('Error toggling active status:', error)
       alert('Error updating status')
+    }
+  }
+
+  const handleDeleteEvent = async (event: Event) => {
+    if (!confirm(`Are you sure you want to delete "${event.name}"? This will delete all attendees and cannot be undone.`)) {
+      return
+    }
+
+    try {
+      await deleteEvent(event.id)
+      if (selectedEvent && selectedEvent.id === event.id) {
+        setSelectedEvent(null)
+        setAttendees([])
+      }
+      await loadData()
+      alert('Event deleted successfully!')
+    } catch (error) {
+      console.error('Error deleting event:', error)
+      alert('Error deleting event')
     }
   }
 
@@ -325,6 +345,15 @@ function EventManagement() {
                 }`}
               >
                 {event.is_active ? 'Deactivate' : 'Activate'}
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleDeleteEvent(event)
+                }}
+                className="flex-1 px-3 py-2 bg-gray-800 text-white rounded text-sm hover:bg-gray-900"
+              >
+                🗑️ Delete
               </button>
             </div>
           </div>
