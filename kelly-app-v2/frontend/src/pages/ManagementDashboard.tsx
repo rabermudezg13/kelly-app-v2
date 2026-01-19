@@ -23,12 +23,13 @@ function ManagementDashboard() {
   useEffect(() => {
     checkAuth()
     loadData()
+  }, [activeTab])
+
+  useEffect(() => {
     // Set up polling for live updates every 5 seconds
-    const interval = setInterval(() => {
-      refreshDataInBackground()
-    }, 5000)
+    const interval = setInterval(refreshDataInBackground, 5000)
     return () => clearInterval(interval)
-  }, [activeTab, refreshDataInBackground])
+  }, [activeTab])
 
   const checkAuth = async () => {
     const token = localStorage.getItem('token')
