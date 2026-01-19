@@ -80,8 +80,8 @@ async def get_statistics(
 ):
     """Get comprehensive statistics for all visit types"""
     
-    # Check if user has permission (staff, recruiter, management, admin)
-    if current_user.role not in ['admin', 'staff', 'recruiter', 'management', 'frontdesk']:
+    # Check if user has permission (staff, recruiter, management, admin, talent, frontdesk)
+    if current_user.role not in ['admin', 'staff', 'recruiter', 'management', 'frontdesk', 'talent']:
         from fastapi import HTTPException, status
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

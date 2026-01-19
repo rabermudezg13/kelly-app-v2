@@ -284,9 +284,9 @@ async def get_live_info_sessions(db: Session = Depends(get_db)):
 
 @router.get("/completed")
 async def get_completed_info_sessions(db: Session = Depends(get_db)):
-    """Get completed info sessions"""
+    """Get completed info sessions (initiated = process started)"""
     sessions = db.query(InfoSession).options(joinedload(InfoSession.steps)).filter(
-        InfoSession.status == "completed"
+        InfoSession.status == "initiated"
     ).order_by(InfoSession.completed_at.desc()).all()
     
     result = []
