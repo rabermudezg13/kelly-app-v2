@@ -1,7 +1,7 @@
 """
 Event API endpoints for event registration and management
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from pydantic import BaseModel, EmailStr, ConfigDict
@@ -11,6 +11,7 @@ import secrets
 import qrcode
 import io
 import base64
+import os
 
 from app.database import get_db
 from app.models.event import Event, EventAttendee
@@ -100,6 +101,7 @@ def generate_qr_code(data: str) -> str:
 @router.post("/events", response_model=EventResponse)
 async def create_event(
     data: EventCreate,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -108,9 +110,25 @@ async def create_event(
     unique_code = secrets.token_urlsafe(16)
 
     # Generate QR code with registration URL
-    # Get frontend URL from environment or use default
-    import os
-    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3025')
+    # Priority: FRONTEND_URL env var > detected from request origin
+    frontend_url = os.getenv('FRONTEND_URL')
+
+    if not frontend_url:
+        # Try to get from request headers (Referer or Origin)
+        referer = request.headers.get('referer', '')
+        origin = request.headers.get('origin', '')
+
+        if origin:
+            frontend_url = origin
+        elif referer:
+            # Extract base URL from referer
+            from urllib.parse import urlparse
+            parsed = urlparse(referer)
+            frontend_url = f"{parsed.scheme}://{parsed.netloc}"
+        else:
+            # Fallback
+            frontend_url = 'http://localhost:3025'
+
     registration_url = f"{frontend_url}/event/{unique_code}/register"
     qr_code_data = generate_qr_code(registration_url)
 

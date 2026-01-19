@@ -139,12 +139,15 @@ function EventRegistrationPage() {
           </div>
 
           {success && (
-            <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded">
-              <p className="text-green-800 font-bold text-lg mb-2">
+            <div className="mb-6 p-6 bg-green-50 border-l-4 border-green-500 rounded shadow-md">
+              <p className="text-green-800 font-bold text-xl mb-3">
                 ✅ Registration Successful!
               </p>
-              <p className="text-green-700">
-                Thank you for registering. We look forward to seeing you at the event!
+              <p className="text-green-700 text-lg mb-2">
+                Thank you for registering! Your information has been successfully submitted to our system.
+              </p>
+              <p className="text-green-600">
+                We look forward to seeing you at the event!
               </p>
             </div>
           )}
