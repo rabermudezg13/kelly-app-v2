@@ -11,7 +11,6 @@ class Event(Base):
     name = Column(String(255), nullable=False)  # Event name (editable)
     unique_code = Column(String(50), unique=True, nullable=False, index=True)  # Unique code for URL/QR
     qr_code_data = Column(Text, nullable=True)  # Base64 encoded QR code image
-    kelly_representative = Column(String(255), nullable=True)  # Name of Kelly representative in charge
 
     # Status
     is_active = Column(Boolean, default=True)  # Active events can receive registrations

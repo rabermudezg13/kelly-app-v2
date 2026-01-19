@@ -4,7 +4,6 @@ import {
   getEvents,
   updateEvent,
   toggleEventActive,
-  deleteEvent,
   getEventAttendees,
   updateAttendee,
   bulkUpdateAttendees,
@@ -27,9 +26,7 @@ function EventManagement() {
   const [showQRModal, setShowQRModal] = useState(false)
   const [showRecruiterListsModal, setShowRecruiterListsModal] = useState(false)
   const [newEventName, setNewEventName] = useState('')
-  const [newKellyRep, setNewKellyRep] = useState('')
   const [editEventName, setEditEventName] = useState('')
-  const [editKellyRep, setEditKellyRep] = useState('')
   const [selectedAttendees, setSelectedAttendees] = useState<number[]>([])
   const [assignRecruiterMode, setAssignRecruiterMode] = useState(false)
   const [selectedRecruiterId, setSelectedRecruiterId] = useState<number | null>(null)
@@ -79,9 +76,8 @@ function EventManagement() {
     }
 
     try {
-      await createEvent(newEventName, newKellyRep || undefined)
+      await createEvent(newEventName)
       setNewEventName('')
-      setNewKellyRep('')
       setShowCreateModal(false)
       await loadData()
       alert('Event created successfully!')
@@ -97,36 +93,17 @@ function EventManagement() {
     }
 
     try {
-      await updateEvent(selectedEvent.id, editEventName, editKellyRep || undefined)
+      await updateEvent(selectedEvent.id, editEventName)
       setShowEditModal(false)
       await loadData()
       if (selectedEvent) {
         const updated = events.find(e => e.id === selectedEvent.id)
         if (updated) setSelectedEvent(updated)
       }
-      alert('Event updated!')
+      alert('Event name updated!')
     } catch (error) {
       console.error('Error updating event:', error)
       alert('Error updating event')
-    }
-  }
-
-  const handleDeleteEvent = async (event: Event) => {
-    if (!confirm(`Are you sure you want to delete "${event.name}"? This will delete all attendees and cannot be undone.`)) {
-      return
-    }
-
-    try {
-      await deleteEvent(event.id)
-      if (selectedEvent && selectedEvent.id === event.id) {
-        setSelectedEvent(null)
-        setAttendees([])
-      }
-      await loadData()
-      alert('Event deleted successfully!')
-    } catch (error) {
-      console.error('Error deleting event:', error)
-      alert('Error deleting event')
     }
   }
 
@@ -310,12 +287,6 @@ function EventManagement() {
               Code: <span className="font-mono font-semibold">{event.unique_code}</span>
             </p>
 
-            {event.kelly_representative && (
-              <p className="text-sm text-gray-600 mb-2">
-                Representative: <span className="font-semibold">{event.kelly_representative}</span>
-              </p>
-            )}
-
             <p className="text-sm text-gray-600 mb-4">
               Attendees: <span className="font-bold">{event.attendee_count || 0}</span>
             </p>
@@ -336,7 +307,6 @@ function EventManagement() {
                   e.stopPropagation()
                   setSelectedEvent(event)
                   setEditEventName(event.name)
-                  setEditKellyRep(event.kelly_representative || '')
                   setShowEditModal(true)
                 }}
                 className="flex-1 px-3 py-2 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700"
@@ -355,15 +325,6 @@ function EventManagement() {
                 }`}
               >
                 {event.is_active ? 'Deactivate' : 'Activate'}
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleDeleteEvent(event)
-                }}
-                className="flex-1 px-3 py-2 bg-gray-800 text-white rounded text-sm hover:bg-gray-900"
-              >
-                🗑️ Delete
               </button>
             </div>
           </div>
@@ -549,32 +510,13 @@ function EventManagement() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="text-2xl font-bold mb-4">Create New Event</h3>
-            <div className="space-y-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Event Name *
-                </label>
-                <input
-                  type="text"
-                  value={newEventName}
-                  onChange={(e) => setNewEventName(e.target.value)}
-                  placeholder="Event name"
-                  className="w-full px-4 py-2 border border-gray-300 rounded"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Kelly Representative
-                </label>
-                <input
-                  type="text"
-                  value={newKellyRep}
-                  onChange={(e) => setNewKellyRep(e.target.value)}
-                  placeholder="Representative name"
-                  className="w-full px-4 py-2 border border-gray-300 rounded"
-                />
-              </div>
-            </div>
+            <input
+              type="text"
+              value={newEventName}
+              onChange={(e) => setNewEventName(e.target.value)}
+              placeholder="Event name"
+              className="w-full px-4 py-2 border border-gray-300 rounded mb-4"
+            />
             <div className="flex gap-3">
               <button
                 onClick={() => setShowCreateModal(false)}
@@ -597,33 +539,14 @@ function EventManagement() {
       {showEditModal && selectedEvent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-2xl font-bold mb-4">Edit Event</h3>
-            <div className="space-y-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Event Name *
-                </label>
-                <input
-                  type="text"
-                  value={editEventName}
-                  onChange={(e) => setEditEventName(e.target.value)}
-                  placeholder="Event name"
-                  className="w-full px-4 py-2 border border-gray-300 rounded"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Kelly Representative
-                </label>
-                <input
-                  type="text"
-                  value={editKellyRep}
-                  onChange={(e) => setEditKellyRep(e.target.value)}
-                  placeholder="Representative name"
-                  className="w-full px-4 py-2 border border-gray-300 rounded"
-                />
-              </div>
-            </div>
+            <h3 className="text-2xl font-bold mb-4">Edit Event Name</h3>
+            <input
+              type="text"
+              value={editEventName}
+              onChange={(e) => setEditEventName(e.target.value)}
+              placeholder="Event name"
+              className="w-full px-4 py-2 border border-gray-300 rounded mb-4"
+            />
             <div className="flex gap-3">
               <button
                 onClick={() => setShowEditModal(false)}
