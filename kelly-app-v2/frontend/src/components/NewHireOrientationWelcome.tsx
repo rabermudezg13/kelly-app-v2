@@ -22,8 +22,13 @@ function NewHireOrientationWelcome({ orientationData, onOrientationCompleted }: 
       try {
         const latest = await getNewHireOrientation(orientationData.id)
         setCurrentOrientationData(latest)
-        setSteps(latest.steps)
-        
+
+        // Only update steps if they changed - prevents checkbox jumping
+        const stepsChanged = JSON.stringify(steps) !== JSON.stringify(latest.steps)
+        if (stepsChanged) {
+          setSteps(latest.steps)
+        }
+
         // Check if orientation was completed
         if (latest.status === 'completed' && !isCompleted) {
           setIsCompleted(true)
@@ -36,13 +41,16 @@ function NewHireOrientationWelcome({ orientationData, onOrientationCompleted }: 
       }
     }
 
-    // Sync immediately
-    syncOrientation()
-    
-    // Sync every 5 seconds
-    const interval = setInterval(syncOrientation, 5000)
-    
-    return () => clearInterval(interval)
+    // Don't sync if already completed - no need
+    if (!isCompleted) {
+      // Sync immediately
+      syncOrientation()
+
+      // Sync every 5 seconds
+      const interval = setInterval(syncOrientation, 5000)
+
+      return () => clearInterval(interval)
+    }
   }, [orientationData.id, isCompleted, onOrientationCompleted])
 
   useEffect(() => {
