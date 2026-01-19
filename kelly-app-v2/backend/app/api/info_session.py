@@ -214,9 +214,9 @@ async def register_info_session(
 
 @router.get("/live")
 async def get_live_info_sessions(db: Session = Depends(get_db)):
-    """Get live info sessions (registered but not completed)"""
+    """Get live info sessions (registered, in-progress, and initiated)"""
     sessions = db.query(InfoSession).options(joinedload(InfoSession.steps)).filter(
-        InfoSession.status.in_(["registered", "in-progress"])
+        InfoSession.status.in_(["registered", "in-progress", "initiated"])
     ).order_by(InfoSession.created_at.desc()).all()
     
     result = []

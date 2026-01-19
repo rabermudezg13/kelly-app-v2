@@ -67,11 +67,11 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
           setSteps(latest.steps)
         }
 
-        // Show questions if session is completed OR if there are responses
-        const shouldShowQuestions = latest.status === 'completed' || 
-                                   latest.question_1_response || 
-                                   latest.question_2_response || 
-                                   latest.question_3_response || 
+        // Show questions if session is initiated (completed info session) OR if there are responses
+        const shouldShowQuestions = latest.status === 'initiated' ||
+                                   latest.question_1_response ||
+                                   latest.question_2_response ||
+                                   latest.question_3_response ||
                                    latest.question_4_response
 
         if (shouldShowQuestions) {
@@ -87,10 +87,10 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
           console.log('✅ Sync: Showing questions - status:', latest.status, 'has responses:', !!(latest.question_1_response || latest.question_2_response || latest.question_3_response || latest.question_4_response))
         }
 
-        // Update isCompleted state if session is completed
-        if (latest.status === 'completed' && !isCompleted) {
+        // Update isCompleted state if session is initiated (process started)
+        if (latest.status === 'initiated' && !isCompleted) {
           setIsCompleted(true)
-          console.log('✅ Sync: Session marked as completed')
+          console.log('✅ Sync: Session marked as initiated (process started)')
         }
 
         // Only log, don't change state here to avoid conflicts with button handler
@@ -106,10 +106,12 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
       }
     }
 
-    // Sync immediately on mount and periodically
-    syncSession()
-    const interval = setInterval(syncSession, 5000)
-    return () => clearInterval(interval)
+    // Only sync if not yet completed
+    if (!isCompleted) {
+      syncSession()
+      const interval = setInterval(syncSession, 5000)
+      return () => clearInterval(interval)
+    }
   }, [sessionData.id, isCompleted])
 
   // Sync questions from latest session data when currentSessionData changes
