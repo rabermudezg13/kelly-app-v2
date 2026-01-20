@@ -352,6 +352,17 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
             <div className="mt-8 text-center">
               <button
                 onClick={async () => {
+                  // Show confirmation warning before completing
+                  const confirmed = confirm(
+                    'IMPORTANT: Please DO NOT click "OK" until the Info Session has been fully completed.\n\n' +
+                    'Have you completed the entire Info Session?\n\n' +
+                    'Click "OK" only when finished, or "Cancel" to continue the session.'
+                  )
+
+                  if (!confirmed) {
+                    return // User cancelled, don't complete the session
+                  }
+
                   console.log('🔘 Button clicked - starting completion')
                   setIsCompleting(true)
                   try {
