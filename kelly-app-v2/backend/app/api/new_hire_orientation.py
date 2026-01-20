@@ -262,12 +262,19 @@ async def complete_new_hire_orientation(
     # Mark as completed
     orientation.status = "completed"
     orientation.completed_at = datetime.utcnow()
-    
+
     # Calculate duration from registration (created_at) to completion (completed_at)
-    if orientation.created_at:
-        duration = orientation.completed_at - orientation.created_at
-        orientation.duration_minutes = int(duration.total_seconds() / 60)
-    
+    try:
+        if orientation.created_at:
+            # Handle both timezone-aware and naive datetimes
+            created = orientation.created_at.replace(tzinfo=None) if orientation.created_at.tzinfo else orientation.created_at
+            completed = orientation.completed_at.replace(tzinfo=None) if orientation.completed_at.tzinfo else orientation.completed_at
+            duration = completed - created
+            orientation.duration_minutes = int(duration.total_seconds() / 60)
+    except Exception as e:
+        print(f"Warning: Could not calculate duration: {e}")
+        # Continue without duration - not critical
+
     db.commit()
     db.refresh(orientation)
     

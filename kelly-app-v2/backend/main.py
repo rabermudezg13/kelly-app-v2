@@ -163,8 +163,25 @@ class ForceCORSMiddleware(BaseHTTPMiddleware):
                 }
             )
 
-        response = await call_next(request)
-        # Force CORS headers on ALL responses
+        try:
+            response = await call_next(request)
+        except Exception as e:
+            # Even on errors, return CORS headers
+            print(f"⚠️ Exception in middleware: {e}")
+            from fastapi.responses import JSONResponse
+            response = JSONResponse(
+                status_code=500,
+                content={"detail": "Internal server error"},
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+                    "Access-Control-Allow-Headers": "*",
+                    "Access-Control-Allow-Credentials": "false",
+                }
+            )
+            return response
+
+        # Force CORS headers on ALL responses (including errors)
         response.headers["Access-Control-Allow-Origin"] = "*"
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
         response.headers["Access-Control-Allow-Headers"] = "*"
