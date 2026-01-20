@@ -158,18 +158,22 @@ class ForceCORSMiddleware(BaseHTTPMiddleware):
                     "Access-Control-Allow-Origin": "*",
                     "Access-Control-Allow-Methods": "*",
                     "Access-Control-Allow-Headers": "*",
+                    "Access-Control-Allow-Credentials": "false",
                     "Access-Control-Max-Age": "3600",
                 }
             )
 
         response = await call_next(request)
+        # Force CORS headers on ALL responses
         response.headers["Access-Control-Allow-Origin"] = "*"
-        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
         response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Credentials"] = "false"
         return response
 
 app.add_middleware(ForceCORSMiddleware)
 print("✅ CORS configured: allow_origins=['*'] + Force CORS with OPTIONS handler")
+print("   📝 Allowing: https://kelly-app-v2.vercel.app and all origins")
 
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
