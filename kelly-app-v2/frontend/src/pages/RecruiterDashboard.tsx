@@ -1932,9 +1932,17 @@ function RecruiterDashboard() {
                     </button>
                   </div>
                 ) : (() => {
+                  console.log('🔍 Starting to group sessions. Total sessions:', sessions.length)
+                  console.log('🔍 Sample session:', sessions[0] ? {
+                    id: sessions[0].id,
+                    time_slot: sessions[0].time_slot,
+                    created_at: sessions[0].created_at,
+                    dateKey: getMiamiDateKey(sessions[0].created_at)
+                  } : 'No sessions')
+                  
                   // Group sessions by date and time slot
                   const groupedSessions: { [key: string]: AssignedSession[] } = {}
-                  sessions.forEach((session) => {
+                  sessions.forEach((session, index) => {
                     const dateKey = getMiamiDateKey(session.created_at)
                     // Ensure time_slot exists and normalize it
                     let timeSlot = session.time_slot || 'Unknown'
@@ -1950,13 +1958,24 @@ function RecruiterDashboard() {
                       groupedSessions[groupKey] = []
                     }
                     groupedSessions[groupKey].push(session)
+                    
+                    // Log first few sessions for debugging
+                    if (index < 3) {
+                      console.log(`🔍 Session ${index + 1}:`, {
+                        id: session.id,
+                        time_slot: session.time_slot,
+                        normalized_time_slot: timeSlot,
+                        dateKey,
+                        groupKey
+                      })
+                    }
                   })
                   
-                  console.log('🔍 Total sessions:', sessions.length)
-                  console.log('🔍 Grouped sessions:', Object.keys(groupedSessions).length, 'groups')
+                  console.log('🔍 Grouped sessions result:', Object.keys(groupedSessions).length, 'groups')
                   console.log('🔍 Group keys:', Object.keys(groupedSessions))
                   Object.keys(groupedSessions).forEach(key => {
-                    console.log(`  - ${key}: ${groupedSessions[key].length} sessions`)
+                    const [date, time] = key.split('_')
+                    console.log(`  - ${key} (Date: ${date}, Time: ${time}): ${groupedSessions[key].length} sessions`)
                   })
                   
                   // Sort group keys (most recent first, then by time slot)
