@@ -1963,22 +1963,22 @@ function RecruiterDashboard() {
                         const isMorning = timeSlot === '8:30 AM'
                         
                         return (
-                          <div key={groupKey}>
+                          <div key={groupKey} className="mb-6">
                             {/* Group Header - Date, Time Slot, and Session Type */}
-                            <div className={`my-4 py-4 px-4 ${isMorning ? 'bg-blue-200 border-blue-400' : 'bg-green-200 border-green-400'} border-t-2 border-b-2 rounded-lg shadow-sm`}>
+                            <div className={`my-4 py-4 px-6 ${isMorning ? 'bg-blue-200 border-blue-400' : 'bg-green-200 border-green-400'} border-t-4 border-b-4 rounded-lg shadow-md`}>
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                  <span className={`px-3 py-1 rounded-lg font-bold text-lg ${isMorning ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'}`}>
-                                    {timeSlot}
+                                  <span className={`px-4 py-2 rounded-lg font-bold text-xl ${isMorning ? 'bg-blue-600 text-white shadow-lg' : 'bg-green-600 text-white shadow-lg'}`}>
+                                    ⏰ {timeSlot}
                                   </span>
-                                  <span className="text-gray-800 font-bold text-lg">
-                                    {formatMiamiDateDisplay(firstSession.created_at)}
+                                  <span className="text-gray-800 font-bold text-xl">
+                                    📅 {formatMiamiDateDisplay(firstSession.created_at)}
                                   </span>
-                                  <span className="text-gray-600 font-semibold">
+                                  <span className="text-gray-700 font-semibold text-lg">
                                     {firstSession.session_type === 'new-hire' ? '📋 New Hire' : '🔄 Reactivation'}
                                   </span>
                                 </div>
-                                <span className="text-gray-700 font-semibold">
+                                <span className={`px-4 py-2 rounded-lg font-bold text-lg ${isMorning ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'}`}>
                                   {sessionsForGroup.length} {sessionsForGroup.length === 1 ? 'session' : 'sessions'}
                                 </span>
                               </div>
