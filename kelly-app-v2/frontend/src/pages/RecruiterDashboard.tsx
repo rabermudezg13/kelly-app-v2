@@ -2000,22 +2000,67 @@ function RecruiterDashboard() {
                         console.log(`🔍 Rendering group ${groupIndex + 1}: ${groupKey} with ${sessionsForGroup.length} sessions`)
                         
                         return (
-                          <div key={groupKey} className="mb-6">
+                          <div key={groupKey} className="mb-6" style={{ marginBottom: '2rem' }}>
                             {/* Group Header - Date, Time Slot, and Session Type - ALWAYS SHOW */}
-                            <div className={`my-4 py-4 px-6 ${isMorning ? 'bg-blue-200 border-blue-400' : 'bg-green-200 border-green-400'} border-t-4 border-b-4 rounded-lg shadow-md`}>
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                  <span className={`px-4 py-2 rounded-lg font-bold text-xl ${isMorning ? 'bg-blue-600 text-white shadow-lg' : 'bg-green-600 text-white shadow-lg'}`}>
-                                    ⏰ {timeSlot}
+                            <div 
+                              className={`my-4 py-4 px-6 border-t-4 border-b-4 rounded-lg shadow-md`}
+                              style={{
+                                backgroundColor: isMorning ? '#bfdbfe' : '#bbf7d0',
+                                borderTopColor: isMorning ? '#3b82f6' : '#22c55e',
+                                borderBottomColor: isMorning ? '#3b82f6' : '#22c55e',
+                                borderTopWidth: '4px',
+                                borderBottomWidth: '4px',
+                                padding: '1.5rem',
+                                marginTop: '1.5rem',
+                                marginBottom: '1.5rem',
+                                minHeight: '80px',
+                                display: 'flex',
+                                alignItems: 'center'
+                              }}
+                            >
+                              <div className="flex items-center justify-between w-full">
+                                <div className="flex items-center gap-4 flex-wrap">
+                                  <span 
+                                    className="px-4 py-2 rounded-lg font-bold text-xl shadow-lg"
+                                    style={{
+                                      backgroundColor: isMorning ? '#2563eb' : '#16a34a',
+                                      color: 'white',
+                                      fontSize: '1.25rem',
+                                      fontWeight: 'bold'
+                                    }}
+                                  >
+                                    ⏰ {timeSlot || 'Unknown'}
                                   </span>
-                                  <span className="text-gray-800 font-bold text-xl">
+                                  <span 
+                                    className="font-bold text-xl"
+                                    style={{
+                                      color: '#1f2937',
+                                      fontSize: '1.25rem',
+                                      fontWeight: 'bold'
+                                    }}
+                                  >
                                     📅 {formatMiamiDateDisplay(firstSession.created_at)}
                                   </span>
-                                  <span className="text-gray-700 font-semibold text-lg">
+                                  <span 
+                                    className="font-semibold text-lg"
+                                    style={{
+                                      color: '#374151',
+                                      fontSize: '1.125rem',
+                                      fontWeight: '600'
+                                    }}
+                                  >
                                     {firstSession.session_type === 'new-hire' ? '📋 New Hire' : '🔄 Reactivation'}
                                   </span>
                                 </div>
-                                <span className={`px-4 py-2 rounded-lg font-bold text-lg ${isMorning ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'}`}>
+                                <span 
+                                  className="px-4 py-2 rounded-lg font-bold text-lg"
+                                  style={{
+                                    backgroundColor: isMorning ? '#2563eb' : '#16a34a',
+                                    color: 'white',
+                                    fontSize: '1.125rem',
+                                    fontWeight: 'bold'
+                                  }}
+                                >
                                   {sessionsForGroup.length} {sessionsForGroup.length === 1 ? 'session' : 'sessions'}
                                 </span>
                               </div>
