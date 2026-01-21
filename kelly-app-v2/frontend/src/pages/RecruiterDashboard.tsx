@@ -512,9 +512,14 @@ function RecruiterDashboard() {
       alert('Session completed! Status updated to "completed".')
     } catch (error: any) {
       console.error('❌ Error completing session:', error)
+      console.error('Error type:', typeof error)
+      console.error('Error constructor:', error?.constructor?.name)
       console.error('Error response:', error.response)
+      console.error('Error originalError:', error.originalError)
       console.error('Error details:', error.response?.data || error.message)
       console.error('Error status:', error.response?.status)
+      console.error('Error message:', error.message)
+      console.error('Full error object:', JSON.stringify(error, null, 2))
       
       // Revert optimistic update on error
       setSessions(prevSessions => 
@@ -525,7 +530,20 @@ function RecruiterDashboard() {
         )
       )
       
-      const errorMessage = error.response?.data?.detail || error.response?.data?.message || error.message || 'Unknown error'
+      // Extract error message from various possible locations
+      let errorMessage = 'Unknown error'
+      if (error.message && error.message !== 'Unknown error') {
+        errorMessage = error.message
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message
+      } else if (error.originalError?.message) {
+        errorMessage = error.originalError.message
+      } else if (typeof error === 'string') {
+        errorMessage = error
+      }
+      
       alert(`Error completing session: ${errorMessage}`)
     }
   }

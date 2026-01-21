@@ -366,12 +366,32 @@ export const completeSession = async (
     console.log('✅ completeSession response:', response.data)
     return response.data
   } catch (error: any) {
-    console.error('❌ completeSession error:', {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message
-    })
-    throw error
+    console.error('❌ completeSession error:', error)
+    console.error('❌ Error type:', typeof error)
+    console.error('❌ Error constructor:', error?.constructor?.name)
+    console.error('❌ Error response:', error.response)
+    console.error('❌ Error response data:', error.response?.data)
+    console.error('❌ Error response status:', error.response?.status)
+    console.error('❌ Error message:', error.message)
+    console.error('❌ Error stack:', error.stack)
+    
+    // Create a more descriptive error message
+    let errorMessage = 'Unknown error'
+    if (error.response) {
+      // Server responded with error status
+      errorMessage = error.response.data?.detail || error.response.data?.message || `Server error: ${error.response.status}`
+    } else if (error.request) {
+      // Request was made but no response received
+      errorMessage = 'Network error: No response from server. Please check your connection.'
+    } else {
+      // Something else happened
+      errorMessage = error.message || 'Unknown error occurred'
+    }
+    
+    const enhancedError = new Error(errorMessage)
+    ;(enhancedError as any).originalError = error
+    ;(enhancedError as any).response = error.response
+    throw enhancedError
   }
 }
 
