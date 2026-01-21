@@ -345,14 +345,15 @@ async def complete_session(
         session.questions = update_data.questions
     
     # Mark as completed and calculate duration
-    if not session.completed_at:
-        session.completed_at = datetime.utcnow()
-        session.status = "completed"
-        
-        # Calculate duration from registration (created_at) to completion (completed_at)
-        if session.created_at:
-            duration = session.completed_at - session.created_at
-            session.duration_minutes = int(duration.total_seconds() / 60)
+    # Always update status to "completed" when recruiter completes the session
+    session.completed_at = datetime.utcnow()
+    session.status = "completed"
+    print(f"✅ Recruiter {recruiter_id} completed session {session_id} - Status set to: {session.status}")
+    
+    # Calculate duration from registration (created_at) to completion (completed_at)
+    if session.created_at:
+        duration = session.completed_at - session.created_at
+        session.duration_minutes = int(duration.total_seconds() / 60)
     
     # Mark recruiter as available again
     recruiter = db.query(Recruiter).filter(Recruiter.id == recruiter_id).first()
@@ -362,8 +363,11 @@ async def complete_session(
     db.commit()
     db.refresh(session)
     
+    print(f"✅ Session {session_id} status after commit: {session.status}")
+    
     return {
         "message": "Session completed",
+        "status": session.status,
         "completed_at": session.completed_at.isoformat() if session.completed_at else None,
         "duration_minutes": session.duration_minutes
     }

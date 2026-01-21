@@ -455,46 +455,11 @@ function RecruiterDashboard() {
   const handleCompleteSession = async () => {
     if (!selectedSession || !recruiterId) return
     try {
-      await completeSession(parseInt(recruiterId), selectedSession.id, documentStatus)
-      // Force refresh all data to get updated status
-      await loadData()
-      // Also refresh the selected session to get updated status
-      if (selectedSession) {
-        try {
-          const allSessionsData = await getInfoSessions()
-          const updatedSessionData = allSessionsData.find(s => s.id === selectedSession.id)
-          if (updatedSessionData) {
-            const updatedSession: AssignedSession = {
-              id: updatedSessionData.id,
-              first_name: updatedSessionData.first_name,
-              last_name: updatedSessionData.last_name,
-              email: updatedSessionData.email,
-              phone: updatedSessionData.phone,
-              zip_code: updatedSessionData.zip_code,
-              session_type: updatedSessionData.session_type,
-              time_slot: updatedSessionData.time_slot,
-              status: updatedSessionData.status, // This should now be "completed"
-              ob365_sent: updatedSessionData.ob365_sent || false,
-              i9_sent: updatedSessionData.i9_sent || false,
-              existing_i9: updatedSessionData.existing_i9 || false,
-              ineligible: updatedSessionData.ineligible || false,
-              rejected: updatedSessionData.rejected || false,
-              drug_screen: updatedSessionData.drug_screen || false,
-              questions: updatedSessionData.questions || false,
-              started_at: updatedSessionData.started_at || null,
-              completed_at: updatedSessionData.completed_at || null,
-              duration_minutes: updatedSessionData.duration_minutes || null,
-              created_at: updatedSessionData.created_at,
-              assigned_recruiter_id: updatedSessionData.assigned_recruiter_id,
-              assigned_recruiter_name: updatedSessionData.assigned_recruiter_name,
-              generated_row: updatedSessionData.generated_row || null,
-            }
-            setSelectedSession(updatedSession)
-          }
-        } catch (error) {
-          console.error('Error refreshing selected session:', error)
-        }
-      }
+      const result = await completeSession(parseInt(recruiterId), selectedSession.id, documentStatus)
+      console.log('✅ Session completed, result:', result)
+      
+      // Close the modal immediately
+      setSelectedSession(null)
       setDocumentStatus({
         ob365_sent: false,
         i9_sent: false,
@@ -506,7 +471,11 @@ function RecruiterDashboard() {
         ob365_completed: false,
         i9_completed: false,
       })
-      alert('Session completed!')
+      
+      // Force refresh all data to get updated status
+      await loadData()
+      
+      alert('Session completed! Status updated to "completed".')
     } catch (error) {
       console.error('Error completing session:', error)
       alert('Error completing session')
@@ -1901,25 +1870,32 @@ function RecruiterDashboard() {
                             
                             {/* Sessions for this date */}
                             {sessionsForDate.map((session, sessionIndex) => {
-                              // Color based on time slot
-                              const isMorning = session.time_slot === '8:30 AM'
-                              const baseBgColor = isMorning ? 'bg-blue-50' : 'bg-green-50'
-                              const baseBorderColor = isMorning ? 'border-blue-300' : 'border-green-300'
-                              const hoverBgColor = isMorning ? 'hover:bg-blue-100' : 'hover:bg-green-100'
+                              // Different color for each session to easily distinguish them
+                              // Use a palette of distinct colors that rotate
+                              const colorPalette = [
+                                { bg: 'bg-blue-50', border: 'border-blue-300', hover: 'hover:bg-blue-100', strong: 'bg-blue-100', strongBorder: 'border-blue-500' },
+                                { bg: 'bg-green-50', border: 'border-green-300', hover: 'hover:bg-green-100', strong: 'bg-green-100', strongBorder: 'border-green-500' },
+                                { bg: 'bg-purple-50', border: 'border-purple-300', hover: 'hover:bg-purple-100', strong: 'bg-purple-100', strongBorder: 'border-purple-500' },
+                                { bg: 'bg-yellow-50', border: 'border-yellow-300', hover: 'hover:bg-yellow-100', strong: 'bg-yellow-100', strongBorder: 'border-yellow-500' },
+                                { bg: 'bg-pink-50', border: 'border-pink-300', hover: 'hover:bg-pink-100', strong: 'bg-pink-100', strongBorder: 'border-pink-500' },
+                                { bg: 'bg-indigo-50', border: 'border-indigo-300', hover: 'hover:bg-indigo-100', strong: 'bg-indigo-100', strongBorder: 'border-indigo-500' },
+                                { bg: 'bg-orange-50', border: 'border-orange-300', hover: 'hover:bg-orange-100', strong: 'bg-orange-100', strongBorder: 'border-orange-500' },
+                                { bg: 'bg-teal-50', border: 'border-teal-300', hover: 'hover:bg-teal-100', strong: 'bg-teal-100', strongBorder: 'border-teal-500' },
+                              ]
+                              
+                              // Use session index to cycle through colors
+                              const colorIndex = sessionIndex % colorPalette.length
+                              const sessionColor = colorPalette[colorIndex]
                               
                               // If assigned to this recruiter, use stronger colors
                               const isAssignedToMe = session.assigned_recruiter_id === parseInt(recruiterId || '0')
-                              const assignedBgColor = isAssignedToMe 
-                                ? (isMorning ? 'bg-blue-100' : 'bg-green-100')
-                                : baseBgColor
-                              const assignedBorderColor = isAssignedToMe
-                                ? (isMorning ? 'border-blue-500' : 'border-green-500')
-                                : baseBorderColor
+                              const assignedBgColor = isAssignedToMe ? sessionColor.strong : sessionColor.bg
+                              const assignedBorderColor = isAssignedToMe ? sessionColor.strongBorder : sessionColor.border
                               
                               return (
                               <div
                                 key={session.id}
-                                className={`border rounded-lg p-4 ${assignedBgColor} ${hoverBgColor} cursor-pointer transition-colors mb-4 ${assignedBorderColor}`}
+                                className={`border rounded-lg p-4 ${assignedBgColor} ${sessionColor.hover} cursor-pointer transition-colors mb-4 ${assignedBorderColor}`}
                                 onClick={() => openSessionDetails(session)}
                               >
                       <div className="flex justify-between items-start">
@@ -1969,6 +1945,7 @@ function RecruiterDashboard() {
                               {session.time_slot}
                             </span>
                             {' '}- {session.session_type}
+                            {' '}- <span className="text-xs text-gray-400">Session #{sessionIndex + 1}</span>
                           </p>
                           {session.assigned_recruiter_name ? (
                             <p className="text-sm text-gray-600 mt-1">
