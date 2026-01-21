@@ -453,15 +453,10 @@ async def complete_info_session(
         # Mark as answers_submitted - the applicant has finished the info session steps
         # "completed" status is only set when recruiter completes the session
         info_session.status = "answers_submitted"
+        # Don't set completed_at here - that's only set when recruiter completes
         print(f"✅ Info session {session_id} marked as 'answers_submitted' (user completed steps)")
 
-        # Try to calculate duration (non-critical)
-        try:
-            if info_session.created_at:
-                duration = info_session.completed_at - info_session.created_at
-                info_session.duration_minutes = int(duration.total_seconds() / 60)
-        except:
-            pass
+        # Note: duration_minutes is only calculated when recruiter completes the session
 
         # Try to assign recruiter (non-critical)
         try:
