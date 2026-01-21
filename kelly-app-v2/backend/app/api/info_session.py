@@ -410,22 +410,26 @@ async def complete_step(
     step.is_completed = True
     step.completed_at = datetime.utcnow()
     
-    # Check if all steps are completed, then assign recruiter if not assigned
+    # Check if all steps are completed, then mark as answers_submitted
     info_session = db.query(InfoSession).filter(InfoSession.id == session_id).first()
     if info_session:
         all_steps_completed = all(s.is_completed for s in info_session.steps)
-        if all_steps_completed and not info_session.assigned_recruiter_id:
-            # Mark as completed and assign recruiter
-            info_session.status = "completed"
-            info_session.completed_at = datetime.utcnow()
+        if all_steps_completed:
+            # Mark as answers_submitted when user completes all steps
+            # "completed" status is only set when recruiter completes the session
+            if info_session.status != "completed":
+                info_session.status = "answers_submitted"
+                print(f"✅ All steps completed - Status changed to 'answers_submitted' for session {session_id}")
             
-            # Assign recruiter when all steps are completed
-            from app.services.recruiter_service import get_next_recruiter, initialize_default_recruiters
-            from datetime import date
-            initialize_default_recruiters(db)
-            recruiter = get_next_recruiter(db, info_session.time_slot, date.today())
-            if recruiter:
-                info_session.assigned_recruiter_id = recruiter.id
+            # Assign recruiter if not assigned
+            if not info_session.assigned_recruiter_id:
+                from app.services.recruiter_service import get_next_recruiter, initialize_default_recruiters
+                from datetime import date
+                initialize_default_recruiters(db)
+                recruiter = get_next_recruiter(db, info_session.time_slot, date.today())
+                if recruiter:
+                    info_session.assigned_recruiter_id = recruiter.id
+                    print(f"✅ Recruiter {recruiter.name} assigned to session {session_id}")
     
     db.commit()
     
@@ -436,18 +440,20 @@ async def complete_info_session(
     session_id: int,
     db: Session = Depends(get_db)
 ):
-    """Mark info session as completed (applicant has finished the info session)"""
+    """Mark info session as answers_submitted (applicant has finished the info session steps)"""
     try:
         info_session = db.query(InfoSession).filter(InfoSession.id == session_id).first()
         if not info_session:
             raise HTTPException(status_code=404, detail="Info session not found")
 
+        # Don't change status if already completed by recruiter
         if info_session.status == "completed":
-            return {"message": "Session already completed", "session_id": session_id}
+            return {"message": "Session already completed by recruiter", "session_id": session_id}
 
-        # Mark as completed - the applicant has finished the info session
-        info_session.status = "completed"
-        info_session.completed_at = datetime.utcnow()
+        # Mark as answers_submitted - the applicant has finished the info session steps
+        # "completed" status is only set when recruiter completes the session
+        info_session.status = "answers_submitted"
+        print(f"✅ Info session {session_id} marked as 'answers_submitted' (user completed steps)")
 
         # Try to calculate duration (non-critical)
         try:
