@@ -406,8 +406,6 @@ export const updateSessionDocuments = async (
     rejected?: boolean
     drug_screen?: boolean
     questions?: boolean
-    ob365_completed?: boolean
-    i9_completed?: boolean
     generated_row?: string
     status?: string
   }

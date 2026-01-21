@@ -1995,17 +1995,6 @@ function RecruiterDashboard() {
                   
                   return (
                     <>
-                      {/* DEBUG: Show total groups */}
-                      <div style={{ 
-                        backgroundColor: '#fef3c7', 
-                        border: '2px solid #f59e0b', 
-                        padding: '1rem', 
-                        marginBottom: '1rem',
-                        borderRadius: '8px'
-                      }}>
-                        <strong>🔍 DEBUG: {sortedGroupKeys.length} grupos encontrados</strong>
-                      </div>
-                      
                       {sortedGroupKeys.map((groupKey, groupIndex) => {
                         const sessionsForGroup = groupedSessions[groupKey]
                         const [dateKey, timeSlot] = groupKey.split('_')
@@ -2015,19 +2004,24 @@ function RecruiterDashboard() {
                         console.log(`🔍 Rendering group ${groupIndex + 1}: ${groupKey} with ${sessionsForGroup.length} sessions`)
                         
                         return (
-                          <div key={groupKey} className="mb-6" style={{ marginBottom: '2rem' }}>
+                          <div
+                            key={groupKey}
+                            className="mb-8"
+                            style={{
+                              marginBottom: '3rem',
+                              border: `4px solid ${isMorning ? '#3b82f6' : '#22c55e'}`,
+                              borderRadius: '12px',
+                              padding: '1.5rem',
+                              backgroundColor: isMorning ? '#eff6ff' : '#f0fdf4',
+                              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                            }}
+                          >
                             {/* Group Header - Date, Time Slot, and Session Type - ALWAYS SHOW */}
-                            <div 
-                              className={`my-4 py-4 px-6 border-t-4 border-b-4 rounded-lg shadow-md`}
+                            <div
+                              className={`mb-4 py-4 px-6 rounded-lg shadow-lg`}
                               style={{
-                                backgroundColor: isMorning ? '#bfdbfe' : '#bbf7d0',
-                                borderTopColor: isMorning ? '#3b82f6' : '#22c55e',
-                                borderBottomColor: isMorning ? '#3b82f6' : '#22c55e',
-                                borderTopWidth: '4px',
-                                borderBottomWidth: '4px',
+                                backgroundColor: isMorning ? '#2563eb' : '#16a34a',
                                 padding: '1.5rem',
-                                marginTop: '1.5rem',
-                                marginBottom: '1.5rem',
                                 minHeight: '80px',
                                 display: 'flex',
                                 alignItems: 'center'
@@ -2035,48 +2029,52 @@ function RecruiterDashboard() {
                             >
                               <div className="flex items-center justify-between w-full">
                                 <div className="flex items-center gap-4 flex-wrap">
-                                  <span 
-                                    className="px-4 py-2 rounded-lg font-bold text-xl shadow-lg"
+                                  <span
+                                    className="px-4 py-2 rounded-lg font-bold text-xl shadow-md"
                                     style={{
-                                      backgroundColor: isMorning ? '#2563eb' : '#16a34a',
-                                      color: 'white',
-                                      fontSize: '1.25rem',
-                                      fontWeight: 'bold'
+                                      backgroundColor: 'white',
+                                      color: isMorning ? '#2563eb' : '#16a34a',
+                                      fontSize: '1.5rem',
+                                      fontWeight: 'bold',
+                                      border: `3px solid ${isMorning ? '#3b82f6' : '#22c55e'}`
                                     }}
                                   >
                                     ⏰ {timeSlot || 'Unknown'}
                                   </span>
-                                  <span 
+                                  <span
                                     className="font-bold text-xl"
                                     style={{
-                                      color: '#1f2937',
-                                      fontSize: '1.25rem',
+                                      color: 'white',
+                                      fontSize: '1.5rem',
                                       fontWeight: 'bold'
                                     }}
                                   >
                                     📅 {formatMiamiDateDisplay(firstSession.created_at)}
                                   </span>
-                                  <span 
-                                    className="font-semibold text-lg"
+                                  <span
+                                    className="font-semibold text-lg px-3 py-1 rounded-lg"
                                     style={{
-                                      color: '#374151',
+                                      color: isMorning ? '#2563eb' : '#16a34a',
+                                      backgroundColor: 'white',
                                       fontSize: '1.125rem',
-                                      fontWeight: '600'
+                                      fontWeight: '600',
+                                      border: `2px solid ${isMorning ? '#3b82f6' : '#22c55e'}`
                                     }}
                                   >
                                     {firstSession.session_type === 'new-hire' ? '📋 New Hire' : '🔄 Reactivation'}
                                   </span>
                                 </div>
-                                <span 
-                                  className="px-4 py-2 rounded-lg font-bold text-lg"
+                                <span
+                                  className="px-4 py-2 rounded-lg font-bold text-lg shadow-md"
                                   style={{
-                                    backgroundColor: isMorning ? '#2563eb' : '#16a34a',
-                                    color: 'white',
-                                    fontSize: '1.125rem',
-                                    fontWeight: 'bold'
+                                    backgroundColor: 'white',
+                                    color: isMorning ? '#2563eb' : '#16a34a',
+                                    fontSize: '1.25rem',
+                                    fontWeight: 'bold',
+                                    border: `3px solid ${isMorning ? '#3b82f6' : '#22c55e'}`
                                   }}
                                 >
-                                  {sessionsForGroup.length} {sessionsForGroup.length === 1 ? 'session' : 'sessions'}
+                                  {sessionsForGroup.length} {sessionsForGroup.length === 1 ? 'Applicant' : 'Applicants'}
                                 </span>
                               </div>
                             </div>
@@ -2246,7 +2244,8 @@ function RecruiterDashboard() {
                         </div>
                       </div>
                     </div>
-                            ))}
+                              )
+                            })}
                           </div>
                         )
                       })}
