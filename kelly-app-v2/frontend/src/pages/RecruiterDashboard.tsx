@@ -456,8 +456,45 @@ function RecruiterDashboard() {
     if (!selectedSession || !recruiterId) return
     try {
       await completeSession(parseInt(recruiterId), selectedSession.id, documentStatus)
+      // Force refresh all data to get updated status
       await loadData()
-      setSelectedSession(null)
+      // Also refresh the selected session to get updated status
+      if (selectedSession) {
+        try {
+          const allSessionsData = await getInfoSessions()
+          const updatedSessionData = allSessionsData.find(s => s.id === selectedSession.id)
+          if (updatedSessionData) {
+            const updatedSession: AssignedSession = {
+              id: updatedSessionData.id,
+              first_name: updatedSessionData.first_name,
+              last_name: updatedSessionData.last_name,
+              email: updatedSessionData.email,
+              phone: updatedSessionData.phone,
+              zip_code: updatedSessionData.zip_code,
+              session_type: updatedSessionData.session_type,
+              time_slot: updatedSessionData.time_slot,
+              status: updatedSessionData.status, // This should now be "completed"
+              ob365_sent: updatedSessionData.ob365_sent || false,
+              i9_sent: updatedSessionData.i9_sent || false,
+              existing_i9: updatedSessionData.existing_i9 || false,
+              ineligible: updatedSessionData.ineligible || false,
+              rejected: updatedSessionData.rejected || false,
+              drug_screen: updatedSessionData.drug_screen || false,
+              questions: updatedSessionData.questions || false,
+              started_at: updatedSessionData.started_at || null,
+              completed_at: updatedSessionData.completed_at || null,
+              duration_minutes: updatedSessionData.duration_minutes || null,
+              created_at: updatedSessionData.created_at,
+              assigned_recruiter_id: updatedSessionData.assigned_recruiter_id,
+              assigned_recruiter_name: updatedSessionData.assigned_recruiter_name,
+              generated_row: updatedSessionData.generated_row || null,
+            }
+            setSelectedSession(updatedSession)
+          }
+        } catch (error) {
+          console.error('Error refreshing selected session:', error)
+        }
+      }
       setDocumentStatus({
         ob365_sent: false,
         i9_sent: false,
@@ -1863,14 +1900,26 @@ function RecruiterDashboard() {
                             )}
                             
                             {/* Sessions for this date */}
-                            {sessionsForDate.map((session, sessionIndex) => (
+                            {sessionsForDate.map((session, sessionIndex) => {
+                              // Color based on time slot
+                              const isMorning = session.time_slot === '8:30 AM'
+                              const baseBgColor = isMorning ? 'bg-blue-50' : 'bg-green-50'
+                              const baseBorderColor = isMorning ? 'border-blue-300' : 'border-green-300'
+                              const hoverBgColor = isMorning ? 'hover:bg-blue-100' : 'hover:bg-green-100'
+                              
+                              // If assigned to this recruiter, use stronger colors
+                              const isAssignedToMe = session.assigned_recruiter_id === parseInt(recruiterId || '0')
+                              const assignedBgColor = isAssignedToMe 
+                                ? (isMorning ? 'bg-blue-100' : 'bg-green-100')
+                                : baseBgColor
+                              const assignedBorderColor = isAssignedToMe
+                                ? (isMorning ? 'border-blue-500' : 'border-green-500')
+                                : baseBorderColor
+                              
+                              return (
                               <div
                                 key={session.id}
-                                className={`border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors mb-4 ${
-                                  session.assigned_recruiter_id === parseInt(recruiterId || '0')
-                                    ? 'border-blue-500 bg-blue-50'
-                                    : ''
-                                }`}
+                                className={`border rounded-lg p-4 ${assignedBgColor} ${hoverBgColor} cursor-pointer transition-colors mb-4 ${assignedBorderColor}`}
                                 onClick={() => openSessionDetails(session)}
                               >
                       <div className="flex justify-between items-start">
@@ -1914,7 +1963,12 @@ function RecruiterDashboard() {
                           </div>
                           <p className="text-gray-600">{session.email}</p>
                           <p className="text-sm text-gray-500">
-                            {session.time_slot} - {session.session_type}
+                            <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                              session.time_slot === '8:30 AM' ? 'bg-blue-200 text-blue-900' : 'bg-green-200 text-green-900'
+                            }`}>
+                              {session.time_slot}
+                            </span>
+                            {' '}- {session.session_type}
                           </p>
                           {session.assigned_recruiter_name ? (
                             <p className="text-sm text-gray-600 mt-1">
@@ -1942,13 +1996,15 @@ function RecruiterDashboard() {
                           <span
                             className={`px-3 py-1 rounded text-sm font-bold ${
                               session.status === 'completed'
-                                ? 'bg-green-100 text-green-800'
+                                ? 'bg-green-500 text-white'
                                 : session.status === 'in-progress'
                                 ? 'bg-yellow-100 text-yellow-800'
+                                : session.status === 'initiated'
+                                ? 'bg-blue-100 text-blue-800'
                                 : 'bg-gray-100 text-gray-800'
                             }`}
                           >
-                            {session.status}
+                            {session.status === 'completed' ? '✓ Completed' : session.status}
                           </span>
                           {!session.started_at && session.status !== 'completed' && (
                             (session.assigned_recruiter_id === parseInt(recruiterId || '0') || !session.assigned_recruiter_id) ? (
