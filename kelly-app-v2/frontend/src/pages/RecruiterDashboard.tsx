@@ -455,16 +455,32 @@ function RecruiterDashboard() {
   const handleCompleteSession = async () => {
     if (!selectedSession || !recruiterId) return
     try {
-      // Only send fields that exist in the backend model
-      const cleanDocumentStatus = {
-        ob365_sent: documentStatus.ob365_sent,
-        i9_sent: documentStatus.i9_sent,
-        existing_i9: documentStatus.existing_i9,
-        ineligible: documentStatus.ineligible,
-        rejected: documentStatus.rejected,
-        drug_screen: documentStatus.drug_screen,
-        questions: documentStatus.questions,
-      }
+      // Only send fields that are explicitly set (not false by default)
+      // Filter out false values to avoid sending unnecessary data
+      const cleanDocumentStatus: {
+        ob365_sent?: boolean
+        i9_sent?: boolean
+        existing_i9?: boolean
+        ineligible?: boolean
+        rejected?: boolean
+        drug_screen?: boolean
+        questions?: boolean
+      } = {}
+      
+      // Only include fields that are true (explicitly checked)
+      if (documentStatus.ob365_sent) cleanDocumentStatus.ob365_sent = true
+      if (documentStatus.i9_sent) cleanDocumentStatus.i9_sent = true
+      if (documentStatus.existing_i9) cleanDocumentStatus.existing_i9 = true
+      if (documentStatus.ineligible) cleanDocumentStatus.ineligible = true
+      if (documentStatus.rejected) cleanDocumentStatus.rejected = true
+      if (documentStatus.drug_screen) cleanDocumentStatus.drug_screen = true
+      if (documentStatus.questions) cleanDocumentStatus.questions = true
+      
+      console.log('📤 Completing session:', {
+        sessionId: selectedSession.id,
+        recruiterId: parseInt(recruiterId),
+        documentStatus: cleanDocumentStatus
+      })
       
       // Optimistically update the local state immediately
       setSessions(prevSessions => 
@@ -496,7 +512,9 @@ function RecruiterDashboard() {
       alert('Session completed! Status updated to "completed".')
     } catch (error: any) {
       console.error('❌ Error completing session:', error)
+      console.error('Error response:', error.response)
       console.error('Error details:', error.response?.data || error.message)
+      console.error('Error status:', error.response?.status)
       
       // Revert optimistic update on error
       setSessions(prevSessions => 
@@ -507,7 +525,7 @@ function RecruiterDashboard() {
         )
       )
       
-      const errorMessage = error.response?.data?.detail || error.message || 'Unknown error'
+      const errorMessage = error.response?.data?.detail || error.response?.data?.message || error.message || 'Unknown error'
       alert(`Error completing session: ${errorMessage}`)
     }
   }

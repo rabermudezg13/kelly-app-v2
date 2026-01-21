@@ -355,8 +355,24 @@ export const completeSession = async (
   if (updateData.drug_screen !== undefined) cleanUpdateData.drug_screen = updateData.drug_screen
   if (updateData.questions !== undefined) cleanUpdateData.questions = updateData.questions
   
-  const response = await api.post(`/recruiter/${recruiterId}/sessions/${sessionId}/complete`, cleanUpdateData)
-  return response.data
+  console.log('📤 Calling completeSession:', {
+    recruiterId,
+    sessionId,
+    cleanUpdateData
+  })
+  
+  try {
+    const response = await api.post(`/recruiter/${recruiterId}/sessions/${sessionId}/complete`, cleanUpdateData)
+    console.log('✅ completeSession response:', response.data)
+    return response.data
+  } catch (error: any) {
+    console.error('❌ completeSession error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    })
+    throw error
+  }
 }
 
 export const updateSessionDocuments = async (

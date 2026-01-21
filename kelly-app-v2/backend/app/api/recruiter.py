@@ -26,7 +26,7 @@ class RecruiterResponse(BaseModel):
     status: str
 
 class InfoSessionUpdate(BaseModel):
-    model_config = {"extra": "ignore"}  # Ignore extra fields that might be sent
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields that might be sent
     ob365_sent: Optional[bool] = None
     i9_sent: Optional[bool] = None
     existing_i9: Optional[bool] = None
