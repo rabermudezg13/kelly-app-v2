@@ -678,9 +678,14 @@ function RecruiterDashboard() {
                         </tr>
                       )}
                       {sessionsForDate.map((session, sessionIndex) => {
-                        // Color based on time slot
+                        // Color based on status first, then time slot
+                        const isCompleted = session.status === 'completed'
                         const isMorning = session.time_slot === '8:30 AM'
-                        const rowBgColor = isMorning ? 'bg-blue-50 hover:bg-blue-100' : 'bg-green-50 hover:bg-green-100'
+                        const rowBgColor = isCompleted 
+                          ? 'bg-green-100 hover:bg-green-200 border-green-300' 
+                          : isMorning 
+                            ? 'bg-blue-50 hover:bg-blue-100' 
+                            : 'bg-green-50 hover:bg-green-100'
 
                         return (
                         <tr key={session.id} className={`border-b ${rowBgColor}`}>
@@ -1936,6 +1941,9 @@ function RecruiterDashboard() {
                             
                             {/* Sessions for this date */}
                             {sessionsForDate.map((session, sessionIndex) => {
+                              // If completed, always use green
+                              const isCompleted = session.status === 'completed'
+                              
                               // Different color for each session to easily distinguish them
                               // Use a palette of distinct colors that rotate
                               const colorPalette = [
@@ -1953,15 +1961,15 @@ function RecruiterDashboard() {
                               const colorIndex = sessionIndex % colorPalette.length
                               const sessionColor = colorPalette[colorIndex]
                               
-                              // If assigned to this recruiter, use stronger colors
-                              const isAssignedToMe = session.assigned_recruiter_id === parseInt(recruiterId || '0')
-                              const assignedBgColor = isAssignedToMe ? sessionColor.strong : sessionColor.bg
-                              const assignedBorderColor = isAssignedToMe ? sessionColor.strongBorder : sessionColor.border
+                              // If completed, use green colors
+                              const finalBgColor = isCompleted ? 'bg-green-100' : (session.assigned_recruiter_id === parseInt(recruiterId || '0') ? sessionColor.strong : sessionColor.bg)
+                              const finalBorderColor = isCompleted ? 'border-green-500' : (session.assigned_recruiter_id === parseInt(recruiterId || '0') ? sessionColor.strongBorder : sessionColor.border)
+                              const finalHover = isCompleted ? 'hover:bg-green-200' : sessionColor.hover
                               
                               return (
                               <div
                                 key={session.id}
-                                className={`border rounded-lg p-4 ${assignedBgColor} ${sessionColor.hover} cursor-pointer transition-colors mb-4 ${assignedBorderColor}`}
+                                className={`border rounded-lg p-4 ${finalBgColor} ${finalHover} cursor-pointer transition-colors mb-4 ${finalBorderColor}`}
                                 onClick={() => openSessionDetails(session)}
                               >
                       <div className="flex justify-between items-start">

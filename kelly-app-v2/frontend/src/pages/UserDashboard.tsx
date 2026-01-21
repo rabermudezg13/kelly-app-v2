@@ -176,9 +176,14 @@ function UserDashboard() {
                         </tr>
                       )}
                       {sessionsForDate.map((session, sessionIndex) => {
-                        // Color based on time slot
+                        // Color based on status first, then time slot
+                        const isCompleted = session.status === 'completed'
                         const isMorning = session.time_slot === '8:30 AM'
-                        const rowBgColor = isMorning ? 'bg-blue-50 hover:bg-blue-100' : 'bg-green-50 hover:bg-green-100'
+                        const rowBgColor = isCompleted 
+                          ? 'bg-green-100 hover:bg-green-200 border-green-300' 
+                          : isMorning 
+                            ? 'bg-blue-50 hover:bg-blue-100' 
+                            : 'bg-green-50 hover:bg-green-100'
                         
                         return (
                         <tr key={session.id} className={`border-b ${rowBgColor}`}>
