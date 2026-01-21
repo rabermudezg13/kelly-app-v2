@@ -362,11 +362,44 @@ export const updateSessionDocuments = async (
     rejected?: boolean
     drug_screen?: boolean
     questions?: boolean
+    ob365_completed?: boolean
+    i9_completed?: boolean
     generated_row?: string
     status?: string
   }
 ): Promise<void> => {
   await api.patch(`/recruiter/${recruiterId}/sessions/${sessionId}/update`, updateData)
+}
+
+export const updateDocumentCompletion = async (
+  sessionId: number,
+  completionData: {
+    ob365_completed?: boolean
+    i9_completed?: boolean
+  }
+): Promise<void> => {
+  await api.patch(`/info-session/${sessionId}/document-completion`, completionData)
+}
+
+export const reassignSession = async (
+  recruiterId: number,
+  sessionId: number,
+  newRecruiterId: number
+): Promise<void> => {
+  await api.patch(`/recruiter/${recruiterId}/sessions/${sessionId}/reassign`, null, {
+    params: { new_recruiter_id: newRecruiterId }
+  })
+}
+
+export const getAllRecruiters = async (): Promise<Array<{
+  id: number
+  name: string
+  email: string
+  is_active: boolean
+  status: string
+}>> => {
+  const response = await api.get('/recruiter/')
+  return response.data
 }
 
 export const getRecruiterByEmail = async (email: string): Promise<{

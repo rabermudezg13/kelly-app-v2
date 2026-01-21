@@ -33,6 +33,8 @@ class InfoSessionUpdate(BaseModel):
     rejected: Optional[bool] = None
     drug_screen: Optional[bool] = None
     questions: Optional[bool] = None
+    ob365_completed: Optional[bool] = None  # When applicant completes OB365
+    i9_completed: Optional[bool] = None  # When applicant completes I9
     status: Optional[str] = None  # "in-progress" or "completed"
     generated_row: Optional[str] = None  # Updated generated row
 
@@ -187,6 +189,8 @@ async def get_assigned_sessions(
             "rejected": session.rejected,
             "drug_screen": session.drug_screen,
             "questions": session.questions,
+            "ob365_completed": getattr(session, 'ob365_completed', False),
+            "i9_completed": getattr(session, 'i9_completed', False),
             "started_at": session.started_at.isoformat() if session.started_at else None,
             "completed_at": session.completed_at.isoformat() if session.completed_at else None,
             "duration_minutes": session.duration_minutes,
@@ -380,10 +384,10 @@ async def update_session_documents(
         InfoSession.id == session_id,
         InfoSession.assigned_recruiter_id == recruiter_id
     ).first()
-    
+
     if not session:
         raise HTTPException(status_code=404, detail="Session not found or not assigned to this recruiter")
-    
+
     # Update document status fields
     if update_data.ob365_sent is not None:
         session.ob365_sent = update_data.ob365_sent
@@ -399,14 +403,65 @@ async def update_session_documents(
         session.drug_screen = update_data.drug_screen
     if update_data.questions is not None:
         session.questions = update_data.questions
+    if update_data.ob365_completed is not None:
+        session.ob365_completed = update_data.ob365_completed
+    if update_data.i9_completed is not None:
+        session.i9_completed = update_data.i9_completed
+
+    # Change status to 'interview_in_progress' when OB365 or I9 are checked as sent
+    if (update_data.ob365_sent or update_data.i9_sent) and session.status == 'answers_submitted':
+        session.status = 'interview_in_progress'
+        print(f"✅ Status changed to 'interview_in_progress' for session {session_id}")
+
     if update_data.status is not None:
         session.status = update_data.status
     if update_data.generated_row is not None:
         session.generated_row = update_data.generated_row
-    
+
     db.commit()
     db.refresh(session)
-    
+
     return {"message": "Session updated successfully"}
+
+@router.patch("/{recruiter_id}/sessions/{session_id}/reassign")
+async def reassign_session(
+    recruiter_id: int,
+    session_id: int,
+    new_recruiter_id: int,
+    db: Session = Depends(get_db)
+):
+    """Reassign a session to a different recruiter"""
+    # Verify current recruiter has access to this session
+    session = db.query(InfoSession).filter(
+        InfoSession.id == session_id,
+        InfoSession.assigned_recruiter_id == recruiter_id
+    ).first()
+
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found or not assigned to this recruiter")
+
+    # Verify new recruiter exists and is active
+    new_recruiter = db.query(Recruiter).filter(
+        Recruiter.id == new_recruiter_id,
+        Recruiter.is_active == True
+    ).first()
+
+    if not new_recruiter:
+        raise HTTPException(status_code=404, detail="New recruiter not found or is not active")
+
+    # Reassign the session
+    old_recruiter_id = session.assigned_recruiter_id
+    session.assigned_recruiter_id = new_recruiter_id
+
+    db.commit()
+    db.refresh(session)
+
+    print(f"✅ Reassigned session {session_id} from recruiter {old_recruiter_id} to {new_recruiter_id}")
+
+    return {
+        "message": "Session reassigned successfully",
+        "old_recruiter_id": old_recruiter_id,
+        "new_recruiter_id": new_recruiter_id
+    }
 
 

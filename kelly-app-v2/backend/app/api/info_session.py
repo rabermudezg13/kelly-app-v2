@@ -511,7 +511,12 @@ async def update_interview_questions(
         info_session.question_3_response = questions_data.question_3_response.strip() if questions_data.question_3_response.strip() else None
     if questions_data.question_4_response is not None:
         info_session.question_4_response = questions_data.question_4_response.strip() if questions_data.question_4_response.strip() else None
-    
+
+    # Change status to 'answers_submitted' when answers are saved
+    if info_session.status == 'initiated':
+        info_session.status = 'answers_submitted'
+        print(f"✅ Status changed to 'answers_submitted' for session {session_id}")
+
     db.commit()
     db.refresh(info_session)
     
@@ -522,6 +527,39 @@ async def update_interview_questions(
     print(f"   Q4: {info_session.question_4_response[:50] if info_session.question_4_response else 'None'}...")
     
     return {"message": "Interview questions updated successfully", "session_id": session_id}
+
+class DocumentCompletionUpdate(BaseModel):
+    ob365_completed: Optional[bool] = None
+    i9_completed: Optional[bool] = None
+
+@router.patch("/{session_id}/document-completion")
+async def update_document_completion(
+    session_id: int,
+    completion_data: DocumentCompletionUpdate,
+    db: Session = Depends(get_db)
+):
+    """Update document completion status when applicant completes OB365/I9"""
+    print(f"📝 Updating document completion for session {session_id}")
+    print(f"   OB365 completed: {completion_data.ob365_completed}")
+    print(f"   I9 completed: {completion_data.i9_completed}")
+
+    info_session = db.query(InfoSession).filter(InfoSession.id == session_id).first()
+    if not info_session:
+        print(f"❌ Session {session_id} not found")
+        raise HTTPException(status_code=404, detail="Info session not found")
+
+    # Update completion status
+    if completion_data.ob365_completed is not None:
+        info_session.ob365_completed = completion_data.ob365_completed
+    if completion_data.i9_completed is not None:
+        info_session.i9_completed = completion_data.i9_completed
+
+    db.commit()
+    db.refresh(info_session)
+
+    print(f"✅ Updated document completion for session {session_id}")
+
+    return {"message": "Document completion updated successfully", "session_id": session_id}
 
 @router.get("/{session_id}/answers-pdf")
 async def get_answers_pdf(

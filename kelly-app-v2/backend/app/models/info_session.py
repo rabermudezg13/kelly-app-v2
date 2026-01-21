@@ -17,7 +17,7 @@ class InfoSession(Base):
     time_slot = Column(String(20), nullable=False)  # 8:30 AM or 1:30 PM
     is_in_exclusion_list = Column(Boolean, default=False)
     exclusion_warning_shown = Column(Boolean, default=False)
-    status = Column(String(50), default="registered")  # registered, in-progress, completed
+    status = Column(String(50), default="registered")  # registered, in-progress, initiated, answers_submitted, interview_in_progress, completed
     
     # Document status checkboxes
     ob365_sent = Column(Boolean, default=False)
@@ -27,6 +27,10 @@ class InfoSession(Base):
     rejected = Column(Boolean, default=False)
     drug_screen = Column(Boolean, default=False)
     questions = Column(Boolean, default=False)
+
+    # Document completion status (when applicant completes them)
+    ob365_completed = Column(Boolean, default=False)
+    i9_completed = Column(Boolean, default=False)
     
     # Recruiter assignment
     assigned_recruiter_id = Column(Integer, ForeignKey("recruiters.id"), nullable=True)

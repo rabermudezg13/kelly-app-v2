@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { completeStep, completeInfoSession, getInfoSession, updateInterviewQuestions } from '../services/api'
+import { completeStep, completeInfoSession, getInfoSession, updateInterviewQuestions, updateDocumentCompletion } from '../services/api'
 import type { InfoSessionWithSteps } from '../types'
 
 interface Props {
@@ -21,6 +21,11 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
     q2: sessionData.question_2_response || '',
     q3: sessionData.question_3_response || '',
     q4: sessionData.question_4_response || ''
+  })
+  const [showDocumentVerification, setShowDocumentVerification] = useState(false)
+  const [documentCompletion, setDocumentCompletion] = useState({
+    ob365_completed: false,
+    i9_completed: false
   })
 
   // Load questions responses from sessionData when component mounts or sessionData changes
@@ -540,6 +545,8 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
                         
                         alert('Questions submitted successfully! Thank you.')
                         setShowQuestions(false)
+                        // Show document verification screen
+                        setShowDocumentVerification(true)
                         if (onSessionCompleted) onSessionCompleted()
                       } catch (error: any) {
                         console.error('❌ Error saving questions:', error)
@@ -556,7 +563,80 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
             </div>
           ) : null}
 
-          <div className="text-center">
+          {/* Document Verification Section */}
+          {showDocumentVerification && (
+            <div className="mt-8 p-6 bg-green-50 border-2 border-green-500 rounded-lg">
+              <h2 className="text-2xl font-bold mb-6 text-green-900">Document Verification</h2>
+              <p className="text-gray-700 mb-4">
+                Please check the boxes below once you have completed each document:
+              </p>
+
+              <div className="space-y-4">
+                <div className="flex items-center gap-4 p-4 bg-white rounded-lg border-2 border-gray-300">
+                  <input
+                    type="checkbox"
+                    id="ob365-completed"
+                    checked={documentCompletion.ob365_completed}
+                    onChange={(e) => {
+                      setDocumentCompletion({
+                        ...documentCompletion,
+                        ob365_completed: e.target.checked
+                      })
+                    }}
+                    className="w-6 h-6 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer"
+                  />
+                  <label htmlFor="ob365-completed" className="flex-1 text-gray-800 font-semibold cursor-pointer">
+                    I have completed the OB365 form
+                  </label>
+                  {documentCompletion.ob365_completed && (
+                    <span className="text-green-600 font-bold">✓ Completed</span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-4 p-4 bg-white rounded-lg border-2 border-gray-300">
+                  <input
+                    type="checkbox"
+                    id="i9-completed"
+                    checked={documentCompletion.i9_completed}
+                    onChange={(e) => {
+                      setDocumentCompletion({
+                        ...documentCompletion,
+                        i9_completed: e.target.checked
+                      })
+                    }}
+                    className="w-6 h-6 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer"
+                  />
+                  <label htmlFor="i9-completed" className="flex-1 text-gray-800 font-semibold cursor-pointer">
+                    I have completed the I-9 form
+                  </label>
+                  {documentCompletion.i9_completed && (
+                    <span className="text-green-600 font-bold">✓ Completed</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="text-center pt-6">
+                <button
+                  onClick={async () => {
+                    try {
+                      // Save document completion status
+                      await updateDocumentCompletion(sessionData.id, documentCompletion)
+                      alert('Document status saved successfully! Thank you.')
+                      setShowDocumentVerification(false)
+                    } catch (error: any) {
+                      console.error('❌ Error saving document completion:', error)
+                      alert(`Error saving document status: ${error.response?.data?.detail || error.message || 'Unknown error'}. Please try again.`)
+                    }
+                  }}
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg text-lg"
+                >
+                  Submit Document Status
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="text-center mt-6">
             <button
               onClick={() => navigate('/')}
               className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-bold"

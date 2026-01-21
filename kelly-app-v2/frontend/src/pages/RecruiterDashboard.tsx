@@ -21,6 +21,8 @@ import {
   getBadges,
   getMyVisits,
   notifyTeamVisit,
+  getAllRecruiters,
+  reassignSession,
 } from '../services/api'
 import type { AssignedSession, Recruiter, NewHireOrientation, NewHireOrientationWithSteps } from '../types'
 import type { RowTemplate } from '../services/api'
@@ -47,6 +49,8 @@ function RecruiterDashboard() {
     rejected: false,
     drug_screen: false,
     questions: false,
+    ob365_completed: false,
+    i9_completed: false,
   })
   const [templates, setTemplates] = useState<RowTemplate[]>([])
   const [selectedTemplate, setSelectedTemplate] = useState<RowTemplate | null>(null)
@@ -59,6 +63,9 @@ function RecruiterDashboard() {
   const [badges, setBadges] = useState<any[]>([])
   const [myVisits, setMyVisits] = useState<any[]>([])
   const [allInfoSessions, setAllInfoSessions] = useState<any[]>([])
+  const [allRecruiters, setAllRecruiters] = useState<Recruiter[]>([])
+  const [showReassignModal, setShowReassignModal] = useState(false)
+  const [selectedNewRecruiter, setSelectedNewRecruiter] = useState<number | null>(null)
 
   useEffect(() => {
     if (recruiterId) {
@@ -150,7 +157,15 @@ function RecruiterDashboard() {
         console.error('Error loading all info sessions:', error)
         setAllInfoSessions([])
       }
-      
+
+      try {
+        const recruiters = await getAllRecruiters()
+        setAllRecruiters(recruiters || [])
+      } catch (error) {
+        console.error('Error loading recruiters:', error)
+        setAllRecruiters([])
+      }
+
       // Convert InfoSessionWithSteps to AssignedSession format
       const convertedSessions = allSessionsData.map(session => ({
         id: session.id,
@@ -453,6 +468,8 @@ function RecruiterDashboard() {
         rejected: false,
         drug_screen: false,
         questions: false,
+        ob365_completed: false,
+        i9_completed: false,
       })
       alert('Session completed!')
     } catch (error) {
@@ -470,6 +487,20 @@ function RecruiterDashboard() {
     } catch (error) {
       console.error('Error updating documents:', error)
       alert('Error updating documents')
+    }
+  }
+
+  const handleReassignSession = async () => {
+    if (!selectedSession || !recruiterId || !selectedNewRecruiter) return
+    try {
+      await reassignSession(parseInt(recruiterId), selectedSession.id, selectedNewRecruiter)
+      await loadData()
+      setShowReassignModal(false)
+      setSelectedSession(null)
+      alert('Session reassigned successfully!')
+    } catch (error) {
+      console.error('Error reassigning session:', error)
+      alert('Error reassigning session')
     }
   }
 
@@ -576,10 +607,21 @@ function RecruiterDashboard() {
                           </td>
                         </tr>
                       )}
-                      {sessionsForDate.map((session, sessionIndex) => (
-                        <tr key={session.id} className={`border-b hover:bg-gray-50 ${
-                          session.assigned_recruiter_id === parseInt(recruiterId || '0') ? 'bg-blue-50' : ''
-                        }`}>
+                      {sessionsForDate.map((session, sessionIndex) => {
+                        // Determine row background color based on status and time slot
+                        let rowBgColor = ''
+                        if (session.status === 'completed') {
+                          rowBgColor = 'bg-green-100'  // Green for completed
+                        } else if (session.time_slot === '8:30 AM') {
+                          rowBgColor = 'bg-blue-50'  // Blue for morning sessions
+                        } else if (session.time_slot === '1:30 PM') {
+                          rowBgColor = 'bg-purple-50'  // Purple for afternoon sessions
+                        } else {
+                          rowBgColor = 'bg-gray-50'  // Default gray
+                        }
+
+                        return (
+                        <tr key={session.id} className={`border-b hover:bg-gray-100 ${rowBgColor}`}>
                           <td className="px-4 py-2 font-semibold text-gray-600">
                             {sessionIndex + 1}
                           </td>
@@ -613,9 +655,15 @@ function RecruiterDashboard() {
                             )}
                           </td>
                           <td className="px-4 py-2">
-                            <span className={`px-2 py-1 rounded text-sm ${
-                              session.status === 'completed' 
-                                ? 'bg-green-100 text-green-800' 
+                            <span className={`px-2 py-1 rounded text-sm font-semibold ${
+                              session.status === 'completed'
+                                ? 'bg-green-600 text-white'
+                                : session.status === 'interview_in_progress'
+                                ? 'bg-purple-100 text-purple-800'
+                                : session.status === 'answers_submitted'
+                                ? 'bg-teal-100 text-teal-800'
+                                : session.status === 'initiated'
+                                ? 'bg-orange-100 text-orange-800'
                                 : session.status === 'in-progress'
                                 ? 'bg-yellow-100 text-yellow-800'
                                 : 'bg-blue-100 text-blue-800'
@@ -652,7 +700,8 @@ function RecruiterDashboard() {
                             </button>
                           </td>
                         </tr>
-                      ))}
+                        )
+                      })}
                     </React.Fragment>
                   )
                 })}
@@ -1172,6 +1221,8 @@ function RecruiterDashboard() {
       rejected: session.rejected,
       drug_screen: session.drug_screen,
       questions: session.questions,
+      ob365_completed: (session as any).ob365_completed || false,
+      i9_completed: (session as any).i9_completed || false,
     })
     
     // Ensure template is selected - use first template if none selected
@@ -1463,10 +1514,10 @@ function RecruiterDashboard() {
       templateToUse.columns.forEach((col) => {
         const colNameUpper = col.name.toUpperCase().trim()
         const colNameLower = col.name.toLowerCase().trim()
-        
-        // Leave FP expiration date blank
+
+        // Keep FP expiration date if it already exists in sessionRowData, otherwise leave blank
         if (colNameLower.includes('fp') && colNameLower.includes('expiration')) {
-          dataToSend[col.name] = ''  // Always leave blank
+          dataToSend[col.name] = sessionRowData[col.name] || ''  // Preserve if exists, otherwise blank
         }
         // Ensure Applicant Name is always set
         else if (colNameLower === 'applicant name' || (colNameLower.includes('applicant') && colNameLower.includes('name'))) {
@@ -2260,6 +2311,34 @@ function RecruiterDashboard() {
                         Questions
                       </label>
                     </div>
+
+                    <div className="mt-4 pt-4 border-t border-gray-300">
+                      <h4 className="font-semibold text-gray-700 mb-2">Applicant Document Completion (Read-only)</h4>
+                      <div className="space-y-2">
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={documentStatus.ob365_completed}
+                            disabled
+                            className="mr-2 cursor-not-allowed"
+                          />
+                          <span className={documentStatus.ob365_completed ? 'text-green-600 font-semibold' : 'text-gray-600'}>
+                            OB365 Completed by Applicant {documentStatus.ob365_completed && '✓'}
+                          </span>
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={documentStatus.i9_completed}
+                            disabled
+                            className="mr-2 cursor-not-allowed"
+                          />
+                          <span className={documentStatus.i9_completed ? 'text-green-600 font-semibold' : 'text-gray-600'}>
+                            I9 Completed by Applicant {documentStatus.i9_completed && '✓'}
+                          </span>
+                        </label>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="flex gap-2 pt-4 border-t">
@@ -2299,6 +2378,16 @@ function RecruiterDashboard() {
                         Reopen Session
                       </button>
                     )}
+                  </div>
+
+                  {/* Reassign Button */}
+                  <div className="pt-4 border-t">
+                    <button
+                      onClick={() => setShowReassignModal(true)}
+                      className="w-full px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+                    >
+                      Reassign to Another Recruiter
+                    </button>
                   </div>
                 </div>
               </div>
@@ -2433,6 +2522,58 @@ function RecruiterDashboard() {
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
               >
                 Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reassign Modal */}
+      {showReassignModal && selectedSession && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">Reassign Session</h2>
+              <button
+                onClick={() => setShowReassignModal(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-gray-700">
+                Reassign <strong>{selectedSession.first_name} {selectedSession.last_name}</strong> to:
+              </p>
+
+              <select
+                value={selectedNewRecruiter || ''}
+                onChange={(e) => setSelectedNewRecruiter(parseInt(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              >
+                <option value="">Select a recruiter...</option>
+                {allRecruiters.filter(r => r.id !== parseInt(recruiterId || '0')).map(recruiter => (
+                  <option key={recruiter.id} value={recruiter.id}>
+                    {recruiter.name} ({recruiter.status})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowReassignModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleReassignSession}
+                disabled={!selectedNewRecruiter}
+                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Reassign
               </button>
             </div>
           </div>
