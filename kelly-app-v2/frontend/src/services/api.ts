@@ -341,13 +341,21 @@ export const completeSession = async (
   }
 ): Promise<{
   message: string
+  status?: string
   completed_at: string | null
   duration_minutes: number | null
 }> => {
-  const response = await api.post(`/recruiter/${recruiterId}/sessions/${sessionId}/complete`, {
-    ...updateData,
-    status: 'completed',
-  })
+  // Filter out undefined values and ob365_completed/i9_completed (removed fields)
+  const cleanUpdateData: any = {}
+  if (updateData.ob365_sent !== undefined) cleanUpdateData.ob365_sent = updateData.ob365_sent
+  if (updateData.i9_sent !== undefined) cleanUpdateData.i9_sent = updateData.i9_sent
+  if (updateData.existing_i9 !== undefined) cleanUpdateData.existing_i9 = updateData.existing_i9
+  if (updateData.ineligible !== undefined) cleanUpdateData.ineligible = updateData.ineligible
+  if (updateData.rejected !== undefined) cleanUpdateData.rejected = updateData.rejected
+  if (updateData.drug_screen !== undefined) cleanUpdateData.drug_screen = updateData.drug_screen
+  if (updateData.questions !== undefined) cleanUpdateData.questions = updateData.questions
+  
+  const response = await api.post(`/recruiter/${recruiterId}/sessions/${sessionId}/complete`, cleanUpdateData)
   return response.data
 }
 

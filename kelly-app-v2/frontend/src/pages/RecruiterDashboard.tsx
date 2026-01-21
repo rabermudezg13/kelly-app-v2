@@ -455,7 +455,18 @@ function RecruiterDashboard() {
   const handleCompleteSession = async () => {
     if (!selectedSession || !recruiterId) return
     try {
-      const result = await completeSession(parseInt(recruiterId), selectedSession.id, documentStatus)
+      // Only send fields that exist in the backend model
+      const cleanDocumentStatus = {
+        ob365_sent: documentStatus.ob365_sent,
+        i9_sent: documentStatus.i9_sent,
+        existing_i9: documentStatus.existing_i9,
+        ineligible: documentStatus.ineligible,
+        rejected: documentStatus.rejected,
+        drug_screen: documentStatus.drug_screen,
+        questions: documentStatus.questions,
+      }
+      
+      const result = await completeSession(parseInt(recruiterId), selectedSession.id, cleanDocumentStatus)
       console.log('✅ Session completed, result:', result)
       
       // Close the modal immediately
@@ -468,17 +479,17 @@ function RecruiterDashboard() {
         rejected: false,
         drug_screen: false,
         questions: false,
-        ob365_completed: false,
-        i9_completed: false,
       })
       
       // Force refresh all data to get updated status
       await loadData()
       
       alert('Session completed! Status updated to "completed".')
-    } catch (error) {
-      console.error('Error completing session:', error)
-      alert('Error completing session')
+    } catch (error: any) {
+      console.error('❌ Error completing session:', error)
+      console.error('Error details:', error.response?.data || error.message)
+      const errorMessage = error.response?.data?.detail || error.message || 'Unknown error'
+      alert(`Error completing session: ${errorMessage}`)
     }
   }
 
