@@ -203,16 +203,19 @@ function RecruiterDashboard() {
       setNewHireOrientations(orientationsData)
       setFingerprints(fingerprintsData)
 
-      // Update selected session if it exists, but DON'T reset documentStatus
-      // to prevent checkbox jumping when user is actively interacting with the modal
+      // Update selected session if it exists, but DON'T reset documentStatus or sessionRowData
+      // to prevent checkbox jumping and losing row generator data when user is actively interacting with the modal
       if (selectedSession) {
         const updatedSession = convertedSessions.find(s => s.id === selectedSession.id)
         if (updatedSession) {
           setSelectedSession(updatedSession)
           // Do NOT update documentStatus here - user might be actively checking boxes
-          // The current documentStatus should be preserved until modal is closed
+          // Do NOT update sessionRowData or sessionGeneratedRow - user might be editing the row
+          // The current state should be preserved until modal is closed
         }
       }
+
+      return convertedSessions
     } catch (error: any) {
       console.error('Error loading data:', error)
       console.error('Error details:', error.response?.data)
@@ -552,7 +555,10 @@ function RecruiterDashboard() {
     if (!selectedSession || !recruiterId) return
     try {
       await updateSessionDocuments(parseInt(recruiterId), selectedSession.id, documentStatus)
+
+      // Reload data - loadData() now preserves sessionRowData and sessionGeneratedRow automatically
       await loadData()
+
       alert('Documents updated!')
     } catch (error) {
       console.error('Error updating documents:', error)
