@@ -1989,8 +1989,22 @@ function RecruiterDashboard() {
                     return timeA === '8:30 AM' ? -1 : timeB === '8:30 AM' ? 1 : timeA.localeCompare(timeB)
                   })
                   
+                  console.log('🔍 Sorted group keys:', sortedGroupKeys)
+                  console.log('🔍 About to render', sortedGroupKeys.length, 'groups')
+                  
                   return (
                     <>
+                      {/* DEBUG: Show total groups */}
+                      <div style={{ 
+                        backgroundColor: '#fef3c7', 
+                        border: '2px solid #f59e0b', 
+                        padding: '1rem', 
+                        marginBottom: '1rem',
+                        borderRadius: '8px'
+                      }}>
+                        <strong>🔍 DEBUG: {sortedGroupKeys.length} grupos encontrados</strong>
+                      </div>
+                      
                       {sortedGroupKeys.map((groupKey, groupIndex) => {
                         const sessionsForGroup = groupedSessions[groupKey]
                         const [dateKey, timeSlot] = groupKey.split('_')
