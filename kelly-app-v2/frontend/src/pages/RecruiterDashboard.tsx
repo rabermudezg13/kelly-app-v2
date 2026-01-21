@@ -1936,12 +1936,17 @@ function RecruiterDashboard() {
                   const groupedSessions: { [key: string]: AssignedSession[] } = {}
                   sessions.forEach((session) => {
                     const dateKey = getMiamiDateKey(session.created_at)
-                    const groupKey = `${dateKey}_${session.time_slot}`
+                    // Ensure time_slot exists, default to 'Unknown' if not
+                    const timeSlot = session.time_slot || 'Unknown'
+                    const groupKey = `${dateKey}_${timeSlot}`
                     if (!groupedSessions[groupKey]) {
                       groupedSessions[groupKey] = []
                     }
                     groupedSessions[groupKey].push(session)
                   })
+                  
+                  console.log('🔍 Grouped sessions:', Object.keys(groupedSessions).length, 'groups')
+                  console.log('🔍 Group keys:', Object.keys(groupedSessions))
                   
                   // Sort group keys (most recent first, then by time slot)
                   const sortedGroupKeys = Object.keys(groupedSessions).sort((a, b) => {
@@ -1962,9 +1967,11 @@ function RecruiterDashboard() {
                         const firstSession = sessionsForGroup[0]
                         const isMorning = timeSlot === '8:30 AM'
                         
+                        console.log(`🔍 Rendering group ${groupIndex + 1}: ${groupKey} with ${sessionsForGroup.length} sessions`)
+                        
                         return (
                           <div key={groupKey} className="mb-6">
-                            {/* Group Header - Date, Time Slot, and Session Type */}
+                            {/* Group Header - Date, Time Slot, and Session Type - ALWAYS SHOW */}
                             <div className={`my-4 py-4 px-6 ${isMorning ? 'bg-blue-200 border-blue-400' : 'bg-green-200 border-green-400'} border-t-4 border-b-4 rounded-lg shadow-md`}>
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
