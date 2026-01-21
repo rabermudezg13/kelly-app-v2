@@ -466,6 +466,15 @@ function RecruiterDashboard() {
         questions: documentStatus.questions,
       }
       
+      // Optimistically update the local state immediately
+      setSessions(prevSessions => 
+        prevSessions.map(session => 
+          session.id === selectedSession.id 
+            ? { ...session, status: 'completed' as const }
+            : session
+        )
+      )
+      
       const result = await completeSession(parseInt(recruiterId), selectedSession.id, cleanDocumentStatus)
       console.log('✅ Session completed, result:', result)
       
@@ -481,13 +490,23 @@ function RecruiterDashboard() {
         questions: false,
       })
       
-      // Force refresh all data to get updated status
+      // Force refresh all data to get updated status from server
       await loadData()
       
       alert('Session completed! Status updated to "completed".')
     } catch (error: any) {
       console.error('❌ Error completing session:', error)
       console.error('Error details:', error.response?.data || error.message)
+      
+      // Revert optimistic update on error
+      setSessions(prevSessions => 
+        prevSessions.map(session => 
+          session.id === selectedSession.id 
+            ? { ...session, status: selectedSession.status }
+            : session
+        )
+      )
+      
       const errorMessage = error.response?.data?.detail || error.message || 'Unknown error'
       alert(`Error completing session: ${errorMessage}`)
     }
