@@ -1331,7 +1331,7 @@ function RecruiterDashboard() {
     if (session.generated_row && templateToUse) {
       setSessionGeneratedRow(session.generated_row)
       loadRowDataFromGeneratedRow(session.generated_row, session)
-    } else if ((session.status === 'in-progress' || session.status === 'registered' || session.status === 'completed' || session.status === 'initiated') && templateToUse) {
+    } else if ((session.status === 'in-progress' || session.status === 'registered' || session.status === 'completed' || session.status === 'initiated' || session.status === 'answers_submitted') && templateToUse) {
       // If no generated_row exists but session is in-progress, generate initial data
       const initialData: Record<string, any> = {}
       
@@ -1429,7 +1429,8 @@ function RecruiterDashboard() {
     const shouldHaveRowData = selectedSession.status === 'in-progress' || 
                                selectedSession.status === 'registered' || 
                                selectedSession.status === 'completed' ||
-                               selectedSession.status === 'initiated'
+                               selectedSession.status === 'initiated' ||
+                               selectedSession.status === 'answers_submitted'
     
     const hasRowData = Object.keys(sessionRowData).length > 0
     console.log('🔍 useEffect check:', {
@@ -2323,12 +2324,13 @@ function RecruiterDashboard() {
                     </div>
                   )}
 
-                  {/* Row Generator for In-Progress, Registered, Completed, and Initiated Sessions */}
+                  {/* Row Generator for In-Progress, Registered, Completed, Initiated, and Answers Submitted Sessions */}
                   {(() => {
                     const shouldShowRowGenerator = selectedSession.status === 'in-progress' || 
                                                     selectedSession.status === 'registered' || 
                                                     selectedSession.status === 'completed' ||
-                                                    selectedSession.status === 'initiated'
+                                                    selectedSession.status === 'initiated' ||
+                                                    selectedSession.status === 'answers_submitted'
                     console.log('🔍 Row Generator check:', {
                       status: selectedSession.status,
                       shouldShow: shouldShowRowGenerator,
