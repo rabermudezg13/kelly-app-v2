@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from app.database import get_db
 from app.models.recruiter import Recruiter
 from app.models.info_session import InfoSession
@@ -231,7 +231,7 @@ async def start_session(
         }
         return response
     
-    session.started_at = datetime.utcnow()
+    session.started_at = datetime.now(timezone.utc)
     session.status = "in-progress"
     
     # Mark recruiter as busy
@@ -354,14 +354,29 @@ async def complete_session(
         
         # Mark as completed and calculate duration
         # Always update status to "completed" when recruiter completes the session
-        session.completed_at = datetime.utcnow()
+        session.completed_at = datetime.now(timezone.utc)
         session.status = "completed"
         print(f"✅ Recruiter {recruiter_id} completed session {session_id} - Status set to: {session.status}")
         
         # Calculate duration from registration (created_at) to completion (completed_at)
         if session.created_at:
-            duration = session.completed_at - session.created_at
-            session.duration_minutes = int(duration.total_seconds() / 60)
+            try:
+                # Handle both timezone-aware and naive datetimes
+                created = session.created_at
+                completed = session.completed_at
+                
+                # If one is naive and the other is aware, make both aware
+                if created.tzinfo is None and completed.tzinfo is not None:
+                    created = created.replace(tzinfo=timezone.utc)
+                elif created.tzinfo is not None and completed.tzinfo is None:
+                    completed = completed.replace(tzinfo=timezone.utc)
+                
+                duration = completed - created
+                session.duration_minutes = int(duration.total_seconds() / 60)
+            except Exception as e:
+                print(f"⚠️ Warning: Could not calculate duration: {e}")
+                # Continue without duration - not critical
+                session.duration_minutes = None
         
         # Mark recruiter as available again
         recruiter = db.query(Recruiter).filter(Recruiter.id == recruiter_id).first()
