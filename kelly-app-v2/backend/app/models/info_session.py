@@ -27,11 +27,9 @@ class InfoSession(Base):
     rejected = Column(Boolean, default=False)
     drug_screen = Column(Boolean, default=False)
     questions = Column(Boolean, default=False)
-
-    # Document completion status (when applicant completes them)
     ob365_completed = Column(Boolean, default=False)
     i9_completed = Column(Boolean, default=False)
-    
+
     # Recruiter assignment
     assigned_recruiter_id = Column(Integer, ForeignKey("recruiters.id"), nullable=True)
     
