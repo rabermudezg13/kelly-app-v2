@@ -320,57 +320,72 @@ async def complete_session(
     db: Session = Depends(get_db)
 ):
     """Mark that recruiter has completed with a visitor and update document status"""
-    session = db.query(InfoSession).filter(
-        InfoSession.id == session_id,
-        InfoSession.assigned_recruiter_id == recruiter_id
-    ).first()
-    
-    if not session:
-        raise HTTPException(status_code=404, detail="Session not found or not assigned to this recruiter")
-    
-    # Update document status fields
-    if update_data.ob365_sent is not None:
-        session.ob365_sent = update_data.ob365_sent
-    if update_data.i9_sent is not None:
-        session.i9_sent = update_data.i9_sent
-    if update_data.existing_i9 is not None:
-        session.existing_i9 = update_data.existing_i9
-    if update_data.ineligible is not None:
-        session.ineligible = update_data.ineligible
-    if update_data.rejected is not None:
-        session.rejected = update_data.rejected
-    if update_data.drug_screen is not None:
-        session.drug_screen = update_data.drug_screen
-    if update_data.questions is not None:
-        session.questions = update_data.questions
-    
-    # Mark as completed and calculate duration
-    # Always update status to "completed" when recruiter completes the session
-    session.completed_at = datetime.utcnow()
-    session.status = "completed"
-    print(f"✅ Recruiter {recruiter_id} completed session {session_id} - Status set to: {session.status}")
-    
-    # Calculate duration from registration (created_at) to completion (completed_at)
-    if session.created_at:
-        duration = session.completed_at - session.created_at
-        session.duration_minutes = int(duration.total_seconds() / 60)
-    
-    # Mark recruiter as available again
-    recruiter = db.query(Recruiter).filter(Recruiter.id == recruiter_id).first()
-    if recruiter:
-        recruiter.status = "available"
-    
-    db.commit()
-    db.refresh(session)
-    
-    print(f"✅ Session {session_id} status after commit: {session.status}")
-    
-    return {
-        "message": "Session completed",
-        "status": session.status,
-        "completed_at": session.completed_at.isoformat() if session.completed_at else None,
-        "duration_minutes": session.duration_minutes
-    }
+    try:
+        print(f"🔄 Completing session {session_id} for recruiter {recruiter_id}")
+        print(f"   Update data received: {update_data}")
+        
+        session = db.query(InfoSession).filter(
+            InfoSession.id == session_id,
+            InfoSession.assigned_recruiter_id == recruiter_id
+        ).first()
+        
+        if not session:
+            print(f"❌ Session {session_id} not found or not assigned to recruiter {recruiter_id}")
+            raise HTTPException(status_code=404, detail="Session not found or not assigned to this recruiter")
+        
+        print(f"✅ Found session {session_id}, current status: {session.status}")
+        
+        # Update document status fields
+        if update_data.ob365_sent is not None:
+            session.ob365_sent = update_data.ob365_sent
+        if update_data.i9_sent is not None:
+            session.i9_sent = update_data.i9_sent
+        if update_data.existing_i9 is not None:
+            session.existing_i9 = update_data.existing_i9
+        if update_data.ineligible is not None:
+            session.ineligible = update_data.ineligible
+        if update_data.rejected is not None:
+            session.rejected = update_data.rejected
+        if update_data.drug_screen is not None:
+            session.drug_screen = update_data.drug_screen
+        if update_data.questions is not None:
+            session.questions = update_data.questions
+        
+        # Mark as completed and calculate duration
+        # Always update status to "completed" when recruiter completes the session
+        session.completed_at = datetime.utcnow()
+        session.status = "completed"
+        print(f"✅ Recruiter {recruiter_id} completed session {session_id} - Status set to: {session.status}")
+        
+        # Calculate duration from registration (created_at) to completion (completed_at)
+        if session.created_at:
+            duration = session.completed_at - session.created_at
+            session.duration_minutes = int(duration.total_seconds() / 60)
+        
+        # Mark recruiter as available again
+        recruiter = db.query(Recruiter).filter(Recruiter.id == recruiter_id).first()
+        if recruiter:
+            recruiter.status = "available"
+        
+        db.commit()
+        db.refresh(session)
+        
+        print(f"✅ Session {session_id} status after commit: {session.status}")
+        
+        return {
+            "message": "Session completed",
+            "status": session.status,
+            "completed_at": session.completed_at.isoformat() if session.completed_at else None,
+            "duration_minutes": session.duration_minutes
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ ERROR completing session {session_id} for recruiter {recruiter_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error completing session: {str(e)}")
 
 @router.patch("/{recruiter_id}/sessions/{session_id}/update")
 async def update_session_documents(
