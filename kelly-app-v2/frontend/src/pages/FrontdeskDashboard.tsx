@@ -125,18 +125,27 @@ function FrontdeskDashboard() {
   const renderInfoSessionLive = () => {
     if (loading) return <p className="text-center py-8">Loading...</p>
     
-    // Group sessions by date
+    // Group sessions by date and time slot
     const groupedSessions: { [key: string]: InfoSessionWithSteps[] } = {}
     liveSessions.forEach((session) => {
       const dateKey = getMiamiDateKey(session.created_at)
-      if (!groupedSessions[dateKey]) {
-        groupedSessions[dateKey] = []
+      const groupKey = `${dateKey}_${session.time_slot}`
+      if (!groupedSessions[groupKey]) {
+        groupedSessions[groupKey] = []
       }
-      groupedSessions[dateKey].push(session)
+      groupedSessions[groupKey].push(session)
     })
     
-    // Sort date keys (most recent first)
-    const sortedDateKeys = Object.keys(groupedSessions).sort().reverse()
+    // Sort group keys (most recent first, then by time slot)
+    const sortedGroupKeys = Object.keys(groupedSessions).sort((a, b) => {
+      const [dateA, timeA] = a.split('_')
+      const [dateB, timeB] = b.split('_')
+      if (dateA !== dateB) {
+        return dateB.localeCompare(dateA) // Most recent first
+      }
+      // Same date, sort by time slot (8:30 AM first, then 1:30 PM)
+      return timeA === '8:30 AM' ? -1 : timeB === '8:30 AM' ? 1 : timeA.localeCompare(timeB)
+    })
     
     return (
       <div className="space-y-4">
@@ -163,22 +172,36 @@ function FrontdeskDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {sortedDateKeys.map((dateKey, dateIndex) => {
-                  const sessionsForDate = groupedSessions[dateKey]
+                {sortedGroupKeys.map((groupKey, groupIndex) => {
+                  const sessionsForGroup = groupedSessions[groupKey]
+                  const [dateKey, timeSlot] = groupKey.split('_')
+                  const firstSession = sessionsForGroup[0]
+                  const isMorning = timeSlot === '8:30 AM'
+                  
                   return (
-                    <React.Fragment key={dateKey}>
-                      {dateIndex > 0 && (
-                        <tr>
-                          <td colSpan={10} className="px-4 py-3 bg-gray-100 border-t-2 border-gray-300">
-                            <div className="text-center">
-                              <span className="text-gray-700 font-bold text-lg">
-                                ─── {formatMiamiDateDisplay(sessionsForDate[0].created_at)} ───
+                    <React.Fragment key={groupKey}>
+                      {/* Group Header - Date, Time Slot, and Session Type */}
+                      <tr>
+                        <td colSpan={10} className={`px-4 py-4 ${isMorning ? 'bg-blue-200' : 'bg-green-200'} border-t-2 ${isMorning ? 'border-blue-400' : 'border-green-400'} border-b-2`}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <span className={`px-3 py-1 rounded-lg font-bold text-lg ${isMorning ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'}`}>
+                                {timeSlot}
+                              </span>
+                              <span className="text-gray-800 font-bold text-lg">
+                                {formatMiamiDateDisplay(firstSession.created_at)}
+                              </span>
+                              <span className="text-gray-600 font-semibold">
+                                {firstSession.session_type === 'new-hire' ? '📋 New Hire' : '🔄 Reactivation'}
                               </span>
                             </div>
-                          </td>
-                        </tr>
-                      )}
-                      {sessionsForDate.map((session, sessionIndex) => {
+                            <span className="text-gray-700 font-semibold">
+                              {sessionsForGroup.length} {sessionsForGroup.length === 1 ? 'session' : 'sessions'}
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                      {sessionsForGroup.map((session, sessionIndex) => {
                         // Color based on status first, then time slot
                         const isCompleted = session.status === 'completed'
                         const isMorning = session.time_slot === '8:30 AM'
