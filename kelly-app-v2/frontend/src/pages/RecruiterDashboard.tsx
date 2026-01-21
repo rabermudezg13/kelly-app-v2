@@ -49,8 +49,6 @@ function RecruiterDashboard() {
     rejected: false,
     drug_screen: false,
     questions: false,
-    ob365_completed: false,
-    i9_completed: false,
   })
   const [templates, setTemplates] = useState<RowTemplate[]>([])
   const [selectedTemplate, setSelectedTemplate] = useState<RowTemplate | null>(null)
@@ -1221,8 +1219,6 @@ function RecruiterDashboard() {
       rejected: session.rejected,
       drug_screen: session.drug_screen,
       questions: session.questions,
-      ob365_completed: (session as any).ob365_completed || false,
-      i9_completed: (session as any).i9_completed || false,
     })
     
     // Ensure template is selected - use first template if none selected
@@ -2312,33 +2308,6 @@ function RecruiterDashboard() {
                       </label>
                     </div>
 
-                    <div className="mt-4 pt-4 border-t border-gray-300">
-                      <h4 className="font-semibold text-gray-700 mb-2">Applicant Document Completion (Read-only)</h4>
-                      <div className="space-y-2">
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={documentStatus.ob365_completed}
-                            disabled
-                            className="mr-2 cursor-not-allowed"
-                          />
-                          <span className={documentStatus.ob365_completed ? 'text-green-600 font-semibold' : 'text-gray-600'}>
-                            OB365 Completed by Applicant {documentStatus.ob365_completed && '✓'}
-                          </span>
-                        </label>
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={documentStatus.i9_completed}
-                            disabled
-                            className="mr-2 cursor-not-allowed"
-                          />
-                          <span className={documentStatus.i9_completed ? 'text-green-600 font-semibold' : 'text-gray-600'}>
-                            I9 Completed by Applicant {documentStatus.i9_completed && '✓'}
-                          </span>
-                        </label>
-                      </div>
-                    </div>
                   </div>
 
                   <div className="flex gap-2 pt-4 border-t">

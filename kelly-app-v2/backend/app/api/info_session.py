@@ -56,8 +56,6 @@ class InfoSessionResponse(BaseModel):
     rejected: bool = False
     drug_screen: bool = False
     questions: bool = False
-    ob365_completed: bool = False
-    i9_completed: bool = False
     assigned_recruiter_id: Optional[int] = None
     assigned_recruiter_name: Optional[str] = None
     started_at: Optional[datetime] = None
@@ -271,8 +269,6 @@ async def get_live_info_sessions(db: Session = Depends(get_db)):
             "rejected": bool(session.rejected) if hasattr(session, 'rejected') and session.rejected is not None else False,
             "drug_screen": bool(session.drug_screen) if hasattr(session, 'drug_screen') and session.drug_screen is not None else False,
             "questions": bool(session.questions) if hasattr(session, 'questions') and session.questions is not None else False,
-            "ob365_completed": bool(session.ob365_completed) if hasattr(session, 'ob365_completed') and session.ob365_completed is not None else False,
-            "i9_completed": bool(session.i9_completed) if hasattr(session, 'i9_completed') and session.i9_completed is not None else False,
             "assigned_recruiter_id": session.assigned_recruiter_id,
             "assigned_recruiter_name": recruiter_name,
             "started_at": session.started_at.isoformat() if session.started_at else None,
@@ -343,8 +339,6 @@ async def get_completed_info_sessions(db: Session = Depends(get_db)):
             "rejected": bool(session.rejected) if hasattr(session, 'rejected') and session.rejected is not None else False,
             "drug_screen": bool(session.drug_screen) if hasattr(session, 'drug_screen') and session.drug_screen is not None else False,
             "questions": bool(session.questions) if hasattr(session, 'questions') and session.questions is not None else False,
-            "ob365_completed": bool(session.ob365_completed) if hasattr(session, 'ob365_completed') and session.ob365_completed is not None else False,
-            "i9_completed": bool(session.i9_completed) if hasattr(session, 'i9_completed') and session.i9_completed is not None else False,
             "assigned_recruiter_id": session.assigned_recruiter_id,
             "assigned_recruiter_name": recruiter_name,
             "started_at": session.started_at.isoformat() if session.started_at else None,
@@ -699,32 +693,6 @@ async def list_info_sessions(
         result.append(session_data)
     return result
 
-
-class DocumentCompletionUpdate(BaseModel):
-    ob365_completed: Optional[bool] = None
-    i9_completed: Optional[bool] = None
-
-@router.patch("/{session_id}/document-completion")
-async def update_document_completion(
-    session_id: int,
-    completion_data: DocumentCompletionUpdate,
-    db: Session = Depends(get_db)
-):
-    """Update document completion status (OB365 and I-9) for an info session"""
-    info_session = db.query(InfoSession).filter(InfoSession.id == session_id).first()
-    if not info_session:
-        raise HTTPException(status_code=404, detail="Info session not found")
-    
-    # Update completion status
-    if completion_data.ob365_completed is not None:
-        info_session.ob365_completed = completion_data.ob365_completed
-    if completion_data.i9_completed is not None:
-        info_session.i9_completed = completion_data.i9_completed
-    
-    db.commit()
-    db.refresh(info_session)
-    
-    return {"message": "Document completion status updated successfully", "session_id": session_id}
 
 @router.delete("/{session_id}")
 async def delete_info_session(

@@ -371,15 +371,6 @@ export const updateSessionDocuments = async (
   await api.patch(`/recruiter/${recruiterId}/sessions/${sessionId}/update`, updateData)
 }
 
-export const updateDocumentCompletion = async (
-  sessionId: number,
-  completionData: {
-    ob365_completed?: boolean
-    i9_completed?: boolean
-  }
-): Promise<void> => {
-  await api.patch(`/info-session/${sessionId}/document-completion`, completionData)
-}
 
 export const reassignSession = async (
   recruiterId: number,

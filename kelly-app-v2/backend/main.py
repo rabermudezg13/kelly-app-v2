@@ -103,29 +103,10 @@ try:
             conn.commit()
             print("✅ Campo question_4_response agregado exitosamente")
         
-        # Add document completion fields if missing
-        if 'ob365_completed' not in columns:
-            print("📝 Agregando campo 'ob365_completed' a la tabla info_sessions...")
-            cursor.execute("ALTER TABLE info_sessions ADD COLUMN ob365_completed BOOLEAN DEFAULT 0")
-            conn.commit()
-            print("✅ Campo 'ob365_completed' agregado exitosamente")
-        
-        if 'i9_completed' not in columns:
-            print("📝 Agregando campo 'i9_completed' a la tabla info_sessions...")
-            cursor.execute("ALTER TABLE info_sessions ADD COLUMN i9_completed BOOLEAN DEFAULT 0")
-            conn.commit()
-            print("✅ Campo 'i9_completed' agregado exitosamente")
-        
             conn.close()
     else:
-        # PostgreSQL - run migration script to add columns if they don't exist
-        print("📊 Usando PostgreSQL - verificando columnas de document completion...")
-        try:
-            from migrate_add_completion_columns import add_columns
-            add_columns()
-        except Exception as e:
-            print(f"⚠️  Warning: Could not run document completion migration: {e}")
-            print("   The columns will be added automatically on next database creation.")
+        # PostgreSQL - las tablas se crean automáticamente con Base.metadata.create_all
+        print("📊 Usando PostgreSQL - las tablas se crearán automáticamente")
 except Exception as e:
     print(f"⚠️  Warning: Could not add fields: {e}")
     print("   The fields will be added automatically on next database creation.")

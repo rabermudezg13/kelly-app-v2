@@ -33,8 +33,6 @@ class InfoSessionUpdate(BaseModel):
     rejected: Optional[bool] = None
     drug_screen: Optional[bool] = None
     questions: Optional[bool] = None
-    ob365_completed: Optional[bool] = None  # When applicant completes OB365
-    i9_completed: Optional[bool] = None  # When applicant completes I9
     status: Optional[str] = None  # "in-progress" or "completed"
     generated_row: Optional[str] = None  # Updated generated row
 
@@ -189,8 +187,6 @@ async def get_assigned_sessions(
             "rejected": session.rejected,
             "drug_screen": session.drug_screen,
             "questions": session.questions,
-            "ob365_completed": getattr(session, 'ob365_completed', False),
-            "i9_completed": getattr(session, 'i9_completed', False),
             "started_at": session.started_at.isoformat() if session.started_at else None,
             "completed_at": session.completed_at.isoformat() if session.completed_at else None,
             "duration_minutes": session.duration_minutes,
@@ -403,10 +399,6 @@ async def update_session_documents(
         session.drug_screen = update_data.drug_screen
     if update_data.questions is not None:
         session.questions = update_data.questions
-    if update_data.ob365_completed is not None:
-        session.ob365_completed = update_data.ob365_completed
-    if update_data.i9_completed is not None:
-        session.i9_completed = update_data.i9_completed
 
     # Change status to 'interview_in_progress' when OB365 or I9 are checked as sent
     if (update_data.ob365_sent or update_data.i9_sent) and session.status == 'answers_submitted':
