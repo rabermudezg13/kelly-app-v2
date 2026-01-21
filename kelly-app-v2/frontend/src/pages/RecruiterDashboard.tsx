@@ -1936,8 +1936,15 @@ function RecruiterDashboard() {
                   const groupedSessions: { [key: string]: AssignedSession[] } = {}
                   sessions.forEach((session) => {
                     const dateKey = getMiamiDateKey(session.created_at)
-                    // Ensure time_slot exists, default to 'Unknown' if not
-                    const timeSlot = session.time_slot || 'Unknown'
+                    // Ensure time_slot exists and normalize it
+                    let timeSlot = session.time_slot || 'Unknown'
+                    // Normalize time slot format (handle variations like "8:30 AM", "8:30AM", etc.)
+                    timeSlot = timeSlot.trim()
+                    if (timeSlot === '8:30AM' || timeSlot === '8:30 AM') {
+                      timeSlot = '8:30 AM'
+                    } else if (timeSlot === '1:30PM' || timeSlot === '1:30 PM') {
+                      timeSlot = '1:30 PM'
+                    }
                     const groupKey = `${dateKey}_${timeSlot}`
                     if (!groupedSessions[groupKey]) {
                       groupedSessions[groupKey] = []
@@ -1945,8 +1952,12 @@ function RecruiterDashboard() {
                     groupedSessions[groupKey].push(session)
                   })
                   
+                  console.log('🔍 Total sessions:', sessions.length)
                   console.log('🔍 Grouped sessions:', Object.keys(groupedSessions).length, 'groups')
                   console.log('🔍 Group keys:', Object.keys(groupedSessions))
+                  Object.keys(groupedSessions).forEach(key => {
+                    console.log(`  - ${key}: ${groupedSessions[key].length} sessions`)
+                  })
                   
                   // Sort group keys (most recent first, then by time slot)
                   const sortedGroupKeys = Object.keys(groupedSessions).sort((a, b) => {
