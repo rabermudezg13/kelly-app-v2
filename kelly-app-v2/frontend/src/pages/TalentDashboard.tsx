@@ -167,8 +167,13 @@ function TalentDashboard() {
                           </td>
                         </tr>
                       )}
-                      {sessionsForDate.map((session, sessionIndex) => (
-                        <tr key={session.id} className="border-b hover:bg-gray-50">
+                      {sessionsForDate.map((session, sessionIndex) => {
+                        // Color based on time slot
+                        const isMorning = session.time_slot === '8:30 AM'
+                        const rowBgColor = isMorning ? 'bg-blue-50 hover:bg-blue-100' : 'bg-green-50 hover:bg-green-100'
+                        
+                        return (
+                        <tr key={session.id} className={`border-b ${rowBgColor}`}>
                           <td className="px-4 py-2 font-semibold text-gray-600">
                             {sessionIndex + 1}
                           </td>
@@ -178,7 +183,13 @@ function TalentDashboard() {
                           <td className="px-4 py-2">{session.email}</td>
                           <td className="px-4 py-2">{session.phone}</td>
                           <td className="px-4 py-2">{session.zip_code}</td>
-                          <td className="px-4 py-2">{session.time_slot}</td>
+                          <td className="px-4 py-2">
+                            <span className={`px-2 py-1 rounded text-sm font-semibold ${
+                              isMorning ? 'bg-blue-200 text-blue-900' : 'bg-green-200 text-green-900'
+                            }`}>
+                              {session.time_slot}
+                            </span>
+                          </td>
                           <td className="px-4 py-2">
                             <span className="text-gray-700 text-sm">
                               {formatMiamiTime(session.created_at)}
@@ -197,10 +208,16 @@ function TalentDashboard() {
                             )}
                           </td>
                           <td className="px-4 py-2">
-                            <span className={`px-2 py-1 rounded text-sm ${
-                              session.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'
+                            <span className={`px-2 py-1 rounded text-sm font-semibold ${
+                              session.status === 'completed' 
+                                ? 'bg-green-500 text-white' 
+                                : session.status === 'in-progress' 
+                                ? 'bg-yellow-100 text-yellow-800' 
+                                : session.status === 'initiated'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-gray-100 text-gray-800'
                             }`}>
-                              {session.status}
+                              {session.status === 'completed' ? '✓ Completed' : session.status}
                             </span>
                           </td>
                           <td className="px-4 py-2">
@@ -224,7 +241,8 @@ function TalentDashboard() {
                             ) : null}
                           </td>
                         </tr>
-                      ))}
+                        )
+                      })}
                     </React.Fragment>
                   )
                 })}
