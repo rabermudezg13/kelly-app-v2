@@ -658,7 +658,7 @@ function RecruiterDashboard() {
       }
       const timeAMinutes = parseTime(timeA)
       const timeBMinutes = parseTime(timeB)
-      const comparison = timeAMinutes - timeBMinutes
+      const comparison = timeBMinutes - timeAMinutes // Inverted: latest time first (1:30 PM, 10:00 AM, 8:30 AM)
       console.log(`📊 Final comparison: "${timeA}" (${timeAMinutes} min) vs "${timeB}" (${timeBMinutes} min) = ${comparison}`)
       return comparison
     })
@@ -2094,7 +2094,7 @@ function RecruiterDashboard() {
                     }
                     const timeAMinutes = parseTime(timeA)
                     const timeBMinutes = parseTime(timeB)
-                    const comparison = timeAMinutes - timeBMinutes
+                    const comparison = timeBMinutes - timeAMinutes // Inverted: latest time first (1:30 PM, 10:00 AM, 8:30 AM)
                     console.log(`📊 Final comparison: "${timeA}" (${timeAMinutes} min) vs "${timeB}" (${timeBMinutes} min) = ${comparison}`)
                     return comparison
                   })
