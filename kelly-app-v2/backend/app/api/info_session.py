@@ -116,12 +116,17 @@ async def register_info_session(
     initialize_default_recruiters(db)
     
     # Check exclusion list
+    print(f"🔍 Checking exclusion list for: {registration.first_name} {registration.last_name}")
     exclusion_matches = check_name_in_exclusion_list(
-        db, 
-        registration.first_name, 
+        db,
+        registration.first_name,
         registration.last_name
     )
     is_excluded = len(exclusion_matches) > 0
+    print(f"🔍 Exclusion check result: {len(exclusion_matches)} matches found, is_excluded={is_excluded}")
+    if exclusion_matches:
+        for match in exclusion_matches:
+            print(f"   - Match: {match.name} (Code: {match.code}, SSN: {match.ssn})")
     
     # Get exclusion match info (use first match if any)
     exclusion_match_info = None
