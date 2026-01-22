@@ -630,8 +630,18 @@ function RecruiterDashboard() {
       if (dateA !== dateB) {
         return dateB.localeCompare(dateA) // Most recent first
       }
-      // Same date, sort by time slot (8:30 AM first, then 1:30 PM)
-      return timeA === '8:30 AM' ? -1 : timeB === '8:30 AM' ? 1 : timeA.localeCompare(timeB)
+      // Same date, sort by time slot chronologically
+      const parseTime = (timeStr: string) => {
+        const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i)
+        if (!match) return 0
+        let hours = parseInt(match[1])
+        const minutes = parseInt(match[2])
+        const period = match[3].toUpperCase()
+        if (period === 'PM' && hours !== 12) hours += 12
+        if (period === 'AM' && hours === 12) hours = 0
+        return hours * 60 + minutes
+      }
+      return parseTime(timeA) - parseTime(timeB)
     })
     
     return (
@@ -2017,8 +2027,18 @@ function RecruiterDashboard() {
                     if (dateA !== dateB) {
                       return dateB.localeCompare(dateA) // Most recent first
                     }
-                    // Same date, sort by time slot (8:30 AM first, then 1:30 PM)
-                    return timeA === '8:30 AM' ? -1 : timeB === '8:30 AM' ? 1 : timeA.localeCompare(timeB)
+                    // Same date, sort by time slot chronologically
+                    const parseTime = (timeStr: string) => {
+                      const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i)
+                      if (!match) return 0
+                      let hours = parseInt(match[1])
+                      const minutes = parseInt(match[2])
+                      const period = match[3].toUpperCase()
+                      if (period === 'PM' && hours !== 12) hours += 12
+                      if (period === 'AM' && hours === 12) hours = 0
+                      return hours * 60 + minutes
+                    }
+                    return parseTime(timeA) - parseTime(timeB)
                   })
                   
                   console.log('🔍 Sorted group keys:', sortedGroupKeys)
