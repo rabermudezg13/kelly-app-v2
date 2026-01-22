@@ -408,21 +408,27 @@ async def complete_step(
     db: Session = Depends(get_db)
 ):
     """Mark a step as completed"""
+    print(f"📋 Completing step '{step_name}' for session {session_id}")
     step = db.query(InfoSessionStep).filter(
         InfoSessionStep.info_session_id == session_id,
         InfoSessionStep.step_name == step_name
     ).first()
-    
+
     if not step:
         raise HTTPException(status_code=404, detail="Step not found")
-    
+
     step.is_completed = True
     step.completed_at = datetime.utcnow()
-    
+    print(f"📋 Step '{step_name}' marked as completed")
+
     # Check if all steps are completed, then mark as answers_submitted
     info_session = db.query(InfoSession).filter(InfoSession.id == session_id).first()
     if info_session:
+        total_steps = len(info_session.steps)
+        completed_steps = sum(1 for s in info_session.steps if s.is_completed)
+        print(f"📋 Steps status: {completed_steps}/{total_steps} completed")
         all_steps_completed = all(s.is_completed for s in info_session.steps)
+        print(f"📋 All steps completed? {all_steps_completed}")
         if all_steps_completed:
             # Mark as answers_submitted when user completes all steps
             # "completed" status is only set when recruiter completes the session
