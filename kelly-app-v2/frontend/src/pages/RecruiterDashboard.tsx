@@ -630,18 +630,26 @@ function RecruiterDashboard() {
       if (dateA !== dateB) {
         return dateB.localeCompare(dateA) // Most recent first
       }
-      // Same date, sort by time slot chronologically
+      // Same date, sort by time slot chronologically (earliest first)
       const parseTime = (timeStr: string) => {
         const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i)
-        if (!match) return 0
+        if (!match) {
+          console.log('⚠️ Failed to parse time:', timeStr)
+          return 0
+        }
         let hours = parseInt(match[1])
         const minutes = parseInt(match[2])
         const period = match[3].toUpperCase()
         if (period === 'PM' && hours !== 12) hours += 12
         if (period === 'AM' && hours === 12) hours = 0
-        return hours * 60 + minutes
+        const totalMinutes = hours * 60 + minutes
+        console.log(`🕐 Parsed time "${timeStr}": ${hours}:${minutes} ${period} = ${totalMinutes} minutes`)
+        return totalMinutes
       }
-      return parseTime(timeA) - parseTime(timeB)
+      const timeAMinutes = parseTime(timeA)
+      const timeBMinutes = parseTime(timeB)
+      console.log(`📊 Comparing: "${timeA}" (${timeAMinutes}) vs "${timeB}" (${timeBMinutes}) = ${timeAMinutes - timeBMinutes}`)
+      return timeAMinutes - timeBMinutes
     })
     
     return (
@@ -2047,18 +2055,26 @@ function RecruiterDashboard() {
                     if (dateA !== dateB) {
                       return dateB.localeCompare(dateA) // Most recent first
                     }
-                    // Same date, sort by time slot chronologically
+                    // Same date, sort by time slot chronologically (earliest first)
                     const parseTime = (timeStr: string) => {
                       const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i)
-                      if (!match) return 0
+                      if (!match) {
+                        console.log('⚠️ Failed to parse time:', timeStr)
+                        return 0
+                      }
                       let hours = parseInt(match[1])
                       const minutes = parseInt(match[2])
                       const period = match[3].toUpperCase()
                       if (period === 'PM' && hours !== 12) hours += 12
                       if (period === 'AM' && hours === 12) hours = 0
-                      return hours * 60 + minutes
+                      const totalMinutes = hours * 60 + minutes
+                      console.log(`🕐 Parsed time "${timeStr}": ${hours}:${minutes} ${period} = ${totalMinutes} minutes`)
+                      return totalMinutes
                     }
-                    return parseTime(timeA) - parseTime(timeB)
+                    const timeAMinutes = parseTime(timeA)
+                    const timeBMinutes = parseTime(timeB)
+                    console.log(`📊 Comparing: "${timeA}" (${timeAMinutes}) vs "${timeB}" (${timeBMinutes}) = ${timeAMinutes - timeBMinutes}`)
+                    return timeAMinutes - timeBMinutes
                   })
                   
                   console.log('🔍 Sorted group keys:', sortedGroupKeys)
