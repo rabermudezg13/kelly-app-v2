@@ -90,6 +90,9 @@ function RecruiterDashboard() {
         const sessionsResponse = await getAssignedSessions(parseInt(recruiterId))
         if (sessionsResponse && sessionsResponse.sessions && Array.isArray(sessionsResponse.sessions)) {
           allSessionsData = sessionsResponse.sessions
+          console.log('🔍 Loaded sessions for My Sessions:', allSessionsData.length)
+          console.log('🔍 First session data:', allSessionsData[0])
+          console.log('🔍 Has is_in_exclusion_list field?', allSessionsData[0]?.is_in_exclusion_list)
         } else if (Array.isArray(sessionsResponse)) {
           // Fallback: if it's already an array, use it directly
           allSessionsData = sessionsResponse
