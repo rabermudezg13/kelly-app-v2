@@ -692,19 +692,39 @@ function RecruiterDashboard() {
                   const [dateKey, timeSlot] = groupKey.split('_')
                   const firstSession = sessionsForGroup[0]
                   const isMorning = timeSlot === '8:30 AM'
-                  
+
+                  // Check if this is a new date (different from previous group)
+                  const isNewDate = groupIndex === 0 ||
+                    dateKey !== sortedGroupKeys[groupIndex - 1].split('_')[0]
+
                   return (
                     <React.Fragment key={groupKey}>
-                      {/* Group Header - Date, Time Slot, and Session Type */}
+                      {/* Date Separator Row - Show when starting a new date */}
+                      {isNewDate && (
+                        <tr>
+                          <td colSpan={10} className="px-0 py-0">
+                            <div
+                              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3"
+                              style={{
+                                fontSize: '1.25rem',
+                                fontWeight: 'bold',
+                                textAlign: 'center',
+                                borderTop: groupIndex > 0 ? '4px solid #e5e7eb' : 'none',
+                                marginTop: groupIndex > 0 ? '1rem' : '0'
+                              }}
+                            >
+                              📅 {formatMiamiDateDisplay(firstSession.created_at)}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                      {/* Group Header - Time Slot and Session Type */}
                       <tr>
                         <td colSpan={10} className={`px-4 py-4 ${isMorning ? 'bg-blue-200' : 'bg-green-200'} border-t-2 ${isMorning ? 'border-blue-400' : 'border-green-400'} border-b-2`}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
                               <span className={`px-3 py-1 rounded-lg font-bold text-lg ${isMorning ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'}`}>
-                                {timeSlot}
-                              </span>
-                              <span className="text-gray-800 font-bold text-lg">
-                                {formatMiamiDateDisplay(firstSession.created_at)}
+                                ⏰ {timeSlot}
                               </span>
                               <span className="text-gray-600 font-semibold">
                                 {firstSession.session_type === 'new-hire' ? '📋 New Hire' : '🔄 Reactivation'}
@@ -2051,12 +2071,39 @@ function RecruiterDashboard() {
                         const [dateKey, timeSlot] = groupKey.split('_')
                         const firstSession = sessionsForGroup[0]
                         const isMorning = timeSlot === '8:30 AM'
-                        
+
+                        // Check if this is a new date (different from previous group)
+                        const isNewDate = groupIndex === 0 ||
+                          dateKey !== sortedGroupKeys[groupIndex - 1].split('_')[0]
+
                         console.log(`🔍 Rendering group ${groupIndex + 1}: ${groupKey} with ${sessionsForGroup.length} sessions`)
-                        
+
                         return (
-                          <div
-                            key={groupKey}
+                          <React.Fragment key={groupKey}>
+                            {/* Date Separator - Show when starting a new date */}
+                            {isNewDate && (
+                              <div
+                                className="mb-6 mt-8"
+                                style={{
+                                  borderTop: groupIndex > 0 ? '4px solid #e5e7eb' : 'none',
+                                  paddingTop: groupIndex > 0 ? '2rem' : '0',
+                                  marginTop: groupIndex > 0 ? '2rem' : '0'
+                                }}
+                              >
+                                <div
+                                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-4 rounded-lg shadow-lg"
+                                  style={{
+                                    fontSize: '1.5rem',
+                                    fontWeight: 'bold',
+                                    textAlign: 'center'
+                                  }}
+                                >
+                                  📅 {formatMiamiDateDisplay(firstSession.created_at)}
+                                </div>
+                              </div>
+                            )}
+
+                            <div
                             className="mb-8"
                             style={{
                               marginBottom: '3rem',
@@ -2067,7 +2114,7 @@ function RecruiterDashboard() {
                               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
                             }}
                           >
-                            {/* Group Header - Date, Time Slot, and Session Type - ALWAYS SHOW */}
+                            {/* Group Header - Time Slot and Session Type - ALWAYS SHOW */}
                             <div
                               className={`mb-4 py-4 px-6 rounded-lg shadow-lg`}
                               style={{
@@ -2091,16 +2138,6 @@ function RecruiterDashboard() {
                                     }}
                                   >
                                     ⏰ {timeSlot || 'Unknown'}
-                                  </span>
-                                  <span
-                                    className="font-bold text-xl"
-                                    style={{
-                                      color: 'white',
-                                      fontSize: '1.5rem',
-                                      fontWeight: 'bold'
-                                    }}
-                                  >
-                                    📅 {formatMiamiDateDisplay(firstSession.created_at)}
                                   </span>
                                   <span
                                     className="font-semibold text-lg px-3 py-1 rounded-lg"
@@ -2298,6 +2335,7 @@ function RecruiterDashboard() {
                               )
                             })}
                           </div>
+                          </React.Fragment>
                         )
                       })}
                     </>
