@@ -303,6 +303,8 @@ export const getAssignedSessions = async (
     session_type: string
     time_slot: string
     status: string
+    is_in_exclusion_list: boolean
+    exclusion_warning_shown: boolean
     ob365_sent: boolean
     i9_sent: boolean
     existing_i9: boolean

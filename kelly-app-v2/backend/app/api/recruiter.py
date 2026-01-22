@@ -181,6 +181,8 @@ async def get_assigned_sessions(
             "session_type": session.session_type,
             "time_slot": session.time_slot,
             "status": session.status,
+            "is_in_exclusion_list": bool(session.is_in_exclusion_list) if hasattr(session, 'is_in_exclusion_list') and session.is_in_exclusion_list is not None else False,
+            "exclusion_warning_shown": bool(session.exclusion_warning_shown) if hasattr(session, 'exclusion_warning_shown') and session.exclusion_warning_shown is not None else False,
             "ob365_sent": session.ob365_sent,
             "i9_sent": session.i9_sent,
             "existing_i9": session.existing_i9,
