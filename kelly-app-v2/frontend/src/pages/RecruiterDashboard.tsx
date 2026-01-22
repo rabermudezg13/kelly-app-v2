@@ -2329,12 +2329,13 @@ function RecruiterDashboard() {
                     </div>
                   )}
 
-                  {/* Row Generator for In-Progress, Registered, Completed, Initiated, and Answers Submitted Sessions */}
+                  {/* Row Generator for In-Progress, Registered, Completed, Initiated, Interview In Progress, and Answers Submitted Sessions */}
                   {(() => {
-                    const shouldShowRowGenerator = selectedSession.status === 'in-progress' || 
-                                                    selectedSession.status === 'registered' || 
+                    const shouldShowRowGenerator = selectedSession.status === 'in-progress' ||
+                                                    selectedSession.status === 'registered' ||
                                                     selectedSession.status === 'completed' ||
                                                     selectedSession.status === 'initiated' ||
+                                                    selectedSession.status === 'interview_in_progress' ||
                                                     selectedSession.status === 'answers_submitted'
                     console.log('🔍 Row Generator check:', {
                       status: selectedSession.status,
