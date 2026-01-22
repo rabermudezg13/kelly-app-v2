@@ -771,7 +771,14 @@ function RecruiterDashboard() {
                             {sessionIndex + 1}
                           </td>
                           <td className="px-4 py-2 font-semibold">
-                            {session.first_name} {session.last_name}
+                            <div className="flex items-center gap-2">
+                              <span>{session.first_name} {session.last_name}</span>
+                              {session.is_in_exclusion_list && (
+                                <span className="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded" title="⚠️ IN PC/RR EXCLUSION LIST">
+                                  ⚠️ PC/RR
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-4 py-2">{session.email}</td>
                           <td className="px-4 py-2">{session.phone}</td>
@@ -2244,8 +2251,13 @@ function RecruiterDashboard() {
                             <span className="font-semibold text-gray-600 text-lg">
                               #{sessionIndex + 1}
                             </span>
-                            <h3 className="font-bold text-lg">
-                              {session.first_name} {session.last_name}
+                            <h3 className="font-bold text-lg flex items-center gap-2">
+                              <span>{session.first_name} {session.last_name}</span>
+                              {session.is_in_exclusion_list && (
+                                <span className="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded" title="⚠️ IN PC/RR EXCLUSION LIST">
+                                  ⚠️ PC/RR
+                                </span>
+                              )}
                             </h3>
                             <button
                               onClick={async (e) => {
