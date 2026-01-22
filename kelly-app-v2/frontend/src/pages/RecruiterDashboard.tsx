@@ -1337,7 +1337,7 @@ function RecruiterDashboard() {
     if (session.generated_row && templateToUse) {
       setSessionGeneratedRow(session.generated_row)
       loadRowDataFromGeneratedRow(session.generated_row, session)
-    } else if ((session.status === 'in-progress' || session.status === 'registered' || session.status === 'completed' || session.status === 'initiated' || session.status === 'answers_submitted') && templateToUse) {
+    } else if ((session.status === 'in-progress' || session.status === 'registered' || session.status === 'completed' || session.status === 'initiated' || session.status === 'interview_in_progress' || session.status === 'answers_submitted') && templateToUse) {
       // If no generated_row exists but session is in-progress, generate initial data
       const initialData: Record<string, any> = {}
       
@@ -1432,10 +1432,11 @@ function RecruiterDashboard() {
     }
     
     // Only initialize if sessionRowData is empty and session is in valid status
-    const shouldHaveRowData = selectedSession.status === 'in-progress' || 
-                               selectedSession.status === 'registered' || 
+    const shouldHaveRowData = selectedSession.status === 'in-progress' ||
+                               selectedSession.status === 'registered' ||
                                selectedSession.status === 'completed' ||
                                selectedSession.status === 'initiated' ||
+                               selectedSession.status === 'interview_in_progress' ||
                                selectedSession.status === 'answers_submitted'
     
     const hasRowData = Object.keys(sessionRowData).length > 0
@@ -1569,9 +1570,21 @@ function RecruiterDashboard() {
   }
 
   const ensureSessionDataInRow = (rowData: Record<string, any>, session: AssignedSession, template: RowTemplate) => {
+    // Get recruiter initials
+    let recruiterInitials = ''
+    if (recruiter) {
+      const nameParts = recruiter.name.split(' ')
+      if (nameParts.length >= 2) {
+        recruiterInitials = nameParts[0][0].toUpperCase() + nameParts[nameParts.length - 1][0].toUpperCase()
+      } else if (nameParts.length === 1) {
+        recruiterInitials = nameParts[0][0].toUpperCase()
+      }
+    }
+
     template.columns.forEach((col) => {
       const colNameLower = col.name.toLowerCase().trim()
-      
+      const colNameUpper = col.name.toUpperCase().trim()
+
       // Ensure Applicant Name is set
       if (colNameLower === 'applicant name' || (colNameLower.includes('applicant') && colNameLower.includes('name'))) {
         rowData[col.name] = `${session.first_name} ${session.last_name}`
@@ -1582,6 +1595,18 @@ function RecruiterDashboard() {
       }
       // Ensure Talent Email is set
       else if (colNameLower === 'talent email' || (colNameLower.includes('talent') && colNameLower.includes('email'))) {
+        rowData[col.name] = session.email
+      }
+      // Ensure recruiter initials are in columns R and O
+      else if ((colNameUpper === 'R' || colNameUpper === 'O') && !rowData[col.name]) {
+        rowData[col.name] = recruiterInitials
+      }
+      // Fallback for other phone/numero patterns
+      else if ((colNameLower.includes('numero') || (colNameLower.includes('phone') && colNameLower.includes('numero'))) && !rowData[col.name]) {
+        rowData[col.name] = session.phone
+      }
+      // Fallback for other email patterns - but exclude "Onboarding Introduction Email"
+      else if (colNameLower.includes('email') && !colNameLower.includes('talent') && !colNameLower.includes('onboarding introduction') && !rowData[col.name]) {
         rowData[col.name] = session.email
       }
     })
