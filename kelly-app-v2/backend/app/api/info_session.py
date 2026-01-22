@@ -163,7 +163,7 @@ async def register_info_session(
     print(f"   Assigned to recruiter ID: {assigned_recruiter.id}, Name: {assigned_recruiter.name}, Email: {assigned_recruiter.email}")
     
     # Create info session record - ALWAYS with a recruiter assigned
-    print(f"📝 Creating session with status='in-progress'")
+    print(f"📝 Creating session with status='initiated'")
     info_session = InfoSession(
         first_name=registration.first_name,
         last_name=registration.last_name,
@@ -174,7 +174,7 @@ async def register_info_session(
         time_slot=registration.time_slot,
         is_in_exclusion_list=is_excluded,
         exclusion_warning_shown=is_excluded,
-        status="in-progress",  # New sessions start as in-progress
+        status="initiated",  # New sessions start as initiated, change to answers_submitted when questions are answered
         assigned_recruiter_id=assigned_recruiter.id,  # Always assigned now
         started_at=datetime.utcnow()  # Set started_at when session is created
     )
@@ -421,23 +421,18 @@ async def complete_step(
     step.completed_at = datetime.utcnow()
     print(f"📋 Step '{step_name}' marked as completed")
 
-    # Check if all steps are completed, then mark as answers_submitted
+    # NOTE: Completing steps (checkboxes) does NOT change status to 'answers_submitted'
+    # Status only changes to 'answers_submitted' when user submits question responses
+    # This is handled in the POST /{session_id}/questions endpoint
+
+    # Assign recruiter if not assigned (try to assign after first step completion)
     info_session = db.query(InfoSession).filter(InfoSession.id == session_id).first()
     if info_session:
         total_steps = len(info_session.steps)
         completed_steps = sum(1 for s in info_session.steps if s.is_completed)
-        print(f"📋 Steps status: {completed_steps}/{total_steps} completed")
-        all_steps_completed = all(s.is_completed for s in info_session.steps)
-        print(f"📋 All steps completed? {all_steps_completed}")
-        if all_steps_completed:
-            # Mark as answers_submitted when user completes all steps
-            # "completed" status is only set when recruiter completes the session
-            if info_session.status != "completed":
-                info_session.status = "answers_submitted"
-                print(f"✅ All steps completed - Status changed to 'answers_submitted' for session {session_id}")
-            
-            # Assign recruiter if not assigned
-            if not info_session.assigned_recruiter_id:
+        print(f"📋 Steps status: {completed_steps}/{total_steps} completed (status remains '{info_session.status}')")
+
+        if not info_session.assigned_recruiter_id:
                 from app.services.recruiter_service import get_next_recruiter, initialize_default_recruiters
                 from datetime import date
                 initialize_default_recruiters(db)
