@@ -2256,11 +2256,14 @@ function RecruiterDashboard() {
                             </span>
                             <h3 className="font-bold text-lg flex items-center gap-2">
                               <span>{session.first_name} {session.last_name}</span>
-                              {session.is_in_exclusion_list && (
-                                <span className="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded" title="⚠️ IN PC/RR EXCLUSION LIST">
-                                  ⚠️ PC/RR
-                                </span>
-                              )}
+                              {(() => {
+                                console.log(`🔍 Rendering ${session.first_name} ${session.last_name}: is_in_exclusion_list=${session.is_in_exclusion_list}, type=${typeof session.is_in_exclusion_list}`)
+                                return session.is_in_exclusion_list && (
+                                  <span className="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded" title="⚠️ IN PC/RR EXCLUSION LIST">
+                                    ⚠️ PC/RR
+                                  </span>
+                                )
+                              })()}
                             </h3>
                             <button
                               onClick={async (e) => {
