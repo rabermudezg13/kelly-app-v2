@@ -163,6 +163,7 @@ async def register_info_session(
     print(f"   Assigned to recruiter ID: {assigned_recruiter.id}, Name: {assigned_recruiter.name}, Email: {assigned_recruiter.email}")
     
     # Create info session record - ALWAYS with a recruiter assigned
+    print(f"📝 Creating session with status='in-progress'")
     info_session = InfoSession(
         first_name=registration.first_name,
         last_name=registration.last_name,
@@ -177,10 +178,12 @@ async def register_info_session(
         assigned_recruiter_id=assigned_recruiter.id,  # Always assigned now
         started_at=datetime.utcnow()  # Set started_at when session is created
     )
+    print(f"📝 Session object created with status='{info_session.status}'")
     
     db.add(info_session)
     db.commit()
     db.refresh(info_session)
+    print(f"📝 Session saved to DB with status='{info_session.status}'")
     
     # Create default steps
     for step_data in DEFAULT_STEPS:
@@ -194,7 +197,8 @@ async def register_info_session(
     
     db.commit()
     db.refresh(info_session)
-    
+    print(f"📝 After creating steps, session status='{info_session.status}'")
+
     # Return with steps
     # Get recruiter name if assigned
     recruiter_name = None
