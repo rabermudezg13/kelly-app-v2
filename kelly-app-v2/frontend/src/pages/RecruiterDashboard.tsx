@@ -625,13 +625,23 @@ function RecruiterDashboard() {
     
     // Sort group keys (most recent first, then by time slot)
     const sortedGroupKeys = Object.keys(groupedSessions).sort((a, b) => {
-      const [dateA, timeA] = a.split('_')
-      const [dateB, timeB] = b.split('_')
+      const parts_a = a.split('_')
+      const parts_b = b.split('_')
+      const dateA = parts_a[0]
+      const dateB = parts_b[0]
+      // Get everything after the first underscore as the time slot
+      const timeA = parts_a.slice(1).join('_')
+      const timeB = parts_b.slice(1).join('_')
+
+      console.log(`🔍 Key A: "${a}" -> date: "${dateA}", time: "${timeA}"`)
+      console.log(`🔍 Key B: "${b}" -> date: "${dateB}", time: "${timeB}"`)
+
       if (dateA !== dateB) {
         return dateB.localeCompare(dateA) // Most recent first
       }
       // Same date, sort by time slot chronologically (earliest first)
       const parseTime = (timeStr: string) => {
+        if (!timeStr) return 0
         const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i)
         if (!match) {
           console.log('⚠️ Failed to parse time:', timeStr)
@@ -648,8 +658,9 @@ function RecruiterDashboard() {
       }
       const timeAMinutes = parseTime(timeA)
       const timeBMinutes = parseTime(timeB)
-      console.log(`📊 Comparing: "${timeA}" (${timeAMinutes}) vs "${timeB}" (${timeBMinutes}) = ${timeAMinutes - timeBMinutes}`)
-      return timeAMinutes - timeBMinutes
+      const comparison = timeAMinutes - timeBMinutes
+      console.log(`📊 Final comparison: "${timeA}" (${timeAMinutes} min) vs "${timeB}" (${timeBMinutes} min) = ${comparison}`)
+      return comparison
     })
     
     return (
@@ -2050,13 +2061,23 @@ function RecruiterDashboard() {
                   
                   // Sort group keys (most recent first, then by time slot)
                   const sortedGroupKeys = Object.keys(groupedSessions).sort((a, b) => {
-                    const [dateA, timeA] = a.split('_')
-                    const [dateB, timeB] = b.split('_')
+                    const parts_a = a.split('_')
+                    const parts_b = b.split('_')
+                    const dateA = parts_a[0]
+                    const dateB = parts_b[0]
+                    // Get everything after the first underscore as the time slot
+                    const timeA = parts_a.slice(1).join('_')
+                    const timeB = parts_b.slice(1).join('_')
+
+                    console.log(`🔍 Key A: "${a}" -> date: "${dateA}", time: "${timeA}"`)
+                    console.log(`🔍 Key B: "${b}" -> date: "${dateB}", time: "${timeB}"`)
+
                     if (dateA !== dateB) {
                       return dateB.localeCompare(dateA) // Most recent first
                     }
                     // Same date, sort by time slot chronologically (earliest first)
                     const parseTime = (timeStr: string) => {
+                      if (!timeStr) return 0
                       const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i)
                       if (!match) {
                         console.log('⚠️ Failed to parse time:', timeStr)
@@ -2073,8 +2094,9 @@ function RecruiterDashboard() {
                     }
                     const timeAMinutes = parseTime(timeA)
                     const timeBMinutes = parseTime(timeB)
-                    console.log(`📊 Comparing: "${timeA}" (${timeAMinutes}) vs "${timeB}" (${timeBMinutes}) = ${timeAMinutes - timeBMinutes}`)
-                    return timeAMinutes - timeBMinutes
+                    const comparison = timeAMinutes - timeBMinutes
+                    console.log(`📊 Final comparison: "${timeA}" (${timeAMinutes} min) vs "${timeB}" (${timeBMinutes} min) = ${comparison}`)
+                    return comparison
                   })
                   
                   console.log('🔍 Sorted group keys:', sortedGroupKeys)
