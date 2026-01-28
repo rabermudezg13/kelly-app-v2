@@ -260,9 +260,9 @@ function StaffDashboard() {
                           <td className="px-4 py-2">
                             {(session as any).is_duplicate && (
                               <div className="bg-orange-100 border-2 border-orange-500 rounded p-2 text-orange-800">
-                                <div className="font-bold text-sm">⚠️ DUPLICADO</div>
+                                <div className="font-bold text-sm">⚠️ DUPLICATE</div>
                                 <div className="text-xs">
-                                  Registrado {(session as any).duplicate_count} veces
+                                  Registered {(session as any).duplicate_count} times
                                 </div>
                               </div>
                             )}
@@ -400,9 +400,9 @@ function StaffDashboard() {
                           <td className="px-4 py-2">
                             {(session as any).is_duplicate && (
                               <div className="bg-orange-100 border-2 border-orange-500 rounded p-2 text-orange-800">
-                                <div className="font-bold text-sm">⚠️ DUPLICADO</div>
+                                <div className="font-bold text-sm">⚠️ DUPLICATE</div>
                                 <div className="text-xs">
-                                  Registrado {(session as any).duplicate_count} veces
+                                  Registered {(session as any).duplicate_count} times
                                 </div>
                               </div>
                             )}

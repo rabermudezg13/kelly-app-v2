@@ -785,8 +785,8 @@ function RecruiterDashboard() {
                             <div className="flex items-center gap-2">
                               <span>{session.first_name} {session.last_name}</span>
                               {(session as any).is_duplicate && (
-                                <span className="px-2 py-1 bg-orange-500 text-white text-xs font-bold rounded" title={`⚠️ DUPLICADO - Registrado ${(session as any).duplicate_count} veces`}>
-                                  ⚠️ DUPLICADO ({(session as any).duplicate_count}x)
+                                <span className="px-2 py-1 bg-orange-500 text-white text-xs font-bold rounded" title={`⚠️ DUPLICATE - Registered ${(session as any).duplicate_count} times`}>
+                                  ⚠️ DUPLICATE ({(session as any).duplicate_count}x)
                                 </span>
                               )}
                               {session.is_in_exclusion_list && (
@@ -2270,8 +2270,8 @@ function RecruiterDashboard() {
                             <h3 className="font-bold text-lg flex items-center gap-2">
                               <span>{session.first_name} {session.last_name}</span>
                               {(session as any).is_duplicate && (
-                                <span className="px-2 py-1 bg-orange-500 text-white text-xs font-bold rounded" title={`⚠️ DUPLICADO - Registrado ${(session as any).duplicate_count} veces`}>
-                                  ⚠️ DUPLICADO ({(session as any).duplicate_count}x)
+                                <span className="px-2 py-1 bg-orange-500 text-white text-xs font-bold rounded" title={`⚠️ DUPLICATE - Registered ${(session as any).duplicate_count} times`}>
+                                  ⚠️ DUPLICATE ({(session as any).duplicate_count}x)
                                 </span>
                               )}
                               {(() => {
