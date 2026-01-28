@@ -162,15 +162,24 @@ async def get_assigned_sessions(
     for session in sessions:
         print(f"   - Session ID: {session.id}, Name: {session.first_name} {session.last_name}, Status: {session.status}, Created: {session.created_at}")
     
+    # Detect duplicates across ALL sessions (name + email)
+    all_sessions_for_dup = db.query(InfoSession).all()
+    name_counts: dict = {}
+    for s in all_sessions_for_dup:
+        nk = f"{s.first_name.strip().lower()}_{s.last_name.strip().lower()}_{s.email.strip().lower()}"
+        name_counts[nk] = name_counts.get(nk, 0) + 1
+    duplicate_names = {k for k, v in name_counts.items() if v > 1}
+
     result = []
     for session in sessions:
+        name_key = f"{session.first_name.strip().lower()}_{session.last_name.strip().lower()}_{session.email.strip().lower()}"
         # Get recruiter name if assigned
         assigned_recruiter_name = None
         if session.assigned_recruiter_id:
             assigned_recruiter = db.query(Recruiter).filter(Recruiter.id == session.assigned_recruiter_id).first()
             if assigned_recruiter:
                 assigned_recruiter_name = assigned_recruiter.name
-        
+
         session_data = {
             "id": session.id,
             "first_name": session.first_name,
@@ -197,9 +206,11 @@ async def get_assigned_sessions(
             "generated_row": session.generated_row if session.generated_row else None,
             "assigned_recruiter_id": session.assigned_recruiter_id,
             "assigned_recruiter_name": assigned_recruiter_name,
+            "is_duplicate": name_key in duplicate_names,
+            "duplicate_count": name_counts.get(name_key, 1),
         }
         result.append(session_data)
-    
+
     return {"sessions": result, "count": len(result)}
 
 @router.post("/{recruiter_id}/sessions/{session_id}/start")

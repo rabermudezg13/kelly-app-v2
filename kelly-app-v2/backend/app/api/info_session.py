@@ -227,15 +227,26 @@ async def get_live_info_sessions(db: Session = Depends(get_db)):
     sessions = db.query(InfoSession).options(joinedload(InfoSession.steps)).filter(
         InfoSession.status.in_(["registered", "in-progress", "initiated", "completed"])
     ).order_by(InfoSession.created_at.desc()).all()
-    
+
+    # Detect duplicates: find name+email combos that appear more than once (case-insensitive)
+    # Check against ALL sessions (not just live ones) to catch duplicates across sessions
+    all_sessions = db.query(InfoSession).all()
+    name_counts: dict = {}
+    for s in all_sessions:
+        name_key = f"{s.first_name.strip().lower()}_{s.last_name.strip().lower()}_{s.email.strip().lower()}"
+        name_counts[name_key] = name_counts.get(name_key, 0) + 1
+
+    duplicate_names = {k for k, v in name_counts.items() if v > 1}
+
     result = []
     for session in sessions:
+        name_key = f"{session.first_name.strip().lower()}_{session.last_name.strip().lower()}_{session.email.strip().lower()}"
         recruiter_name = None
         if session.assigned_recruiter_id:
             recruiter = db.query(Recruiter).filter(Recruiter.id == session.assigned_recruiter_id).first()
             if recruiter:
                 recruiter_name = recruiter.name
-        
+
         exclusion_match = None
         if session.is_in_exclusion_list:
             try:
@@ -250,7 +261,7 @@ async def get_live_info_sessions(db: Session = Depends(get_db)):
             except Exception as e:
                 print(f"Error getting exclusion match: {e}")
                 exclusion_match = None
-        
+
         steps = []
         for step in session.steps:
             steps.append({
@@ -258,7 +269,7 @@ async def get_live_info_sessions(db: Session = Depends(get_db)):
                 "step_description": step.step_description if step.step_description else "",
                 "is_completed": step.is_completed
             })
-        
+
         item = {
             "id": session.id,
             "first_name": session.first_name,
@@ -285,10 +296,12 @@ async def get_live_info_sessions(db: Session = Depends(get_db)):
             "duration_minutes": session.duration_minutes,
             "created_at": session.created_at.isoformat(),
             "exclusion_match": exclusion_match,
-            "steps": steps
+            "steps": steps,
+            "is_duplicate": name_key in duplicate_names,
+            "duplicate_count": name_counts.get(name_key, 1),
         }
         result.append(item)
-    
+
     return result
 
 @router.get("/completed")
@@ -297,9 +310,18 @@ async def get_completed_info_sessions(db: Session = Depends(get_db)):
     sessions = db.query(InfoSession).options(joinedload(InfoSession.steps)).filter(
         InfoSession.status == "completed"
     ).order_by(InfoSession.completed_at.desc()).all()
-    
+
+    # Detect duplicates across ALL sessions (name + email)
+    all_sessions = db.query(InfoSession).all()
+    name_counts: dict = {}
+    for s in all_sessions:
+        nk = f"{s.first_name.strip().lower()}_{s.last_name.strip().lower()}_{s.email.strip().lower()}"
+        name_counts[nk] = name_counts.get(nk, 0) + 1
+    duplicate_names = {k for k, v in name_counts.items() if v > 1}
+
     result = []
     for session in sessions:
+        name_key = f"{session.first_name.strip().lower()}_{session.last_name.strip().lower()}_{session.email.strip().lower()}"
         recruiter_name = None
         if session.assigned_recruiter_id:
             recruiter = db.query(Recruiter).filter(Recruiter.id == session.assigned_recruiter_id).first()
@@ -355,10 +377,12 @@ async def get_completed_info_sessions(db: Session = Depends(get_db)):
             "duration_minutes": session.duration_minutes,
             "created_at": session.created_at.isoformat(),
             "exclusion_match": exclusion_match,
-            "steps": steps
+            "steps": steps,
+            "is_duplicate": name_key in duplicate_names,
+            "duplicate_count": name_counts.get(name_key, 1),
         }
         result.append(item)
-    
+
     return result
 
 @router.get("/{session_id}", response_model=InfoSessionWithSteps)
