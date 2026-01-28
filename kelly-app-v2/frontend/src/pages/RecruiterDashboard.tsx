@@ -194,6 +194,8 @@ function RecruiterDashboard() {
         assigned_recruiter_id: session.assigned_recruiter_id,
         assigned_recruiter_name: session.assigned_recruiter_name,
         generated_row: null, // Will be loaded separately if needed
+        is_duplicate: session.is_duplicate || false,
+        duplicate_count: session.duplicate_count || 1,
       }))
       // Sort by created_at descending (newest first)
       convertedSessions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -349,9 +351,11 @@ function RecruiterDashboard() {
         assigned_recruiter_id: session.assigned_recruiter_id,
         assigned_recruiter_name: session.assigned_recruiter_name,
         generated_row: session.generated_row || null,
-        created_at: session.created_at
+        created_at: session.created_at,
+        is_duplicate: session.is_duplicate || false,
+        duplicate_count: session.duplicate_count || 1,
       }))
-      
+
       setSessions(convertedSessions)
       setTemplates(templatesData)
       setNewHireOrientations(orientationsData)
