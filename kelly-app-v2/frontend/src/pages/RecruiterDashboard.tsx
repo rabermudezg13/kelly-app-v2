@@ -23,15 +23,16 @@ import {
   notifyTeamVisit,
   getAllRecruiters,
   reassignSession,
+  getMeetGreets,
 } from '../services/api'
-import type { AssignedSession, Recruiter, NewHireOrientation, NewHireOrientationWithSteps } from '../types'
+import type { AssignedSession, Recruiter, NewHireOrientation, NewHireOrientationWithSteps, MeetGreet } from '../types'
 import type { RowTemplate } from '../services/api'
 import { formatMiamiTime, getMiamiDateKey, formatMiamiDateDisplay } from '../utils/dateUtils'
 import CHRPage from './CHRPage'
 import StatisticsDashboard from './StatisticsDashboard'
 import EventManagement from '../components/EventManagement'
 
-type RecruiterTabType = 'sessions' | 'all-info-sessions' | 'new-hire-orientation' | 'fingerprints' | 'badges' | 'my-visits' | 'statistics' | 'chr' | 'event'
+type RecruiterTabType = 'sessions' | 'all-info-sessions' | 'new-hire-orientation' | 'fingerprints' | 'badges' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'meet-greet'
 
 function RecruiterDashboard() {
   const { recruiterId } = useParams<{ recruiterId: string }>()
@@ -64,6 +65,7 @@ function RecruiterDashboard() {
   const [allRecruiters, setAllRecruiters] = useState<Recruiter[]>([])
   const [showReassignModal, setShowReassignModal] = useState(false)
   const [selectedNewRecruiter, setSelectedNewRecruiter] = useState<number | null>(null)
+  const [meetGreets, setMeetGreets] = useState<MeetGreet[]>([])
 
   useEffect(() => {
     if (recruiterId) {
@@ -1819,6 +1821,97 @@ function RecruiterDashboard() {
     )
   }
 
+  const renderMeetGreets = () => {
+    const inquiryTypeLabels: Record<string, string> = {
+      payroll: 'Payroll',
+      frontline: 'Frontline Help',
+      other: 'Other Kelly Process',
+    }
+
+    const loadMeetGreetData = async () => {
+      try {
+        const data = await getMeetGreets()
+        setMeetGreets(data)
+      } catch (error) {
+        console.error('Error loading meet & greet data:', error)
+      }
+    }
+
+    if (meetGreets.length === 0) {
+      loadMeetGreetData()
+    }
+
+    return (
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">🤝 Meet and Greet Feb 2026</h2>
+          <button
+            onClick={loadMeetGreetData}
+            className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+          >
+            Refresh
+          </button>
+        </div>
+        {meetGreets.length === 0 ? (
+          <p className="text-gray-500">No registrations yet</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Inquiry Type</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Detail</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Registered</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {meetGreets.map((mg, index) => (
+                  <tr key={mg.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm text-gray-500">{index + 1}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                      {mg.first_name} {mg.last_name}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{mg.email}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{mg.phone}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        mg.inquiry_type === 'payroll' ? 'bg-blue-100 text-blue-800' :
+                        mg.inquiry_type === 'frontline' ? 'bg-orange-100 text-orange-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {inquiryTypeLabels[mg.inquiry_type] || mg.inquiry_type}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
+                      {mg.inquiry_detail || '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        mg.status === 'registered' ? 'bg-green-100 text-green-800' :
+                        mg.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {mg.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-500">
+                      {new Date(mg.created_at).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
@@ -1952,6 +2045,16 @@ function RecruiterDashboard() {
             >
               🎟️ Event
             </button>
+            <button
+              onClick={() => setActiveTab('meet-greet')}
+              className={`px-6 py-3 font-semibold transition-colors ${
+                activeTab === 'meet-greet'
+                  ? 'bg-teal-600 text-white border-b-2 border-teal-600'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              🤝 Meet & Greet
+            </button>
           </div>
         </div>
 
@@ -1962,6 +2065,8 @@ function RecruiterDashboard() {
           <CHRPage />
         ) : activeTab === 'event' ? (
           <EventManagement />
+        ) : activeTab === 'meet-greet' ? (
+          renderMeetGreets()
         ) : activeTab === 'all-info-sessions' ? (
           renderAllInfoSessions()
         ) : activeTab === 'new-hire-orientation' ? (

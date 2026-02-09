@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 import uvicorn
 import os
 
-from app.api import info_session, admin, announcements, info_session_config, new_hire_orientation_config, new_hire_orientation, recruiter, auth, visits, exclusion_list, row_template, chr, statistics, event
+from app.api import info_session, admin, announcements, info_session_config, new_hire_orientation_config, new_hire_orientation, recruiter, auth, visits, exclusion_list, row_template, chr, statistics, event, meet_greet
 from app.database import engine, Base, SessionLocal
 from app.services.user_service import initialize_default_admin
 import sqlite3
@@ -207,6 +207,7 @@ app.include_router(row_template.router, prefix="/api/row-template", tags=["Row T
 app.include_router(chr.router, prefix="/api/chr", tags=["CHR"])
 app.include_router(statistics.router, prefix="/api/statistics", tags=["Statistics"])
 app.include_router(event.router, prefix="/api/event", tags=["Event"])
+app.include_router(meet_greet.router, prefix="/api/meet-greet", tags=["Meet & Greet"])
 
 @app.get("/")
 async def root():

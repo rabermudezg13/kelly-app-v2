@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { getLiveInfoSessions, getCompletedInfoSessions, getNewHireOrientations, getBadges, getFingerprints, getMyVisits, getCurrentUser, notifyTeamVisit, getNewHireOrientation, updateNewHireOrientation } from '../services/api'
-import type { InfoSessionWithSteps, NewHireOrientation, NewHireOrientationWithSteps } from '../types'
+import { getLiveInfoSessions, getCompletedInfoSessions, getNewHireOrientations, getBadges, getFingerprints, getMyVisits, getCurrentUser, notifyTeamVisit, getNewHireOrientation, updateNewHireOrientation, getMeetGreets } from '../services/api'
+import type { InfoSessionWithSteps, NewHireOrientation, NewHireOrientationWithSteps, MeetGreet } from '../types'
 import { formatMiamiTime, getMiamiDateKey, formatMiamiDateDisplay } from '../utils/dateUtils'
 import CHRPage from './CHRPage'
 import StatisticsDashboard from './StatisticsDashboard'
 import EventManagement from '../components/EventManagement'
 
-type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event'
+type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'meet-greet'
 
 function FrontdeskDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('info-session')
@@ -17,6 +17,7 @@ function FrontdeskDashboard() {
   const [badges, setBadges] = useState<any[]>([])
   const [fingerprints, setFingerprints] = useState<any[]>([])
   const [myVisits, setMyVisits] = useState<any[]>([])
+  const [meetGreets, setMeetGreets] = useState<MeetGreet[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
@@ -75,6 +76,10 @@ function FrontdeskDashboard() {
           const visits = await getMyVisits()
           setMyVisits(visits)
           break
+        case 'meet-greet':
+          const meetGreetData = await getMeetGreets()
+          setMeetGreets(meetGreetData)
+          break
       }
     } catch (error) {
       console.error('Error loading data:', error)
@@ -112,6 +117,10 @@ function FrontdeskDashboard() {
         case 'my-visits':
           const visits = await getMyVisits()
           setMyVisits(visits)
+          break
+        case 'meet-greet':
+          const meetGreetRefresh = await getMeetGreets()
+          setMeetGreets(meetGreetRefresh)
           break
       }
     } catch (error) {
@@ -935,6 +944,78 @@ function FrontdeskDashboard() {
     )
   }
 
+  const renderMeetGreets = () => {
+    const inquiryTypeLabels: Record<string, string> = {
+      payroll: 'Payroll',
+      frontline: 'Frontline Help',
+      other: 'Other Kelly Process',
+    }
+
+    return (
+      <div>
+        <h2 className="text-2xl font-bold mb-4">🤝 Meet and Greet Feb 2026</h2>
+        {loading ? (
+          <p className="text-gray-500">Loading...</p>
+        ) : meetGreets.length === 0 ? (
+          <p className="text-gray-500">No registrations yet</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Inquiry Type</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Detail</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Registered</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {meetGreets.map((mg, index) => (
+                  <tr key={mg.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm text-gray-500">{index + 1}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                      {mg.first_name} {mg.last_name}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{mg.email}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{mg.phone}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        mg.inquiry_type === 'payroll' ? 'bg-blue-100 text-blue-800' :
+                        mg.inquiry_type === 'frontline' ? 'bg-orange-100 text-orange-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {inquiryTypeLabels[mg.inquiry_type] || mg.inquiry_type}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
+                      {mg.inquiry_detail || '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        mg.status === 'registered' ? 'bg-green-100 text-green-800' :
+                        mg.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {mg.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-500">
+                      {new Date(mg.created_at).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
@@ -1061,6 +1142,16 @@ function FrontdeskDashboard() {
             >
               🎟️ Event
             </button>
+            <button
+              onClick={() => setActiveTab('meet-greet')}
+              className={`px-6 py-3 font-semibold transition-colors ${
+                activeTab === 'meet-greet'
+                  ? 'bg-teal-600 text-white border-b-2 border-teal-600'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              🤝 Meet & Greet
+            </button>
           </div>
         </div>
 
@@ -1075,6 +1166,7 @@ function FrontdeskDashboard() {
           {activeTab === 'statistics' && <StatisticsDashboard />}
           {activeTab === 'chr' && <CHRPage />}
           {activeTab === 'event' && <EventManagement />}
+          {activeTab === 'meet-greet' && renderMeetGreets()}
         </div>
       </div>
 

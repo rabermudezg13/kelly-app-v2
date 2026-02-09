@@ -78,7 +78,7 @@ class Fingerprint(Base):
 
 class TeamVisit(Base):
     __tablename__ = "team_visits"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     visitor_name = Column(String(100), nullable=False)
     visitor_email = Column(String(255), nullable=True)
@@ -89,6 +89,20 @@ class TeamVisit(Base):
     reason = Column(Text, nullable=False)
     status = Column(String(50), default="pending")  # pending, notified, completed
     notified_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+class MeetGreet(Base):
+    __tablename__ = "meet_greets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    first_name = Column(String(100), nullable=False)
+    last_name = Column(String(100), nullable=False)
+    email = Column(String(255), nullable=False)
+    phone = Column(String(20), nullable=False)
+    inquiry_type = Column(String(50), nullable=False)  # payroll, frontline, other
+    inquiry_detail = Column(Text, nullable=True)
+    status = Column(String(50), default="registered")  # registered, in-progress, completed
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
