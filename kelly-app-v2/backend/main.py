@@ -14,10 +14,7 @@ from app.services.user_service import initialize_default_admin
 import sqlite3
 from pathlib import Path
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
-
-# Import all models to ensure they are registered with SQLAlchemy
+# Import all models to ensure they are registered with SQLAlchemy BEFORE create_all
 # Note: We import models with different names to avoid conflicts with API routers
 from app.models import (
     user as user_model,
@@ -32,6 +29,9 @@ from app.models import (
     visit as visit_model,
     event as event_model
 )
+
+# Create database tables (models must be imported first)
+Base.metadata.create_all(bind=engine)
 
 # Ensure generated_row and question response fields exist in info_sessions table (migration)
 # Only run SQLite migrations if using SQLite
@@ -106,7 +106,19 @@ try:
             conn.close()
     else:
         # PostgreSQL - las tablas se crean automáticamente con Base.metadata.create_all
-        print("📊 Usando PostgreSQL - las tablas se crearán automáticamente")
+        # pero necesitamos agregar columnas nuevas manualmente
+        print("📊 Usando PostgreSQL - verificando migraciones...")
+        from sqlalchemy import text, inspect
+        with engine.connect() as conn:
+            inspector = inspect(engine)
+            # Migration: add subparty_suggestion to meet_greets
+            if 'meet_greets' in inspector.get_table_names():
+                mg_columns = [col['name'] for col in inspector.get_columns('meet_greets')]
+                if 'subparty_suggestion' not in mg_columns:
+                    print("📝 Adding 'subparty_suggestion' column to meet_greets...")
+                    conn.execute(text("ALTER TABLE meet_greets ADD COLUMN subparty_suggestion TEXT"))
+                    conn.commit()
+                    print("✅ Column 'subparty_suggestion' added successfully")
 except Exception as e:
     print(f"⚠️  Warning: Could not add fields: {e}")
     print("   The fields will be added automatically on next database creation.")
