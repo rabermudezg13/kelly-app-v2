@@ -1004,10 +1004,10 @@ function FrontdeskDashboard() {
                         {inquiryTypeLabels[mg.inquiry_type] || mg.inquiry_type}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate" title={mg.inquiry_detail || ''}>
+                    <td className="px-4 py-3 text-sm text-gray-600 max-w-sm break-words whitespace-normal">
                       {mg.inquiry_detail || '-'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate" title={mg.subparty_suggestion || ''}>
+                    <td className="px-4 py-3 text-sm text-gray-600 max-w-sm break-words whitespace-normal">
                       {mg.subparty_suggestion || '-'}
                     </td>
                     <td className="px-4 py-3 text-sm">
