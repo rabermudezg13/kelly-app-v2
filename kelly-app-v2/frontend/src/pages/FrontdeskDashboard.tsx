@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { getLiveInfoSessions, getCompletedInfoSessions, getNewHireOrientations, getBadges, getFingerprints, getMyVisits, getCurrentUser, notifyTeamVisit, getNewHireOrientation, updateNewHireOrientation, getMeetGreets } from '../services/api'
+import { getLiveInfoSessions, getCompletedInfoSessions, getNewHireOrientations, getBadges, getFingerprints, getMyVisits, getCurrentUser, notifyTeamVisit, getNewHireOrientation, updateNewHireOrientation, getMeetGreets, deleteMeetGreet } from '../services/api'
 import type { InfoSessionWithSteps, NewHireOrientation, NewHireOrientationWithSteps, MeetGreet } from '../types'
 import { formatMiamiTime, getMiamiDateKey, formatMiamiDateDisplay } from '../utils/dateUtils'
 import CHRPage from './CHRPage'
@@ -944,6 +944,17 @@ function FrontdeskDashboard() {
     )
   }
 
+  const handleDeleteMeetGreet = async (id: number, name: string) => {
+    if (!window.confirm(`Are you sure you want to delete the registration for ${name}?`)) return
+    try {
+      await deleteMeetGreet(id)
+      setMeetGreets(meetGreets.filter(mg => mg.id !== id))
+    } catch (error) {
+      console.error('Error deleting meet & greet:', error)
+      alert('Error deleting registration')
+    }
+  }
+
   const renderMeetGreets = () => {
     const inquiryTypeLabels: Record<string, string> = {
       payroll: 'Payroll',
@@ -969,8 +980,10 @@ function FrontdeskDashboard() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Inquiry Type</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Detail</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sub Party 2026</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Registered</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -994,6 +1007,9 @@ function FrontdeskDashboard() {
                     <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
                       {mg.inquiry_detail || '-'}
                     </td>
+                    <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
+                      {mg.subparty_suggestion || '-'}
+                    </td>
                     <td className="px-4 py-3 text-sm">
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                         mg.status === 'registered' ? 'bg-green-100 text-green-800' :
@@ -1005,6 +1021,14 @@ function FrontdeskDashboard() {
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500">
                       {new Date(mg.created_at).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <button
+                        onClick={() => handleDeleteMeetGreet(mg.id, `${mg.first_name} ${mg.last_name}`)}
+                        className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}

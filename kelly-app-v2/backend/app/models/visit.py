@@ -102,6 +102,7 @@ class MeetGreet(Base):
     phone = Column(String(20), nullable=False)
     inquiry_type = Column(String(50), nullable=False)  # payroll, frontline, other
     inquiry_detail = Column(Text, nullable=True)
+    subparty_suggestion = Column(Text, nullable=True)
     status = Column(String(50), default="registered")  # registered, in-progress, completed
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

@@ -921,3 +921,8 @@ export const updateMeetGreetStatus = async (meetGreetId: number, status: string)
   return response.data
 }
 
+export const deleteMeetGreet = async (meetGreetId: number): Promise<{ message: string }> => {
+  const response = await api.delete(`/meet-greet/${meetGreetId}`)
+  return response.data
+}
+

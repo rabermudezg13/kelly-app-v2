@@ -12,6 +12,7 @@ function MeetGreetPage() {
     phone: '',
     inquiry_type: '' as any,
     inquiry_detail: '',
+    subparty_suggestion: '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -42,6 +43,12 @@ function MeetGreetPage() {
     }
   }
 
+  const inquiryTypeLabels: Record<string, string> = {
+    payroll: 'Payroll Question / Inquiry',
+    frontline: 'Frontline Help / Assistance',
+    other: 'Other Kelly Process',
+  }
+
   if (registered) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-500 to-green-700 py-8">
@@ -65,6 +72,40 @@ function MeetGreetPage() {
                 <p className="text-gray-600 mt-2">
                   A team member will assist you shortly with your inquiry.
                 </p>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-6 mb-6">
+              <h2 className="text-lg font-bold text-gray-800 mb-4">Registration Details</h2>
+              <div className="space-y-3">
+                <div className="flex justify-between border-b border-gray-200 pb-2">
+                  <span className="text-gray-600 font-medium">Name:</span>
+                  <span className="text-gray-800">{formData.first_name} {formData.last_name}</span>
+                </div>
+                <div className="flex justify-between border-b border-gray-200 pb-2">
+                  <span className="text-gray-600 font-medium">Email:</span>
+                  <span className="text-gray-800">{formData.email}</span>
+                </div>
+                <div className="flex justify-between border-b border-gray-200 pb-2">
+                  <span className="text-gray-600 font-medium">Phone:</span>
+                  <span className="text-gray-800">{formData.phone}</span>
+                </div>
+                <div className="flex justify-between border-b border-gray-200 pb-2">
+                  <span className="text-gray-600 font-medium">Inquiry Type:</span>
+                  <span className="text-gray-800">{inquiryTypeLabels[formData.inquiry_type] || formData.inquiry_type}</span>
+                </div>
+                {formData.inquiry_detail && (
+                  <div className="flex justify-between border-b border-gray-200 pb-2">
+                    <span className="text-gray-600 font-medium">Detail:</span>
+                    <span className="text-gray-800 max-w-xs text-right">{formData.inquiry_detail}</span>
+                  </div>
+                )}
+                {formData.subparty_suggestion && (
+                  <div className="flex justify-between border-b border-gray-200 pb-2">
+                    <span className="text-gray-600 font-medium">Sub Party 2026 Suggestion:</span>
+                    <span className="text-gray-800 max-w-xs text-right">{formData.subparty_suggestion}</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -191,6 +232,19 @@ function MeetGreetPage() {
                 onChange={(e) => setFormData({ ...formData, inquiry_detail: e.target.value })}
                 rows={4}
                 placeholder="Describe your question or inquiry here..."
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                What would you like to see at the Sub Party 2026?
+              </label>
+              <textarea
+                value={formData.subparty_suggestion}
+                onChange={(e) => setFormData({ ...formData, subparty_suggestion: e.target.value })}
+                rows={3}
+                placeholder="Share your ideas or suggestions for the Sub Party 2026..."
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
               />
             </div>

@@ -21,6 +21,7 @@ class MeetGreetCreate(BaseModel):
     phone: str
     inquiry_type: str  # payroll, frontline, other
     inquiry_detail: Optional[str] = None
+    subparty_suggestion: Optional[str] = None
 
 class MeetGreetResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -31,6 +32,7 @@ class MeetGreetResponse(BaseModel):
     phone: str
     inquiry_type: str
     inquiry_detail: Optional[str] = None
+    subparty_suggestion: Optional[str] = None
     status: str
     created_at: datetime
     updated_at: Optional[datetime] = None
@@ -55,6 +57,20 @@ async def list_meet_greets(
     """List all Meet & Greet registrations (staff only)"""
     registrations = db.query(MeetGreet).order_by(MeetGreet.created_at.desc()).all()
     return [MeetGreetResponse.model_validate(r) for r in registrations]
+
+@router.delete("/{meet_greet_id}")
+async def delete_meet_greet(
+    meet_greet_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a Meet & Greet registration"""
+    registration = db.query(MeetGreet).filter(MeetGreet.id == meet_greet_id).first()
+    if not registration:
+        raise HTTPException(status_code=404, detail="Registration not found")
+    db.delete(registration)
+    db.commit()
+    return {"message": "Registration deleted", "id": meet_greet_id}
 
 @router.patch("/{meet_greet_id}/status")
 async def update_meet_greet_status(

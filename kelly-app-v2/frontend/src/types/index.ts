@@ -231,6 +231,7 @@ export interface MeetGreetRegistration {
   phone: string
   inquiry_type: 'payroll' | 'frontline' | 'other'
   inquiry_detail?: string
+  subparty_suggestion?: string
 }
 
 export interface MeetGreet {
@@ -241,6 +242,7 @@ export interface MeetGreet {
   phone: string
   inquiry_type: string
   inquiry_detail?: string | null
+  subparty_suggestion?: string | null
   status: string
   created_at: string
   updated_at?: string | null
