@@ -39,13 +39,6 @@ function RegisterVisitPage() {
       description: 'Team or group visit registration',
       route: '/team-visit',
     },
-    {
-      id: 'meet-greet',
-      title: 'Meet and Greet Feb 2026',
-      icon: '🤝',
-      description: 'Register for the Meet and Greet event',
-      route: '/meet-greet',
-    },
   ]
 
   return (

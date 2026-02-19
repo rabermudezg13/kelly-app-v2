@@ -16,6 +16,7 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
   const [isCompleted, setIsCompleted] = useState(false)
   const [currentSessionData, setCurrentSessionData] = useState(sessionData)
   const [showQuestions, setShowQuestions] = useState(false)
+  const [questionsSubmitted, setQuestionsSubmitted] = useState(false)
   const [questions, setQuestions] = useState({
     q1: sessionData.question_1_response || '',
     q2: sessionData.question_2_response || '',
@@ -33,9 +34,10 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
         q4: sessionData.question_4_response || ''
       })
       // Show questions if responses already exist
-      if (sessionData.question_1_response || sessionData.question_2_response || 
+      if (sessionData.question_1_response || sessionData.question_2_response ||
           sessionData.question_3_response || sessionData.question_4_response) {
         setShowQuestions(true)
+        setQuestionsSubmitted(true)
       }
     }
   }, [sessionData])
@@ -434,6 +436,20 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
             return shouldShow
           })() ? (
             <div className="questions-section mt-8 p-6 bg-blue-50 border-2 border-blue-500 rounded-lg">
+              {questionsSubmitted ? (
+                <div className="text-center py-6">
+                  <div className="text-5xl mb-4">✅</div>
+                  <h2 className="text-2xl font-bold text-green-700 mb-2">Answers Submitted Successfully</h2>
+                  <p className="text-gray-600 mb-6">Your answers have been saved. If you need to make changes, click the button below.</p>
+                  <button
+                    onClick={() => setQuestionsSubmitted(false)}
+                    className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-lg text-lg"
+                  >
+                    Edit & Resubmit Answers
+                  </button>
+                </div>
+              ) : (
+              <>
               <h2 className="text-2xl font-bold mb-6 text-blue-900">Please Answer These Questions:</h2>
 
               <div className="space-y-6">
@@ -443,10 +459,15 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
                   </label>
                   <textarea
                     value={questions.q1}
-                    onChange={(e) => setQuestions({...questions, q1: e.target.value})}
-                    rows={4}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Your answer..."
+                    onChange={(e) => {
+                      setQuestions({...questions, q1: e.target.value})
+                      e.target.style.height = 'auto'
+                      e.target.style.height = e.target.scrollHeight + 'px'
+                    }}
+                    rows={6}
+                    className="w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base leading-relaxed resize-none overflow-hidden"
+                    placeholder="Type your answer here... The box will grow as you type."
+                    style={{ minHeight: '150px' }}
                   />
                 </div>
 
@@ -456,10 +477,15 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
                   </label>
                   <textarea
                     value={questions.q2}
-                    onChange={(e) => setQuestions({...questions, q2: e.target.value})}
-                    rows={4}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Your answer..."
+                    onChange={(e) => {
+                      setQuestions({...questions, q2: e.target.value})
+                      e.target.style.height = 'auto'
+                      e.target.style.height = e.target.scrollHeight + 'px'
+                    }}
+                    rows={6}
+                    className="w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base leading-relaxed resize-none overflow-hidden"
+                    placeholder="Type your answer here... The box will grow as you type."
+                    style={{ minHeight: '150px' }}
                   />
                 </div>
 
@@ -469,10 +495,15 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
                   </label>
                   <textarea
                     value={questions.q3}
-                    onChange={(e) => setQuestions({...questions, q3: e.target.value})}
-                    rows={4}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Your answer..."
+                    onChange={(e) => {
+                      setQuestions({...questions, q3: e.target.value})
+                      e.target.style.height = 'auto'
+                      e.target.style.height = e.target.scrollHeight + 'px'
+                    }}
+                    rows={6}
+                    className="w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base leading-relaxed resize-none overflow-hidden"
+                    placeholder="Type your answer here... The box will grow as you type."
+                    style={{ minHeight: '150px' }}
                   />
                 </div>
 
@@ -482,35 +513,30 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
                   </label>
                   <textarea
                     value={questions.q4}
-                    onChange={(e) => setQuestions({...questions, q4: e.target.value})}
-                    rows={4}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Your answer..."
+                    onChange={(e) => {
+                      setQuestions({...questions, q4: e.target.value})
+                      e.target.style.height = 'auto'
+                      e.target.style.height = e.target.scrollHeight + 'px'
+                    }}
+                    rows={6}
+                    className="w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base leading-relaxed resize-none overflow-hidden"
+                    placeholder="Type your answer here... The box will grow as you type."
+                    style={{ minHeight: '150px' }}
                   />
                 </div>
 
-                <div className="text-center pt-4">
+                <div className="text-center pt-4 flex justify-center gap-4">
                   <button
                     onClick={async () => {
                       try {
-                        // Validate that at least some questions are answered
-                        const hasAnyAnswer = questions.q1.trim() || questions.q2.trim() || 
+                        const hasAnyAnswer = questions.q1.trim() || questions.q2.trim() ||
                                             questions.q3.trim() || questions.q4.trim()
-                        
+
                         if (!hasAnyAnswer) {
                           alert('Please answer at least one question before submitting.')
                           return
                         }
 
-                        console.log('💾 Saving questions:', {
-                          sessionId: sessionData.id,
-                          q1: questions.q1?.substring(0, 50) || 'empty',
-                          q2: questions.q2?.substring(0, 50) || 'empty',
-                          q3: questions.q3?.substring(0, 50) || 'empty',
-                          q4: questions.q4?.substring(0, 50) || 'empty'
-                        })
-
-                        // Prepare questions data - send empty strings as null
                         const questionsData = {
                           question_1_response: questions.q1.trim() || null,
                           question_2_response: questions.q2.trim() || null,
@@ -518,18 +544,9 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
                           question_4_response: questions.q4.trim() || null
                         }
 
-                        // Save questions to backend
-                        const saveResult = await updateInterviewQuestions(sessionData.id, questionsData)
-                        console.log('✅ Questions saved successfully:', saveResult)
-                        
-                        // Refresh session data to get latest state
+                        await updateInterviewQuestions(sessionData.id, questionsData)
+
                         const updated = await getInfoSession(sessionData.id)
-                        console.log('✅ Refreshed session data:', {
-                          q1: updated.question_1_response?.substring(0, 50) || 'empty',
-                          q2: updated.question_2_response?.substring(0, 50) || 'empty',
-                          q3: updated.question_3_response?.substring(0, 50) || 'empty',
-                          q4: updated.question_4_response?.substring(0, 50) || 'empty'
-                        })
                         setCurrentSessionData(updated)
                         setQuestions({
                           q1: updated.question_1_response || '',
@@ -537,13 +554,11 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
                           q3: updated.question_3_response || '',
                           q4: updated.question_4_response || ''
                         })
-                        
-                          alert('Questions submitted successfully! Thank you.')
-                          setShowQuestions(false)
-                          if (onSessionCompleted) onSessionCompleted()
+
+                        alert('Questions submitted successfully! Thank you.')
+                        setQuestionsSubmitted(true)
                       } catch (error: any) {
-                        console.error('❌ Error saving questions:', error)
-                        console.error('Error details:', error.response?.data || error.message)
+                        console.error('Error saving questions:', error)
                         alert(`Error saving questions: ${error.response?.data?.detail || error.message || 'Unknown error'}. Please try again.`)
                       }
                     }}
@@ -553,6 +568,8 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
                   </button>
                 </div>
               </div>
+              </>
+              )}
             </div>
           ) : null}
 

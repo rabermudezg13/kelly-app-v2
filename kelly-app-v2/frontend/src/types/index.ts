@@ -224,27 +224,5 @@ export interface RecruiterList {
   attendees: EventAttendee[]
 }
 
-export interface MeetGreetRegistration {
-  first_name: string
-  last_name: string
-  email: string
-  phone: string
-  inquiry_type: 'payroll' | 'frontline' | 'other'
-  inquiry_detail?: string
-  subparty_suggestion?: string
-}
 
-export interface MeetGreet {
-  id: number
-  first_name: string
-  last_name: string
-  email: string
-  phone: string
-  inquiry_type: string
-  inquiry_detail?: string | null
-  subparty_suggestion?: string | null
-  status: string
-  created_at: string
-  updated_at?: string | null
-}
 

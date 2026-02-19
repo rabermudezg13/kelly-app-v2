@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { InfoSessionRegistration, InfoSessionWithSteps, Announcement, CHRCase, CHRDashboardStats, CHRStatusBreakdown, NewHireOrientationRegistration, NewHireOrientationWithSteps, Event, EventAttendee, EventAttendeeCreate, RecruiterList, MeetGreetRegistration, MeetGreet } from '../types'
+import type { InfoSessionRegistration, InfoSessionWithSteps, Announcement, CHRCase, CHRDashboardStats, CHRStatusBreakdown, NewHireOrientationRegistration, NewHireOrientationWithSteps, Event, EventAttendee, EventAttendeeCreate, RecruiterList } from '../types'
 
 // Detectar automáticamente la URL del backend basándose en la URL actual
 // Si se accede desde localhost, usa localhost. Si se accede desde una IP, usa esa IP.
@@ -904,25 +904,4 @@ export const deleteAttendee = async (attendeeId: number): Promise<{ message: str
   return response.data
 }
 
-// ========== Meet & Greet API ==========
-
-export const registerMeetGreet = async (data: MeetGreetRegistration): Promise<MeetGreet> => {
-  const response = await api.post('/meet-greet/register', data)
-  return response.data
-}
-
-export const getMeetGreets = async (): Promise<MeetGreet[]> => {
-  const response = await api.get('/meet-greet/')
-  return response.data
-}
-
-export const updateMeetGreetStatus = async (meetGreetId: number, status: string): Promise<{ message: string }> => {
-  const response = await api.patch(`/meet-greet/${meetGreetId}/status`, null, { params: { status } })
-  return response.data
-}
-
-export const deleteMeetGreet = async (meetGreetId: number): Promise<{ message: string }> => {
-  const response = await api.delete(`/meet-greet/${meetGreetId}`)
-  return response.data
-}
 
