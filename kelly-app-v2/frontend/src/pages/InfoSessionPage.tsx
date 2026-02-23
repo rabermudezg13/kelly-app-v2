@@ -134,7 +134,7 @@ function InfoSessionPage() {
             <div className="mb-6 p-4 bg-yellow-50 border border-yellow-400 rounded-lg flex items-start gap-3">
               <span className="text-yellow-500 text-2xl leading-none">⚠️</span>
               <div>
-                <p className="font-semibold text-yellow-800">Ya estás registrado</p>
+                <p className="font-semibold text-yellow-800">You are already registered</p>
                 <p className="text-yellow-700 text-sm mt-1">{duplicateError}</p>
               </div>
             </div>

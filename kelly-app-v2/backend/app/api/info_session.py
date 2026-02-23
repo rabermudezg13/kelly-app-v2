@@ -130,7 +130,7 @@ async def register_info_session(
     if existing:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Ya estás registrado en la info session de las {registration.time_slot} de hoy. No puedes registrarte dos veces en el mismo horario."
+            detail=f"You are already registered for the {registration.time_slot} info session today. You cannot register twice for the same time slot."
         )
 
     # Check exclusion list
