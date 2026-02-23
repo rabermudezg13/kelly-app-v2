@@ -114,7 +114,25 @@ async def register_info_session(
     """
     # Initialize default recruiters if needed
     initialize_default_recruiters(db)
-    
+
+    # Check for duplicate registration: same email AND same time_slot for today
+    today = date.today()
+    today_start = datetime(today.year, today.month, today.day, 0, 0, 0)
+    today_end = datetime(today.year, today.month, today.day, 23, 59, 59)
+    existing = db.query(InfoSession).filter(
+        InfoSession.email.ilike(registration.email.strip()),
+        InfoSession.time_slot == registration.time_slot,
+        InfoSession.status.notin_(["completed"]),
+        InfoSession.created_at >= today_start,
+        InfoSession.created_at <= today_end,
+    ).first()
+
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Ya estás registrado en la info session de las {registration.time_slot} de hoy. No puedes registrarte dos veces en el mismo horario."
+        )
+
     # Check exclusion list
     print(f"🔍 Checking exclusion list for: {registration.first_name} {registration.last_name}")
     exclusion_matches = check_name_in_exclusion_list(

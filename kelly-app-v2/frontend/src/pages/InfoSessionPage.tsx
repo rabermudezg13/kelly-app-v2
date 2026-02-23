@@ -14,6 +14,7 @@ function InfoSessionPage() {
   const [sessionData, setSessionData] = useState<InfoSessionWithSteps | null>(null)
   const [exclusionWarning, setExclusionWarning] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [duplicateError, setDuplicateError] = useState<string | null>(null)
 
   // Load saved session on mount
   useEffect(() => {
@@ -60,6 +61,7 @@ function InfoSessionPage() {
   }, [])
 
   const handleSubmit = async (formData: InfoSessionRegistration) => {
+    setDuplicateError(null)
     try {
       // Check exclusion list silently (for backend tracking only, not shown to visitor)
       try {
@@ -80,7 +82,7 @@ function InfoSessionPage() {
       const registered = await registerInfoSession(formData)
       setSessionData(registered)
       setStep('welcome')
-      
+
       // Save to localStorage
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         id: registered.id,
@@ -90,7 +92,11 @@ function InfoSessionPage() {
         created_at: registered.created_at
       }))
     } catch (error: any) {
-      alert(`Error registering: ${error.response?.data?.detail || error.message}`)
+      if (error.response?.status === 409) {
+        setDuplicateError(error.response.data.detail)
+      } else {
+        alert(`Error registering: ${error.response?.data?.detail || error.message}`)
+      }
     }
   }
 
@@ -124,6 +130,15 @@ function InfoSessionPage() {
             📅 You are registering for TODAY's info session
           </p>
 
+          {duplicateError && (
+            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-400 rounded-lg flex items-start gap-3">
+              <span className="text-yellow-500 text-2xl leading-none">⚠️</span>
+              <div>
+                <p className="font-semibold text-yellow-800">Ya estás registrado</p>
+                <p className="text-yellow-700 text-sm mt-1">{duplicateError}</p>
+              </div>
+            </div>
+          )}
           <InfoSessionForm onSubmit={handleSubmit} onCancel={() => navigate('/')} />
         </div>
       </div>
