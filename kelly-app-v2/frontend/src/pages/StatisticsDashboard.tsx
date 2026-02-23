@@ -131,7 +131,7 @@ function StatisticsDashboard() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="text-3xl font-bold text-blue-600">{statistics.total_info_sessions}</div>
             <div className="text-gray-600 mt-1">Info Sessions</div>
@@ -151,6 +151,10 @@ function StatisticsDashboard() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="text-3xl font-bold text-orange-600">{statistics.total_fingerprints}</div>
             <div className="text-gray-600 mt-1">Fingerprints</div>
+          </div>
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="text-3xl font-bold text-red-600">{statistics.total_rejected_info_sessions}</div>
+            <div className="text-gray-600 mt-1">Rejected</div>
           </div>
         </div>
 

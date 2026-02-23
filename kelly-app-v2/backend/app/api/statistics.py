@@ -25,6 +25,7 @@ class StatisticsResponse(BaseModel):
     total_visits: int
     total_badges: int
     total_fingerprints: int
+    total_rejected_info_sessions: int
     info_sessions_by_status: Dict[str, int]
     new_hire_orientations_by_status: Dict[str, int]
     visits_by_status: Dict[str, int]
@@ -119,7 +120,13 @@ async def get_statistics(
         func.date(Fingerprint.created_at) >= start_date,
         func.date(Fingerprint.created_at) <= end_date
     ).count()
-    
+
+    total_rejected_info_sessions = db.query(InfoSession).filter(
+        func.date(InfoSession.created_at) >= start_date,
+        func.date(InfoSession.created_at) <= end_date,
+        InfoSession.rejected == True
+    ).count()
+
     # Status distributions
     info_sessions_by_status = {}
     status_counts = db.query(
@@ -421,6 +428,7 @@ async def get_statistics(
         total_visits=total_visits,
         total_badges=total_badges,
         total_fingerprints=total_fingerprints,
+        total_rejected_info_sessions=total_rejected_info_sessions,
         info_sessions_by_status=info_sessions_by_status,
         new_hire_orientations_by_status=new_hire_orientations_by_status,
         visits_by_status=visits_by_status,

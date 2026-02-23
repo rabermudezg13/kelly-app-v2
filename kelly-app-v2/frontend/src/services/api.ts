@@ -638,6 +638,7 @@ export interface StatisticsData {
   total_visits: number
   total_badges: number
   total_fingerprints: number
+  total_rejected_info_sessions: number
   info_sessions_by_status: Record<string, number>
   new_hire_orientations_by_status: Record<string, number>
   visits_by_status: Record<string, number>
