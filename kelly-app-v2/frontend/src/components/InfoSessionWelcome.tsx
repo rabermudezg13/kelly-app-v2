@@ -24,7 +24,7 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
     q4: sessionData.question_4_response || ''
   })
 
-  // Load questions responses from sessionData when component mounts or sessionData changes
+  // Load questions responses from sessionData only on first mount
   useEffect(() => {
     if (sessionData) {
       setQuestions({
@@ -40,7 +40,7 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
         setQuestionsSubmitted(true)
       }
     }
-  }, [sessionData])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync with backend periodically to get latest state
   useEffect(() => {
@@ -77,13 +77,16 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
                                    latest.question_4_response
 
         if (shouldShowQuestions) {
-          // Update questions from latest session data
-          setQuestions({
-            q1: latest.question_1_response || '',
-            q2: latest.question_2_response || '',
-            q3: latest.question_3_response || '',
-            q4: latest.question_4_response || ''
-          })
+          // Only update questions from backend if the user is NOT actively editing them
+          // (i.e., questionsSubmitted is true = they are in view mode, not edit mode)
+          if (questionsSubmitted) {
+            setQuestions({
+              q1: latest.question_1_response || '',
+              q2: latest.question_2_response || '',
+              q3: latest.question_3_response || '',
+              q4: latest.question_4_response || ''
+            })
+          }
           // Show questions section
           setShowQuestions(true)
           console.log('✅ Sync: Showing questions - status:', latest.status, 'has responses:', !!(latest.question_1_response || latest.question_2_response || latest.question_3_response || latest.question_4_response))
@@ -114,16 +117,17 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
       const interval = setInterval(syncSession, 5000)
       return () => clearInterval(interval)
     }
-  }, [sessionData.id, isCompleted])
+  }, [sessionData.id, isCompleted, questionsSubmitted])
 
   // Sync questions from latest session data when currentSessionData changes
+  // Only update if user is NOT actively editing (questionsSubmitted = true means view mode)
   useEffect(() => {
-    if (currentSessionData) {
-      const hasResponses = currentSessionData.question_1_response || 
-                          currentSessionData.question_2_response || 
-                          currentSessionData.question_3_response || 
+    if (currentSessionData && questionsSubmitted) {
+      const hasResponses = currentSessionData.question_1_response ||
+                          currentSessionData.question_2_response ||
+                          currentSessionData.question_3_response ||
                           currentSessionData.question_4_response
-      
+
       if (hasResponses) {
         setQuestions({
           q1: currentSessionData.question_1_response || '',
@@ -134,7 +138,7 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
         setShowQuestions(true)
       }
     }
-  }, [currentSessionData])
+  }, [currentSessionData, questionsSubmitted])
 
   // Show questions if session is completed or if there are responses
   useEffect(() => {
