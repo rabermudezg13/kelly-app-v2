@@ -845,32 +845,56 @@ function RecruiterDashboard() {
                             </span>
                           </td>
                           <td className="px-4 py-2">
-                            <button
-                              onClick={async (e) => {
-                                e.stopPropagation()
-                                const confirmed = window.confirm(
-                                  `Are you sure you want to delete the registration for ${session.first_name} ${session.last_name}?\n\nThis action cannot be undone.`
-                                )
-                                if (confirmed) {
+                            <div className="flex gap-1">
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation()
+                                  const link = `${window.location.origin}/info-session/${session.id}/questions`
                                   try {
-                                    await deleteInfoSession(session.id)
-                                    alert('Registration deleted successfully')
-                                    // Reload data
-                                    await loadData()
-                                    // Also refresh all info sessions
-                                    const allSessions = await getInfoSessions()
-                                    setAllInfoSessions(allSessions || [])
-                                  } catch (error: any) {
-                                    console.error('Error deleting session:', error)
-                                    alert(`Error deleting registration: ${error.response?.data?.detail || error.message || 'Unknown error'}`)
+                                    await navigator.clipboard.writeText(link)
+                                    alert('Link copied! Send it to the aspirant so they can answer or edit their questions.')
+                                  } catch {
+                                    const textArea = document.createElement('textarea')
+                                    textArea.value = link
+                                    document.body.appendChild(textArea)
+                                    textArea.select()
+                                    document.execCommand('copy')
+                                    document.body.removeChild(textArea)
+                                    alert('Link copied! Send it to the aspirant so they can answer or edit their questions.')
                                   }
-                                }
-                              }}
-                              className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm font-semibold transition-colors"
-                              title="Delete registration"
-                            >
-                              🗑️ Delete
-                            </button>
+                                }}
+                                className="px-3 py-1 bg-teal-600 text-white rounded hover:bg-teal-700 text-sm font-semibold transition-colors"
+                                title="Copy questions link for this aspirant"
+                              >
+                                📋 Questions Link
+                              </button>
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation()
+                                  const confirmed = window.confirm(
+                                    `Are you sure you want to delete the registration for ${session.first_name} ${session.last_name}?\n\nThis action cannot be undone.`
+                                  )
+                                  if (confirmed) {
+                                    try {
+                                      await deleteInfoSession(session.id)
+                                      alert('Registration deleted successfully')
+                                      // Reload data
+                                      await loadData()
+                                      // Also refresh all info sessions
+                                      const allSessions = await getInfoSessions()
+                                      setAllInfoSessions(allSessions || [])
+                                    } catch (error: any) {
+                                      console.error('Error deleting session:', error)
+                                      alert(`Error deleting registration: ${error.response?.data?.detail || error.message || 'Unknown error'}`)
+                                    }
+                                  }
+                                }}
+                                className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm font-semibold transition-colors"
+                                title="Delete registration"
+                              >
+                                🗑️ Delete
+                              </button>
+                            </div>
                           </td>
                         </tr>
                         )
@@ -2757,6 +2781,30 @@ function RecruiterDashboard() {
                         Reopen Session
                       </button>
                     )}
+                  </div>
+
+                  {/* Resend Questions Link */}
+                  <div className="pt-4 border-t">
+                    <button
+                      onClick={async () => {
+                        const link = `${window.location.origin}/info-session/${selectedSession.id}/questions`
+                        try {
+                          await navigator.clipboard.writeText(link)
+                          alert('Link copied! Send it to the aspirant so they can answer or edit their questions.')
+                        } catch {
+                          const textArea = document.createElement('textarea')
+                          textArea.value = link
+                          document.body.appendChild(textArea)
+                          textArea.select()
+                          document.execCommand('copy')
+                          document.body.removeChild(textArea)
+                          alert('Link copied! Send it to the aspirant so they can answer or edit their questions.')
+                        }
+                      }}
+                      className="w-full px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
+                    >
+                      Resend Questions Link
+                    </button>
                   </div>
 
                   {/* Reassign Button */}
