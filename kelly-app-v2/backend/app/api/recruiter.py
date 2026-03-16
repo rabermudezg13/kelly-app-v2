@@ -137,16 +137,16 @@ async def get_assigned_sessions(
             session.assigned_recruiter_id = assigned_recruiter.id
             print(f"✅ Auto-assigned session {session.id} ({session.first_name} {session.last_name}) to {assigned_recruiter.name}")
         else:
-            # Fallback: get first active recruiter
-            fallback_recruiter = db.query(Recruiter).filter(Recruiter.is_active == True).first()
+            # Fallback: only assign to available recruiters, never to busy ones
+            fallback_recruiter = db.query(Recruiter).filter(Recruiter.is_active == True, Recruiter.status == "available").first()
             if fallback_recruiter:
                 session.assigned_recruiter_id = fallback_recruiter.id
                 print(f"✅ Auto-assigned session {session.id} ({session.first_name} {session.last_name}) to {fallback_recruiter.name} (fallback)")
-    
+
     if unassigned_sessions:
         db.commit()
         print(f"✅ Auto-assigned {len(unassigned_sessions)} unassigned sessions")
-    
+
     # Debug: Log recruiter info
     print(f"🔍 Getting sessions for recruiter ID: {recruiter_id}, Name: {recruiter.name}, Email: {recruiter.email}")
     

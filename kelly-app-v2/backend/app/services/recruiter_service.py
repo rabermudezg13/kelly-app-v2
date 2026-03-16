@@ -11,10 +11,11 @@ from datetime import datetime, date
 
 def get_next_recruiter(db: Session, time_slot: str, session_date: date = None) -> Optional[Recruiter]:
     """
-    Get the next recruiter to assign based on equitable distribution
-    First tries available recruiters, but if none are available, uses all active recruiters
-    Uses round-robin approach based on current assignments for the same time slot
-    ALWAYS returns a recruiter - creates default recruiters if none exist
+    Get the next recruiter to assign based on equitable distribution.
+    Only assigns to recruiters with status == "available". If none are available,
+    falls back to all active recruiters to prevent applicants from being left unassigned.
+    Uses round-robin approach based on current assignments for the same time slot.
+    ALWAYS returns a recruiter - creates default recruiters if none exist.
     """
     if session_date is None:
         session_date = date.today()
@@ -22,17 +23,14 @@ def get_next_recruiter(db: Session, time_slot: str, session_date: date = None) -
     # Ensure default recruiters exist
     initialize_default_recruiters(db)
     
-    # Get all active recruiters for fair distribution
-    # Use ALL active recruiters, not just "available" ones, to ensure fair rotation
+    # Get only available recruiters (status == "available" AND is_active == True)
+    # Recruiters with status "busy" are NEVER assigned new applicants
     available_recruiters = db.query(Recruiter).filter(
-        Recruiter.is_active == True
-    ).order_by(Recruiter.id).all()  # Order by ID for consistent sorting
-    
-    print(f"📊 Found {len(available_recruiters)} active recruiters for assignment")
-    
-    # If still no recruiters, get ANY recruiter (even inactive ones) - we need to assign someone
-    if not available_recruiters:
-        available_recruiters = db.query(Recruiter).all()
+        Recruiter.is_active == True,
+        Recruiter.status == "available"
+    ).order_by(Recruiter.id).all()
+
+    print(f"📊 Found {len(available_recruiters)} available recruiters for assignment")
     
     # If STILL no recruiters exist (shouldn't happen after initialize_default_recruiters), 
     # create a fallback recruiter

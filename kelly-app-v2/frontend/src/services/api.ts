@@ -905,4 +905,19 @@ export const deleteAttendee = async (attendeeId: number): Promise<{ message: str
   return response.data
 }
 
+export const exportInfoSessionExcel = async (period: string = 'all'): Promise<void> => {
+  const response = await api.get(`/info-session/export-excel?period=${period}`, {
+    responseType: 'blob'
+  })
+  const url = window.URL.createObjectURL(new Blob([response.data]))
+  const link = document.createElement('a')
+  link.href = url
+  const today = new Date().toISOString().slice(0, 10)
+  link.setAttribute('download', `info_session_${period}_${today}.xlsx`)
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.URL.revokeObjectURL(url)
+}
+
 

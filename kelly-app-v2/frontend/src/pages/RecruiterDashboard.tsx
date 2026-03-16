@@ -23,6 +23,7 @@ import {
   notifyTeamVisit,
   getAllRecruiters,
   reassignSession,
+  exportInfoSessionExcel,
 } from '../services/api'
 import type { AssignedSession, Recruiter, NewHireOrientation, NewHireOrientationWithSteps } from '../types'
 import type { RowTemplate } from '../services/api'
@@ -40,6 +41,7 @@ function RecruiterDashboard() {
   const [sessions, setSessions] = useState<AssignedSession[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [exportLoading, setExportLoading] = useState(false)
   const [selectedSession, setSelectedSession] = useState<AssignedSession | null>(null)
   const [documentStatus, setDocumentStatus] = useState({
     ob365_sent: false,
@@ -2004,24 +2006,43 @@ function RecruiterDashboard() {
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-2xl font-bold">📋 My Sessions</h2>
-                  <button
-                    onClick={async () => {
-                      try {
-                        setRefreshing(true)
-                        await loadData()
-                        alert('Data refreshed!')
-                      } catch (error) {
-                        console.error('Error refreshing:', error)
-                        alert('Error refreshing data')
-                      } finally {
-                        setRefreshing(false)
-                      }
-                    }}
-                    disabled={refreshing}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {refreshing ? '🔄 Refreshing...' : '🔄 Refresh'}
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={async () => {
+                        try {
+                          setExportLoading(true)
+                          await exportInfoSessionExcel('all')
+                        } catch (error) {
+                          console.error('Error exporting:', error)
+                          alert('Error exporting to Excel')
+                        } finally {
+                          setExportLoading(false)
+                        }
+                      }}
+                      disabled={exportLoading}
+                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {exportLoading ? '⏳ Exporting...' : '📥 Export to Excel'}
+                    </button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          setRefreshing(true)
+                          await loadData()
+                          alert('Data refreshed!')
+                        } catch (error) {
+                          console.error('Error refreshing:', error)
+                          alert('Error refreshing data')
+                        } finally {
+                          setRefreshing(false)
+                        }
+                      }}
+                      disabled={refreshing}
+                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {refreshing ? '🔄 Refreshing...' : '🔄 Refresh'}
+                    </button>
+                  </div>
                 </div>
               <div className="space-y-4">
                 {loading ? (

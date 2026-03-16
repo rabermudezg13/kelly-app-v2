@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { getStatistics, createStatisticsBackup, type StatisticsData } from '../services/api'
+import { getStatistics, createStatisticsBackup, exportInfoSessionExcel, type StatisticsData } from '../services/api'
 
 type PeriodType = 'day' | 'week' | 'month' | 'year' | 'all'
 
@@ -9,6 +9,7 @@ function StatisticsDashboard() {
   const [error, setError] = useState<string | null>(null)
   const [period, setPeriod] = useState<PeriodType>('all')
   const [backupLoading, setBackupLoading] = useState(false)
+  const [exportLoading, setExportLoading] = useState(false)
 
   useEffect(() => {
     loadStatistics()
@@ -25,6 +26,18 @@ function StatisticsDashboard() {
       setError(err.message || 'Error loading statistics')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleExportExcel = async () => {
+    try {
+      setExportLoading(true)
+      await exportInfoSessionExcel(period)
+    } catch (err: any) {
+      console.error('Error exporting Excel:', err)
+      alert('Error exporting Excel: ' + (err.message || 'Unknown error'))
+    } finally {
+      setExportLoading(false)
     }
   }
 
@@ -119,6 +132,13 @@ function StatisticsDashboard() {
                 <option value="year">This Year</option>
                 <option value="all">All Time</option>
               </select>
+              <button
+                onClick={handleExportExcel}
+                disabled={exportLoading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                {exportLoading ? 'Exporting...' : '📥 Export to Excel'}
+              </button>
               <button
                 onClick={handleBackup}
                 disabled={backupLoading}

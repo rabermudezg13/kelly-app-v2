@@ -163,7 +163,7 @@ async def register_info_session(
     if not assigned_recruiter:
         # Last resort: get the first active recruiter or create one
         initialize_default_recruiters(db)
-        assigned_recruiter = db.query(Recruiter).filter(Recruiter.is_active == True).first()
+        assigned_recruiter = db.query(Recruiter).filter(Recruiter.is_active == True, Recruiter.status == "available").first()
         if not assigned_recruiter:
             # Create a fallback recruiter
             from app.models.recruiter import Recruiter
@@ -402,6 +402,55 @@ async def get_completed_info_sessions(db: Session = Depends(get_db)):
         result.append(item)
 
     return result
+
+@router.get("/export-excel")
+def export_excel(period: str = "all", db: Session = Depends(get_db)):
+    """Export info session attendees to Excel filtered by period (day/week/month/all)"""
+    import pandas as pd
+    from io import BytesIO
+    from fastapi.responses import StreamingResponse
+    from datetime import timedelta, timezone
+
+    now = datetime.now(timezone.utc)
+
+    query = db.query(InfoSession)
+
+    if period == "day":
+        start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        query = query.filter(InfoSession.created_at >= start)
+    elif period == "week":
+        start = now - timedelta(days=7)
+        query = query.filter(InfoSession.created_at >= start)
+    elif period == "month":
+        start = now - timedelta(days=30)
+        query = query.filter(InfoSession.created_at >= start)
+    # "all" — no filter
+
+    sessions = query.order_by(InfoSession.created_at.desc()).all()
+
+    rows = []
+    for s in sessions:
+        rows.append({
+            "Name": f"{s.first_name} {s.last_name}",
+            "Email": s.email,
+            "Phone": s.phone,
+            "Date": s.created_at.strftime("%m/%d/%Y") if s.created_at else "",
+        })
+
+    df = pd.DataFrame(rows, columns=["Name", "Email", "Phone", "Date"])
+
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Info Session Attendees")
+    buffer.seek(0)
+
+    filename = f"info_session_{period}_{now.strftime('%Y%m%d')}.xlsx"
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
 
 @router.get("/{session_id}", response_model=InfoSessionWithSteps)
 async def get_info_session(
@@ -708,16 +757,16 @@ async def list_info_sessions(
             session.assigned_recruiter_id = assigned_recruiter.id
             print(f"✅ Auto-assigned session {session.id} ({session.first_name} {session.last_name}) to {assigned_recruiter.name}")
         else:
-            # Fallback: get first active recruiter
-            fallback_recruiter = db.query(Recruiter).filter(Recruiter.is_active == True).first()
+            # Only assign to available recruiters, never to busy ones
+            fallback_recruiter = db.query(Recruiter).filter(Recruiter.is_active == True, Recruiter.status == "available").first()
             if fallback_recruiter:
                 session.assigned_recruiter_id = fallback_recruiter.id
                 print(f"✅ Auto-assigned session {session.id} ({session.first_name} {session.last_name}) to {fallback_recruiter.name} (fallback)")
-    
+
     if unassigned_sessions:
         db.commit()
         print(f"✅ Auto-assigned {len(unassigned_sessions)} unassigned sessions")
-    
+
     query = db.query(InfoSession)
     
     if status:
