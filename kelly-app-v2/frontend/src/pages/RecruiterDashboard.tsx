@@ -42,6 +42,7 @@ function RecruiterDashboard() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [exportLoading, setExportLoading] = useState(false)
+  const [exportPeriod, setExportPeriod] = useState<'day' | 'week' | 'month' | 'all'>('all')
   const [selectedSession, setSelectedSession] = useState<AssignedSession | null>(null)
   const [documentStatus, setDocumentStatus] = useState({
     ob365_sent: false,
@@ -2006,12 +2007,22 @@ function RecruiterDashboard() {
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-2xl font-bold">📋 My Sessions</h2>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
+                    <select
+                      value={exportPeriod}
+                      onChange={(e) => setExportPeriod(e.target.value as 'day' | 'week' | 'month' | 'all')}
+                      className="px-3 py-2 border border-gray-300 rounded text-sm bg-white"
+                    >
+                      <option value="day">Today</option>
+                      <option value="week">Last 7 days</option>
+                      <option value="month">Last 30 days</option>
+                      <option value="all">All time</option>
+                    </select>
                     <button
                       onClick={async () => {
                         try {
                           setExportLoading(true)
-                          await exportInfoSessionExcel('all')
+                          await exportInfoSessionExcel(exportPeriod)
                         } catch (error) {
                           console.error('Error exporting:', error)
                           alert('Error exporting to Excel')
