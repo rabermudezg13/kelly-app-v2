@@ -17,6 +17,8 @@ import {
   getNewHireOrientations,
   getNewHireOrientation,
   updateNewHireOrientation,
+  bulkDeleteNewHireOrientations,
+  deleteNewHireOrientationDuplicates,
   getFingerprints,
   getBadges,
   getMyVisits,
@@ -60,6 +62,7 @@ function RecruiterDashboard() {
   const [sessionRowCopied, setSessionRowCopied] = useState(false)
   const [newHireOrientations, setNewHireOrientations] = useState<NewHireOrientation[]>([])
   const [selectedOrientation, setSelectedOrientation] = useState<NewHireOrientationWithSteps | null>(null)
+  const [selectedNhoIds, setSelectedNhoIds] = useState<Set<number>>(new Set())
   const [fingerprints, setFingerprints] = useState<any[]>([])
   const [badges, setBadges] = useState<any[]>([])
   const [myVisits, setMyVisits] = useState<any[]>([])
@@ -1297,7 +1300,7 @@ function RecruiterDashboard() {
 
   const renderNewHireOrientations = () => {
     if (loading) return <p className="text-center py-8">Loading...</p>
-    
+
     // Group orientations by date
     const groupedOrientations: { [key: string]: NewHireOrientation[] } = {}
     newHireOrientations.forEach((orientation) => {
@@ -1307,33 +1310,91 @@ function RecruiterDashboard() {
       }
       groupedOrientations[dateKey].push(orientation)
     })
-    
+
     // Sort date keys (most recent first)
     const sortedDateKeys = Object.keys(groupedOrientations).sort().reverse()
-    
+
+    const allIds = newHireOrientations.map(o => o.id)
+    const allSelected = allIds.length > 0 && allIds.every(id => selectedNhoIds.has(id))
+
+    const handleToggleAll = () => {
+      if (allSelected) {
+        setSelectedNhoIds(new Set())
+      } else {
+        setSelectedNhoIds(new Set(allIds))
+      }
+    }
+
+    const handleToggleOne = (id: number) => {
+      const next = new Set(selectedNhoIds)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      setSelectedNhoIds(next)
+    }
+
+    const handleDeleteSelected = async () => {
+      if (selectedNhoIds.size === 0) return
+      if (!confirm(`Delete ${selectedNhoIds.size} selected attendee(s)? This cannot be undone.`)) return
+      try {
+        const result = await bulkDeleteNewHireOrientations(Array.from(selectedNhoIds))
+        setSelectedNhoIds(new Set())
+        const orientations = await getNewHireOrientations()
+        setNewHireOrientations(orientations)
+        alert(`${result.deleted} attendee(s) deleted.`)
+      } catch (e) {
+        alert('Error deleting attendees.')
+      }
+    }
+
+    const handleDeleteDuplicates = async () => {
+      if (!confirm('Delete all duplicate registrations? Only the first registration per person per session will be kept.')) return
+      try {
+        const result = await deleteNewHireOrientationDuplicates()
+        setSelectedNhoIds(new Set())
+        const orientations = await getNewHireOrientations()
+        setNewHireOrientations(orientations)
+        alert(`${result.deleted} duplicate(s) deleted.`)
+      } catch (e) {
+        alert('Error deleting duplicates.')
+      }
+    }
+
     return (
       <div className="space-y-4">
         <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 flex justify-between items-center">
           <p className="text-blue-800 font-bold">🎓 New Hire Orientations</p>
-          <button
-            onClick={async () => {
-              try {
-                setLoading(true)
-                const orientationsData = await getNewHireOrientations()
-                setNewHireOrientations(orientationsData || [])
-                console.log('✅ Refreshed New Hire Orientations:', orientationsData?.length || 0)
-                alert(`Refreshed! Found ${orientationsData?.length || 0} orientations.`)
-              } catch (error) {
-                console.error('Error refreshing orientations:', error)
-                alert('Error refreshing data')
-              } finally {
-                setLoading(false)
-              }
-            }}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-semibold"
-          >
-            🔄 Refresh
-          </button>
+          <div className="flex gap-2">
+            {selectedNhoIds.size > 0 && (
+              <button
+                onClick={handleDeleteSelected}
+                className="px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 text-sm font-semibold"
+              >
+                🗑 Delete Selected ({selectedNhoIds.size})
+              </button>
+            )}
+            <button
+              onClick={handleDeleteDuplicates}
+              className="px-3 py-1.5 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm font-semibold"
+            >
+              ⚠️ Delete Duplicates
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  setLoading(true)
+                  const orientationsData = await getNewHireOrientations()
+                  setNewHireOrientations(orientationsData || [])
+                } catch (error) {
+                  alert('Error refreshing data')
+                } finally {
+                  setLoading(false)
+                }
+              }}
+              className="px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-semibold"
+            >
+              🔄 Refresh
+            </button>
+          </div>
         </div>
         {newHireOrientations.length === 0 ? (
           <p className="text-center py-8 text-gray-500">No new hire orientations registered</p>
@@ -1342,6 +1403,9 @@ function RecruiterDashboard() {
             <table className="min-w-full table-auto">
               <thead>
                 <tr className="bg-gray-200">
+                  <th className="px-4 py-2">
+                    <input type="checkbox" checked={allSelected} onChange={handleToggleAll} />
+                  </th>
                   <th className="px-4 py-2 text-left">#</th>
                   <th className="px-4 py-2 text-left">Name</th>
                   <th className="px-4 py-2 text-left">Email</th>
@@ -1358,7 +1422,7 @@ function RecruiterDashboard() {
                     <React.Fragment key={dateKey}>
                       {dateIndex > 0 && (
                         <tr>
-                          <td colSpan={7} className="px-4 py-3 bg-gray-100 border-t-2 border-gray-300">
+                          <td colSpan={8} className="px-4 py-3 bg-gray-100 border-t-2 border-gray-300">
                             <div className="text-center">
                               <span className="text-gray-700 font-bold text-lg">
                                 ─── {formatMiamiDateDisplay(orientationsForDate[0].created_at)} ───
@@ -1368,11 +1432,18 @@ function RecruiterDashboard() {
                         </tr>
                       )}
                       {orientationsForDate.map((orientation, orientationIndex) => (
-                        <tr 
-                          key={orientation.id} 
-                          className="border-b hover:bg-gray-50 cursor-pointer"
+                        <tr
+                          key={orientation.id}
+                          className={`border-b hover:bg-gray-50 cursor-pointer ${selectedNhoIds.has(orientation.id) ? 'bg-red-50' : ''}`}
                           onClick={() => handleOpenOrientationDetails(orientation)}
                         >
+                          <td className="px-4 py-2 text-center" onClick={(e) => e.stopPropagation()}>
+                            <input
+                              type="checkbox"
+                              checked={selectedNhoIds.has(orientation.id)}
+                              onChange={() => handleToggleOne(orientation.id)}
+                            />
+                          </td>
                           <td className="px-4 py-2 font-semibold text-gray-600">
                             {orientationIndex + 1}
                           </td>
@@ -1389,8 +1460,8 @@ function RecruiterDashboard() {
                           </td>
                           <td className="px-4 py-2">
                             <span className={`px-2 py-1 rounded text-sm ${
-                              orientation.status === 'completed' 
-                                ? 'bg-green-100 text-green-800' 
+                              orientation.status === 'completed'
+                                ? 'bg-green-100 text-green-800'
                                 : orientation.status === 'in-progress'
                                 ? 'bg-yellow-100 text-yellow-800'
                                 : 'bg-blue-100 text-blue-800'
