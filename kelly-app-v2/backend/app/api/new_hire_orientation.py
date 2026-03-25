@@ -105,6 +105,21 @@ async def register_new_hire_orientation(
 ):
     """Register a new hire orientation"""
     try:
+        # Check for duplicate registration (same email + same time_slot today)
+        today_start = datetime.combine(date.today(), datetime.min.time())
+        today_end = datetime.combine(date.today(), datetime.max.time())
+        existing = db.query(NewHireOrientation).filter(
+            NewHireOrientation.email == registration.email,
+            NewHireOrientation.time_slot == registration.time_slot,
+            NewHireOrientation.created_at >= today_start,
+            NewHireOrientation.created_at <= today_end
+        ).first()
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="You are already registered for this session. Please contact the front desk if you have any questions."
+            )
+
         # Initialize default recruiters if needed
         initialize_default_recruiters(db)
         

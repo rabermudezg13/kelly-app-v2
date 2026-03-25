@@ -12,6 +12,7 @@ function NewHireOrientationPage() {
   const [step, setStep] = useState<'form' | 'welcome'>('form')
   const [orientationData, setOrientationData] = useState<NewHireOrientationWithSteps | null>(null)
   const [loading, setLoading] = useState(true)
+  const [registrationError, setRegistrationError] = useState<string | null>(null)
 
   // Load saved orientation on mount
   useEffect(() => {
@@ -51,12 +52,13 @@ function NewHireOrientationPage() {
   }, [])
 
   const handleSubmit = async (formData: NewHireOrientationRegistration) => {
+    setRegistrationError(null)
     try {
       // Register the orientation
       const registered = await registerNewHireOrientation(formData)
       setOrientationData(registered)
       setStep('welcome')
-      
+
       // Save to localStorage
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         id: registered.id,
@@ -66,7 +68,13 @@ function NewHireOrientationPage() {
         created_at: registered.created_at
       }))
     } catch (error: any) {
-      alert(`Error registering: ${error.response?.data?.detail || error.message}`)
+      const status = error.response?.status
+      const detail = error.response?.data?.detail || error.message
+      if (status === 409) {
+        setRegistrationError(detail)
+      } else {
+        alert(`Error registering: ${detail}`)
+      }
     }
   }
 
@@ -104,6 +112,12 @@ function NewHireOrientationPage() {
           <p className="text-center text-gray-600 mb-8">
             Please fill out the form below to register for New Hire Orientation
           </p>
+          {registrationError && (
+            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded">
+              <p className="text-red-800 font-semibold">Already Registered</p>
+              <p className="text-red-700 text-sm mt-1">{registrationError}</p>
+            </div>
+          )}
           <NewHireOrientationForm
             onSubmit={handleSubmit}
             onCancel={() => navigate('/')}
