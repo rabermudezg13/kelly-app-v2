@@ -1,7 +1,7 @@
 """
 New Hire Orientation API endpoints
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Body
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.orm import Session, joinedload
 from pydantic import BaseModel, EmailStr, ConfigDict
@@ -361,3 +361,56 @@ async def update_new_hire_orientation(
             orientation_data["assigned_recruiter_name"] = recruiter.name
     
     return orientation_data
+
+
+@router.delete("/{orientation_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_new_hire_orientation(
+    orientation_id: int,
+    db: Session = Depends(get_db)
+):
+    """Delete a single new hire orientation"""
+    orientation = db.query(NewHireOrientation).filter(NewHireOrientation.id == orientation_id).first()
+    if not orientation:
+        raise HTTPException(status_code=404, detail="New hire orientation not found")
+    db.delete(orientation)
+    db.commit()
+
+
+class BulkDeleteRequest(BaseModel):
+    ids: List[int]
+
+@router.post("/bulk-delete", status_code=status.HTTP_200_OK)
+async def bulk_delete_new_hire_orientations(
+    payload: BulkDeleteRequest,
+    db: Session = Depends(get_db)
+):
+    """Delete multiple new hire orientations by ID"""
+    deleted = db.query(NewHireOrientation).filter(NewHireOrientation.id.in_(payload.ids)).all()
+    count = len(deleted)
+    for o in deleted:
+        db.delete(o)
+    db.commit()
+    return {"deleted": count}
+
+
+@router.post("/delete-duplicates", status_code=status.HTTP_200_OK)
+async def delete_duplicate_orientations(db: Session = Depends(get_db)):
+    """Delete duplicate registrations, keeping the earliest per email+time_slot per day"""
+    all_orientations = db.query(NewHireOrientation).order_by(NewHireOrientation.created_at.asc()).all()
+
+    seen: dict = {}
+    to_delete: List[int] = []
+
+    for o in all_orientations:
+        day = o.created_at.date() if o.created_at else None
+        key = (o.email.lower(), o.time_slot, day)
+        if key in seen:
+            to_delete.append(o.id)
+        else:
+            seen[key] = o.id
+
+    if to_delete:
+        db.query(NewHireOrientation).filter(NewHireOrientation.id.in_(to_delete)).delete(synchronize_session=False)
+        db.commit()
+
+    return {"deleted": len(to_delete)}

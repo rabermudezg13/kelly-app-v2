@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { getLiveInfoSessions, getCompletedInfoSessions, getNewHireOrientations, getBadges, getFingerprints, getMyVisits, getCurrentUser, notifyTeamVisit, getNewHireOrientation, updateNewHireOrientation } from '../services/api'
+import { getLiveInfoSessions, getCompletedInfoSessions, getNewHireOrientations, getBadges, getFingerprints, getMyVisits, getCurrentUser, notifyTeamVisit, getNewHireOrientation, updateNewHireOrientation, bulkDeleteNewHireOrientations, deleteNewHireOrientationDuplicates } from '../services/api'
 import type { InfoSessionWithSteps, NewHireOrientation, NewHireOrientationWithSteps } from '../types'
 import { formatMiamiTime, getMiamiDateKey, formatMiamiDateDisplay } from '../utils/dateUtils'
 import CHRPage from './CHRPage'
@@ -14,6 +14,7 @@ function StaffDashboard() {
   const [completedSessions, setCompletedSessions] = useState<InfoSessionWithSteps[]>([])
   const [newHireOrientations, setNewHireOrientations] = useState<NewHireOrientation[]>([])
   const [selectedOrientation, setSelectedOrientation] = useState<NewHireOrientationWithSteps | null>(null)
+  const [selectedNhoIds, setSelectedNhoIds] = useState<Set<number>>(new Set())
   const [badges, setBadges] = useState<any[]>([])
   const [fingerprints, setFingerprints] = useState<any[]>([])
   const [myVisits, setMyVisits] = useState<any[]>([])
@@ -464,10 +465,71 @@ function StaffDashboard() {
     // Sort date keys (most recent first)
     const sortedDateKeys = Object.keys(groupedOrientations).sort().reverse()
     
+    const allIds = newHireOrientations.map(o => o.id)
+    const allSelected = allIds.length > 0 && allIds.every(id => selectedNhoIds.has(id))
+
+    const handleToggleAll = () => {
+      if (allSelected) {
+        setSelectedNhoIds(new Set())
+      } else {
+        setSelectedNhoIds(new Set(allIds))
+      }
+    }
+
+    const handleToggleOne = (id: number) => {
+      const next = new Set(selectedNhoIds)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      setSelectedNhoIds(next)
+    }
+
+    const handleDeleteSelected = async () => {
+      if (selectedNhoIds.size === 0) return
+      if (!confirm(`Delete ${selectedNhoIds.size} selected attendee(s)? This cannot be undone.`)) return
+      try {
+        const result = await bulkDeleteNewHireOrientations(Array.from(selectedNhoIds))
+        setSelectedNhoIds(new Set())
+        const orientations = await getNewHireOrientations()
+        setNewHireOrientations(orientations)
+        alert(`${result.deleted} attendee(s) deleted.`)
+      } catch (e) {
+        alert('Error deleting attendees.')
+      }
+    }
+
+    const handleDeleteDuplicates = async () => {
+      if (!confirm('Delete all duplicate registrations? Only the first registration per person per session will be kept.')) return
+      try {
+        const result = await deleteNewHireOrientationDuplicates()
+        setSelectedNhoIds(new Set())
+        const orientations = await getNewHireOrientations()
+        setNewHireOrientations(orientations)
+        alert(`${result.deleted} duplicate(s) deleted.`)
+      } catch (e) {
+        alert('Error deleting duplicates.')
+      }
+    }
+
     return (
       <div className="space-y-4">
-        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
+        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 flex items-center justify-between">
           <p className="text-blue-800 font-bold">🎓 New Hire Orientations</p>
+          <div className="flex gap-2">
+            {selectedNhoIds.size > 0 && (
+              <button
+                onClick={handleDeleteSelected}
+                className="px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 text-sm font-semibold"
+              >
+                🗑 Delete Selected ({selectedNhoIds.size})
+              </button>
+            )}
+            <button
+              onClick={handleDeleteDuplicates}
+              className="px-3 py-1.5 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm font-semibold"
+            >
+              ⚠️ Delete Duplicates
+            </button>
+          </div>
         </div>
         {newHireOrientations.length === 0 ? (
           <p className="text-center py-8 text-gray-500">No new hire orientations registered</p>
@@ -476,6 +538,9 @@ function StaffDashboard() {
             <table className="min-w-full table-auto">
               <thead>
                 <tr className="bg-gray-200">
+                  <th className="px-4 py-2">
+                    <input type="checkbox" checked={allSelected} onChange={handleToggleAll} />
+                  </th>
                   <th className="px-4 py-2 text-left">#</th>
                   <th className="px-4 py-2 text-left">Name</th>
                   <th className="px-4 py-2 text-left">Email</th>
@@ -493,7 +558,7 @@ function StaffDashboard() {
                     <React.Fragment key={dateKey}>
                       {dateIndex > 0 && (
                         <tr>
-                          <td colSpan={8} className="px-4 py-3 bg-gray-100 border-t-2 border-gray-300">
+                          <td colSpan={9} className="px-4 py-3 bg-gray-100 border-t-2 border-gray-300">
                             <div className="text-center">
                               <span className="text-gray-700 font-bold text-lg">
                                 ─── {formatMiamiDateDisplay(orientationsForDate[0].created_at)} ───
@@ -503,11 +568,18 @@ function StaffDashboard() {
                         </tr>
                       )}
                       {orientationsForDate.map((orientation, orientationIndex) => (
-                        <tr 
-                          key={orientation.id} 
-                          className="border-b hover:bg-gray-50 cursor-pointer"
+                        <tr
+                          key={orientation.id}
+                          className={`border-b hover:bg-gray-50 cursor-pointer ${selectedNhoIds.has(orientation.id) ? 'bg-red-50' : ''}`}
                           onClick={() => handleOpenOrientationDetails(orientation)}
                         >
+                          <td className="px-4 py-2 text-center" onClick={(e) => e.stopPropagation()}>
+                            <input
+                              type="checkbox"
+                              checked={selectedNhoIds.has(orientation.id)}
+                              onChange={() => handleToggleOne(orientation.id)}
+                            />
+                          </td>
                           <td className="px-4 py-2 font-semibold text-gray-600">
                             {orientationIndex + 1}
                           </td>
@@ -537,8 +609,8 @@ function StaffDashboard() {
                           </td>
                           <td className="px-4 py-2">
                             <span className={`px-2 py-1 rounded text-sm ${
-                              orientation.status === 'completed' 
-                                ? 'bg-green-100 text-green-800' 
+                              orientation.status === 'completed'
+                                ? 'bg-green-100 text-green-800'
                                 : orientation.status === 'in-progress'
                                 ? 'bg-yellow-100 text-yellow-800'
                                 : 'bg-blue-100 text-blue-800'

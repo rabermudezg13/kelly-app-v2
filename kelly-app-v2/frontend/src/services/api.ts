@@ -202,6 +202,20 @@ export const getNewHireOrientations = async (): Promise<NewHireOrientation[]> =>
   return response.data
 }
 
+export const deleteNewHireOrientation = async (id: number): Promise<void> => {
+  await api.delete(`/new-hire-orientation/${id}`)
+}
+
+export const bulkDeleteNewHireOrientations = async (ids: number[]): Promise<{ deleted: number }> => {
+  const response = await api.post('/new-hire-orientation/bulk-delete', { ids })
+  return response.data
+}
+
+export const deleteNewHireOrientationDuplicates = async (): Promise<{ deleted: number }> => {
+  const response = await api.post('/new-hire-orientation/delete-duplicates')
+  return response.data
+}
+
 export const updateNewHireOrientation = async (
   orientationId: number,
   updateData: {
