@@ -4,6 +4,7 @@ New Hire Orientation API endpoints
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func
 from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import List, Optional
 from datetime import datetime, date
@@ -105,14 +106,11 @@ async def register_new_hire_orientation(
 ):
     """Register a new hire orientation"""
     try:
-        # Check for duplicate registration (same email + same time_slot today)
-        today_start = datetime.combine(date.today(), datetime.min.time())
-        today_end = datetime.combine(date.today(), datetime.max.time())
+        # Check for duplicate registration (same email + same time_slot on the same day)
         existing = db.query(NewHireOrientation).filter(
-            NewHireOrientation.email == registration.email,
+            func.lower(NewHireOrientation.email) == registration.email.lower(),
             NewHireOrientation.time_slot == registration.time_slot,
-            NewHireOrientation.created_at >= today_start,
-            NewHireOrientation.created_at <= today_end
+            func.date(NewHireOrientation.created_at) == date.today()
         ).first()
         if existing:
             raise HTTPException(
@@ -402,8 +400,9 @@ async def delete_duplicate_orientations(db: Session = Depends(get_db)):
     to_delete: List[int] = []
 
     for o in all_orientations:
+        # Use UTC date for consistency with the registration duplicate check
         day = o.created_at.date() if o.created_at else None
-        key = (o.email.lower(), o.time_slot, day)
+        key = (o.email.lower().strip(), o.time_slot, day)
         if key in seen:
             to_delete.append(o.id)
         else:
