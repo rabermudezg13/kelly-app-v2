@@ -4,6 +4,7 @@ Info Session API endpoints
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func
 from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import List, Optional
 from datetime import datetime
@@ -65,6 +66,10 @@ class InfoSessionResponse(BaseModel):
     question_2_response: Optional[str] = None
     question_3_response: Optional[str] = None
     question_4_response: Optional[str] = None
+    question_5_response: Optional[str] = None
+    question_6_response: Optional[str] = None
+    question_7_response: Optional[str] = None
+    question_8_response: Optional[str] = None
     created_at: datetime
 
 class InfoSessionStepModel(BaseModel):
@@ -116,15 +121,12 @@ async def register_info_session(
     initialize_default_recruiters(db)
 
     # Check for duplicate registration: same email AND same time_slot for today
-    today = date.today()
-    today_start = datetime(today.year, today.month, today.day, 0, 0, 0)
-    today_end = datetime(today.year, today.month, today.day, 23, 59, 59)
     existing = db.query(InfoSession).filter(
-        InfoSession.email.ilike(registration.email.strip()),
+        func.lower(InfoSession.email) == registration.email.strip().lower(),
         InfoSession.time_slot == registration.time_slot,
+        InfoSession.session_type == registration.session_type,
         InfoSession.status.notin_(["completed"]),
-        InfoSession.created_at >= today_start,
-        InfoSession.created_at <= today_end,
+        func.date(InfoSession.created_at) == date.today(),
     ).first()
 
     if existing:
@@ -585,6 +587,10 @@ class InterviewQuestionsUpdate(BaseModel):
     question_2_response: Optional[str] = None
     question_3_response: Optional[str] = None
     question_4_response: Optional[str] = None
+    question_5_response: Optional[str] = None
+    question_6_response: Optional[str] = None
+    question_7_response: Optional[str] = None
+    question_8_response: Optional[str] = None
 
 @router.patch("/{session_id}/interview-questions")
 async def update_interview_questions(
@@ -605,14 +611,11 @@ async def update_interview_questions(
         raise HTTPException(status_code=404, detail="Info session not found")
     
     # Update responses - convert empty strings to None
-    if questions_data.question_1_response is not None:
-        info_session.question_1_response = questions_data.question_1_response.strip() if questions_data.question_1_response.strip() else None
-    if questions_data.question_2_response is not None:
-        info_session.question_2_response = questions_data.question_2_response.strip() if questions_data.question_2_response.strip() else None
-    if questions_data.question_3_response is not None:
-        info_session.question_3_response = questions_data.question_3_response.strip() if questions_data.question_3_response.strip() else None
-    if questions_data.question_4_response is not None:
-        info_session.question_4_response = questions_data.question_4_response.strip() if questions_data.question_4_response.strip() else None
+    for q_num in range(1, 9):
+        field = f'question_{q_num}_response'
+        value = getattr(questions_data, field, None)
+        if value is not None:
+            setattr(info_session, field, value.strip() if value.strip() else None)
 
     # Change status to 'answers_submitted' when answers are saved
     if info_session.status == 'initiated':
@@ -693,17 +696,29 @@ async def get_answers_pdf(
     story.append(title)
     story.append(Spacer(1, 0.2*inch))
     
-    # Questions and answers
-    questions = [
-        ("1. Tell me about a time where you were asked to sub for another instructor or were asked to fill in for someone and the instructions were either missing or illegible. What did you do in this situation? What was the outcome? Would you handle this situation differently and why?",
-         info_session.question_1_response),
-        ("2. Tell me about a time when you lost order or control either in a classroom or similar environment. What did you do to regain the students' or group's attention? What was the outcome of your efforts? How would you handle this situation differently based on the outcome and why?",
-         info_session.question_2_response),
-        ("3. What would you do if you had warned a student about his/her behavior and the student continued to misbehave?",
-         info_session.question_3_response),
-        ("4. If you disagreed with the policies or procedures of the school/school district/Center in which you were working, what would you do?",
-         info_session.question_4_response),
-    ]
+    # Questions and answers — different questions for paraprofessionals
+    if info_session.session_type == 'paraprofessional':
+        questions = [
+            ("1. What interests you in working as a Paraprofessional?", info_session.question_1_response),
+            ("2. Can you describe any experience you have working with students with special needs (e.g. autism, behavioral needs, physical disabilities)?", info_session.question_2_response),
+            ("3. How would you handle a situation where a student becomes frustrated, overwhelmed or displays challenging behavior?", info_session.question_3_response),
+            ("4. How do you support a student who is struggling academically while also keeping them engaged and confident?", info_session.question_4_response),
+            ("5. Are you comfortable providing one-on-one (1:1) support to students throughout the school day, including academic and behavioral support?", info_session.question_5_response),
+            ("6. Are you comfortable working in a religious school environment, and maintaining professionalism within that setting?", info_session.question_6_response),
+            ("7. This role requires consistent attendance Monday through Friday, with varying hours depending on the school. Can you fully commit to that schedule through the end of the school year?", info_session.question_7_response),
+            ("8. Where are you currently based, and what is your flexibility in commuting to different school locations if needed?", info_session.question_8_response),
+        ]
+    else:
+        questions = [
+            ("1. Tell me about a time where you were asked to sub for another instructor or were asked to fill in for someone and the instructions were either missing or illegible. What did you do in this situation? What was the outcome? Would you handle this situation differently and why?",
+             info_session.question_1_response),
+            ("2. Tell me about a time when you lost order or control either in a classroom or similar environment. What did you do to regain the students' or group's attention? What was the outcome of your efforts? How would you handle this situation differently based on the outcome and why?",
+             info_session.question_2_response),
+            ("3. What would you do if you had warned a student about his/her behavior and the student continued to misbehave?",
+             info_session.question_3_response),
+            ("4. If you disagreed with the policies or procedures of the school/school district/Center in which you were working, what would you do?",
+             info_session.question_4_response),
+        ]
     
     for question, answer in questions:
         if answer:

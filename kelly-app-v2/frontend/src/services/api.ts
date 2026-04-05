@@ -117,6 +117,10 @@ export const updateInterviewQuestions = async (
     question_2_response?: string
     question_3_response?: string
     question_4_response?: string
+    question_5_response?: string
+    question_6_response?: string
+    question_7_response?: string
+    question_8_response?: string
   }
 ): Promise<{ message: string; session_id: number }> => {
   const response = await api.patch(`/info-session/${sessionId}/interview-questions`, questions)

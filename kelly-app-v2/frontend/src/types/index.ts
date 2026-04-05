@@ -49,6 +49,10 @@ export interface InfoSession {
   question_2_response?: string | null
   question_3_response?: string | null
   question_4_response?: string | null
+  question_5_response?: string | null
+  question_6_response?: string | null
+  question_7_response?: string | null
+  question_8_response?: string | null
   created_at: string
 }
 

@@ -39,11 +39,16 @@ class InfoSession(Base):
     # Generated row for Excel tracking
     generated_row = Column(Text, nullable=True)  # Tab-separated row generated from template
     
-    # Interview questions responses
-    question_1_response = Column(Text, nullable=True)  # Sub for another instructor question
-    question_2_response = Column(Text, nullable=True)  # Lost order/control question
-    question_3_response = Column(Text, nullable=True)  # Student misbehavior question
-    question_4_response = Column(Text, nullable=True)  # Disagreement with policies question
+    # Interview questions responses (general)
+    question_1_response = Column(Text, nullable=True)
+    question_2_response = Column(Text, nullable=True)
+    question_3_response = Column(Text, nullable=True)
+    question_4_response = Column(Text, nullable=True)
+    # Paraprofessional extra questions (questions 5-8)
+    question_5_response = Column(Text, nullable=True)
+    question_6_response = Column(Text, nullable=True)
+    question_7_response = Column(Text, nullable=True)
+    question_8_response = Column(Text, nullable=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

@@ -762,7 +762,7 @@ function RecruiterDashboard() {
                                 ⏰ {timeSlot}
                               </span>
                               <span className="text-gray-600 font-semibold">
-                                {firstSession.session_type === 'new-hire' ? '📋 New Hire' : '🔄 Reactivation'}
+                                {firstSession.session_type === 'paraprofessional' ? '🎓 Paraprofessional' : firstSession.session_type === 'new-hire' ? '📋 New Hire' : '🔄 Reactivation'}
                               </span>
                             </div>
                             <span className="text-gray-700 font-semibold">
@@ -2336,7 +2336,7 @@ function RecruiterDashboard() {
                                       border: `2px solid ${isMorning ? '#3b82f6' : '#22c55e'}`
                                     }}
                                   >
-                                    {firstSession.session_type === 'new-hire' ? '📋 New Hire' : '🔄 Reactivation'}
+                                    {firstSession.session_type === 'paraprofessional' ? '🎓 Paraprofessional' : firstSession.session_type === 'new-hire' ? '📋 New Hire' : '🔄 Reactivation'}
                                   </span>
                                 </div>
                                 <span

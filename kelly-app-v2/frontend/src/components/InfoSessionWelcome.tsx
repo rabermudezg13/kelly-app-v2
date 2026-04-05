@@ -17,11 +17,16 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
   const [currentSessionData, setCurrentSessionData] = useState(sessionData)
   const [showQuestions, setShowQuestions] = useState(false)
   const [questionsSubmitted, setQuestionsSubmitted] = useState(false)
+  const isParaprofessional = sessionData.session_type === 'paraprofessional'
   const [questions, setQuestions] = useState({
     q1: sessionData.question_1_response || '',
     q2: sessionData.question_2_response || '',
     q3: sessionData.question_3_response || '',
-    q4: sessionData.question_4_response || ''
+    q4: sessionData.question_4_response || '',
+    q5: sessionData.question_5_response || '',
+    q6: sessionData.question_6_response || '',
+    q7: sessionData.question_7_response || '',
+    q8: sessionData.question_8_response || '',
   })
 
   // Load questions responses from sessionData only on first mount
@@ -31,11 +36,17 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
         q1: sessionData.question_1_response || '',
         q2: sessionData.question_2_response || '',
         q3: sessionData.question_3_response || '',
-        q4: sessionData.question_4_response || ''
+        q4: sessionData.question_4_response || '',
+        q5: sessionData.question_5_response || '',
+        q6: sessionData.question_6_response || '',
+        q7: sessionData.question_7_response || '',
+        q8: sessionData.question_8_response || '',
       })
       // Show questions if responses already exist
       if (sessionData.question_1_response || sessionData.question_2_response ||
-          sessionData.question_3_response || sessionData.question_4_response) {
+          sessionData.question_3_response || sessionData.question_4_response ||
+          sessionData.question_5_response || sessionData.question_6_response ||
+          sessionData.question_7_response || sessionData.question_8_response) {
         setShowQuestions(true)
         setQuestionsSubmitted(true)
       }
@@ -71,10 +82,10 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
 
         // Show questions if session is initiated (completed info session) OR if there are responses
         const shouldShowQuestions = latest.status === 'initiated' ||
-                                   latest.question_1_response ||
-                                   latest.question_2_response ||
-                                   latest.question_3_response ||
-                                   latest.question_4_response
+                                   latest.question_1_response || latest.question_2_response ||
+                                   latest.question_3_response || latest.question_4_response ||
+                                   latest.question_5_response || latest.question_6_response ||
+                                   latest.question_7_response || latest.question_8_response
 
         if (shouldShowQuestions) {
           // Only update questions from backend if the user is NOT actively editing them
@@ -84,12 +95,16 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
               q1: latest.question_1_response || '',
               q2: latest.question_2_response || '',
               q3: latest.question_3_response || '',
-              q4: latest.question_4_response || ''
+              q4: latest.question_4_response || '',
+              q5: latest.question_5_response || '',
+              q6: latest.question_6_response || '',
+              q7: latest.question_7_response || '',
+              q8: latest.question_8_response || '',
             })
           }
           // Show questions section
           setShowQuestions(true)
-          console.log('✅ Sync: Showing questions - status:', latest.status, 'has responses:', !!(latest.question_1_response || latest.question_2_response || latest.question_3_response || latest.question_4_response))
+          console.log('✅ Sync: Showing questions - status:', latest.status)
         }
 
         // Update isCompleted state if session is initiated (process started)
@@ -126,14 +141,22 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
       const hasResponses = currentSessionData.question_1_response ||
                           currentSessionData.question_2_response ||
                           currentSessionData.question_3_response ||
-                          currentSessionData.question_4_response
+                          currentSessionData.question_4_response ||
+                          currentSessionData.question_5_response ||
+                          currentSessionData.question_6_response ||
+                          currentSessionData.question_7_response ||
+                          currentSessionData.question_8_response
 
       if (hasResponses) {
         setQuestions({
           q1: currentSessionData.question_1_response || '',
           q2: currentSessionData.question_2_response || '',
           q3: currentSessionData.question_3_response || '',
-          q4: currentSessionData.question_4_response || ''
+          q4: currentSessionData.question_4_response || '',
+          q5: currentSessionData.question_5_response || '',
+          q6: currentSessionData.question_6_response || '',
+          q7: currentSessionData.question_7_response || '',
+          q8: currentSessionData.question_8_response || '',
         })
         setShowQuestions(true)
       }
@@ -142,12 +165,12 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
 
   // Show questions if session is completed or if there are responses
   useEffect(() => {
-    const shouldShow = currentSessionData.status === 'completed' || 
+    const shouldShow = currentSessionData.status === 'completed' ||
                       isCompleted ||
-                      currentSessionData.question_1_response ||
-                      currentSessionData.question_2_response ||
-                      currentSessionData.question_3_response ||
-                      currentSessionData.question_4_response
+                      currentSessionData.question_1_response || currentSessionData.question_2_response ||
+                      currentSessionData.question_3_response || currentSessionData.question_4_response ||
+                      currentSessionData.question_5_response || currentSessionData.question_6_response ||
+                      currentSessionData.question_7_response || currentSessionData.question_8_response
     if (shouldShow && !showQuestions) {
       console.log('✅ Auto-showing questions section - session completed or has responses')
       setShowQuestions(true)
@@ -457,95 +480,81 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
               <h2 className="text-2xl font-bold mb-6 text-blue-900">Please Answer These Questions:</h2>
 
               <div className="space-y-6">
-                <div>
-                  <label className="block text-gray-800 font-semibold mb-2">
-                    1. Tell me about a time where you were asked to sub for another instructor or were asked to fill in for someone and the instructions were either missing or illegible. What did you do in this situation? What was the outcome? Would you handle this situation differently and why?
-                  </label>
-                  <textarea
-                    value={questions.q1}
-                    onChange={(e) => {
-                      setQuestions({...questions, q1: e.target.value})
-                      e.target.style.height = 'auto'
-                      e.target.style.height = e.target.scrollHeight + 'px'
-                    }}
-                    rows={6}
-                    className="w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base leading-relaxed resize-none overflow-hidden"
-                    placeholder="Type your answer here... The box will grow as you type."
-                    style={{ minHeight: '150px' }}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-gray-800 font-semibold mb-2">
-                    2. Tell me about a time when you lost order or control either in a classroom or similar environment. What did you do to regain the students' or group's attention? What was the outcome of your efforts? How would you handle this situation differently based on the outcome and why?
-                  </label>
-                  <textarea
-                    value={questions.q2}
-                    onChange={(e) => {
-                      setQuestions({...questions, q2: e.target.value})
-                      e.target.style.height = 'auto'
-                      e.target.style.height = e.target.scrollHeight + 'px'
-                    }}
-                    rows={6}
-                    className="w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base leading-relaxed resize-none overflow-hidden"
-                    placeholder="Type your answer here... The box will grow as you type."
-                    style={{ minHeight: '150px' }}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-gray-800 font-semibold mb-2">
-                    3. What would you do if you had warned a student about his/her behavior and the student continued to misbehave?
-                  </label>
-                  <textarea
-                    value={questions.q3}
-                    onChange={(e) => {
-                      setQuestions({...questions, q3: e.target.value})
-                      e.target.style.height = 'auto'
-                      e.target.style.height = e.target.scrollHeight + 'px'
-                    }}
-                    rows={6}
-                    className="w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base leading-relaxed resize-none overflow-hidden"
-                    placeholder="Type your answer here... The box will grow as you type."
-                    style={{ minHeight: '150px' }}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-gray-800 font-semibold mb-2">
-                    4. If you disagreed with the policies or procedures of the school/school district/Center in which you were working, what would you do?
-                  </label>
-                  <textarea
-                    value={questions.q4}
-                    onChange={(e) => {
-                      setQuestions({...questions, q4: e.target.value})
-                      e.target.style.height = 'auto'
-                      e.target.style.height = e.target.scrollHeight + 'px'
-                    }}
-                    rows={6}
-                    className="w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base leading-relaxed resize-none overflow-hidden"
-                    placeholder="Type your answer here... The box will grow as you type."
-                    style={{ minHeight: '150px' }}
-                  />
-                </div>
+                {isParaprofessional ? (
+                  <>
+                    {[
+                      { key: 'q1', label: '1. What interests you in working as a Paraprofessional?' },
+                      { key: 'q2', label: '2. Can you describe any experience you have working with students with special needs (e.g. autism, behavioral needs, physical disabilities)?' },
+                      { key: 'q3', label: '3. How would you handle a situation where a student becomes frustrated, overwhelmed or displays challenging behavior?' },
+                      { key: 'q4', label: '4. How do you support a student who is struggling academically while also keeping them engaged and confident?' },
+                      { key: 'q5', label: '5. Are you comfortable providing one-on-one (1:1) support to students throughout the school day, including academic and behavioral support?' },
+                      { key: 'q6', label: '6. Are you comfortable working in a religious school environment, and maintaining professionalism within that setting?' },
+                      { key: 'q7', label: '7. This role requires consistent attendance Monday through Friday, with varying hours depending on the school. Can you fully commit to that schedule through the end of the school year?' },
+                      { key: 'q8', label: '8. Where are you currently based, and what is your flexibility in commuting to different school locations if needed?' },
+                    ].map(({ key, label }) => (
+                      <div key={key}>
+                        <label className="block text-gray-800 font-semibold mb-2">{label}</label>
+                        <textarea
+                          value={questions[key as keyof typeof questions]}
+                          onChange={(e) => {
+                            setQuestions({ ...questions, [key]: e.target.value })
+                            e.target.style.height = 'auto'
+                            e.target.style.height = e.target.scrollHeight + 'px'
+                          }}
+                          rows={5}
+                          className="w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base leading-relaxed resize-none overflow-hidden"
+                          placeholder="Type your answer here..."
+                          style={{ minHeight: '120px' }}
+                        />
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    {[
+                      { key: 'q1', label: '1. Tell me about a time where you were asked to sub for another instructor or were asked to fill in for someone and the instructions were either missing or illegible. What did you do in this situation? What was the outcome? Would you handle this situation differently and why?' },
+                      { key: 'q2', label: '2. Tell me about a time when you lost order or control either in a classroom or similar environment. What did you do to regain the students\' or group\'s attention? What was the outcome of your efforts? How would you handle this situation differently based on the outcome and why?' },
+                      { key: 'q3', label: '3. What would you do if you had warned a student about his/her behavior and the student continued to misbehave?' },
+                      { key: 'q4', label: '4. If you disagreed with the policies or procedures of the school/school district/Center in which you were working, what would you do?' },
+                    ].map(({ key, label }) => (
+                      <div key={key}>
+                        <label className="block text-gray-800 font-semibold mb-2">{label}</label>
+                        <textarea
+                          value={questions[key as keyof typeof questions]}
+                          onChange={(e) => {
+                            setQuestions({ ...questions, [key]: e.target.value })
+                            e.target.style.height = 'auto'
+                            e.target.style.height = e.target.scrollHeight + 'px'
+                          }}
+                          rows={6}
+                          className="w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base leading-relaxed resize-none overflow-hidden"
+                          placeholder="Type your answer here... The box will grow as you type."
+                          style={{ minHeight: '150px' }}
+                        />
+                      </div>
+                    ))}
+                  </>
+                )}
 
                 <div className="text-center pt-4 flex justify-center gap-4">
                   <button
                     onClick={async () => {
                       try {
-                        const hasAnyAnswer = questions.q1.trim() || questions.q2.trim() ||
-                                            questions.q3.trim() || questions.q4.trim()
-
+                        const hasAnyAnswer = Object.values(questions).some(v => v.trim())
                         if (!hasAnyAnswer) {
                           alert('Please answer at least one question before submitting.')
                           return
                         }
 
                         const questionsData = {
-                          question_1_response: questions.q1.trim() || null,
-                          question_2_response: questions.q2.trim() || null,
-                          question_3_response: questions.q3.trim() || null,
-                          question_4_response: questions.q4.trim() || null
+                          question_1_response: questions.q1.trim() || undefined,
+                          question_2_response: questions.q2.trim() || undefined,
+                          question_3_response: questions.q3.trim() || undefined,
+                          question_4_response: questions.q4.trim() || undefined,
+                          question_5_response: questions.q5.trim() || undefined,
+                          question_6_response: questions.q6.trim() || undefined,
+                          question_7_response: questions.q7.trim() || undefined,
+                          question_8_response: questions.q8.trim() || undefined,
                         }
 
                         await updateInterviewQuestions(sessionData.id, questionsData)
@@ -556,7 +565,11 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
                           q1: updated.question_1_response || '',
                           q2: updated.question_2_response || '',
                           q3: updated.question_3_response || '',
-                          q4: updated.question_4_response || ''
+                          q4: updated.question_4_response || '',
+                          q5: updated.question_5_response || '',
+                          q6: updated.question_6_response || '',
+                          q7: updated.question_7_response || '',
+                          q8: updated.question_8_response || '',
                         })
 
                         alert('Questions submitted successfully! Thank you.')

@@ -119,6 +119,16 @@ try:
                     conn.execute(text("ALTER TABLE meet_greets ADD COLUMN subparty_suggestion TEXT"))
                     conn.commit()
                     print("✅ Column 'subparty_suggestion' added successfully")
+            # Migration: add question_5-8 to info_sessions (paraprofessional questions)
+            if 'info_sessions' in inspector.get_table_names():
+                is_columns = [col['name'] for col in inspector.get_columns('info_sessions')]
+                for q_num in range(5, 9):
+                    col_name = f'question_{q_num}_response'
+                    if col_name not in is_columns:
+                        print(f"📝 Adding '{col_name}' column to info_sessions...")
+                        conn.execute(text(f"ALTER TABLE info_sessions ADD COLUMN {col_name} TEXT"))
+                        conn.commit()
+                        print(f"✅ Column '{col_name}' added successfully")
 except Exception as e:
     print(f"⚠️  Warning: Could not add fields: {e}")
     print("   The fields will be added automatically on next database creation.")
