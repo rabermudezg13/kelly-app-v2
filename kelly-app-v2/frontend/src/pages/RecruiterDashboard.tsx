@@ -34,7 +34,7 @@ import CHRPage from './CHRPage'
 import StatisticsDashboard from './StatisticsDashboard'
 import EventManagement from '../components/EventManagement'
 
-type RecruiterTabType = 'sessions' | 'all-info-sessions' | 'new-hire-orientation' | 'fingerprints' | 'badges' | 'my-visits' | 'statistics' | 'chr' | 'event'
+type RecruiterTabType = 'sessions' | 'all-info-sessions' | 'new-hire-orientation' | 'fingerprints' | 'badges' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'ksn-tool'
 
 function RecruiterDashboard() {
   const { recruiterId } = useParams<{ recruiterId: string }>()
@@ -2049,11 +2049,23 @@ function RecruiterDashboard() {
             >
               🎟️ Event
             </button>
+            <button
+              onClick={() => setActiveTab('ksn-tool')}
+              className={`px-6 py-3 font-semibold transition-colors ${
+                activeTab === 'ksn-tool'
+                  ? 'bg-orange-500 text-white border-b-2 border-orange-500'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              🔧 KSN Tool
+            </button>
           </div>
         </div>
 
         {/* Content */}
-        {activeTab === 'statistics' ? (
+        {activeTab === 'ksn-tool' ? (
+          <KsnTool />
+        ) : activeTab === 'statistics' ? (
           <StatisticsDashboard />
         ) : activeTab === 'chr' ? (
           <CHRPage />
@@ -3109,6 +3121,109 @@ function RecruiterDashboard() {
           </div>
         </div>
       )}
+      </div>
+    </div>
+  )
+}
+
+function KsnTool() {
+  const [input, setInput] = React.useState('')
+  const [output, setOutput] = React.useState('')
+  const [copied, setCopied] = React.useState(false)
+
+  const handleConvert = () => {
+    const lines = input
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
+    setOutput(lines.join(';'))
+    setCopied(false)
+  }
+
+  const handleCopy = async () => {
+    if (!output) return
+    try {
+      await navigator.clipboard.writeText(output)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      const ta = document.createElement('textarea')
+      ta.value = output
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
+  const handleClear = () => {
+    setInput('')
+    setOutput('')
+    setCopied(false)
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow-lg p-6 max-w-3xl mx-auto">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-orange-600 mb-1">🔧 KSN Tool</h2>
+        <p className="text-gray-500 text-sm">Paste an Excel column below — each row becomes a value separated by <code className="bg-gray-100 px-1 rounded">;</code> with no spaces.</p>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Paste Excel column here</label>
+          <textarea
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            rows={10}
+            placeholder={"Value 1\nValue 2\nValue 3\n..."}
+            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-orange-400 focus:outline-none font-mono text-sm resize-y"
+          />
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={handleConvert}
+            disabled={!input.trim()}
+            className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            Convert →
+          </button>
+          <button
+            onClick={handleClear}
+            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-colors"
+          >
+            Clear
+          </button>
+        </div>
+
+        {output && (
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-sm font-semibold text-gray-700">Result — ready to paste in Bullhorn</label>
+              <button
+                onClick={handleCopy}
+                className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-colors ${
+                  copied
+                    ? 'bg-green-500 text-white'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
+              >
+                {copied ? '✓ Copied!' : '📋 Copy'}
+              </button>
+            </div>
+            <textarea
+              readOnly
+              value={output}
+              rows={4}
+              className="w-full px-4 py-3 border-2 border-green-300 bg-green-50 rounded-lg font-mono text-sm resize-y"
+              onClick={e => (e.target as HTMLTextAreaElement).select()}
+            />
+            <p className="text-xs text-gray-400 mt-1">{output.split(';').length} values joined</p>
+          </div>
+        )}
       </div>
     </div>
   )
