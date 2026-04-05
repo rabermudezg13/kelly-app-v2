@@ -39,6 +39,13 @@ function RegisterVisitPage() {
       description: 'Team or group visit registration',
       route: '/team-visit',
     },
+    {
+      id: 'paraprofessionals',
+      title: 'Paraprofessionals',
+      icon: '🎓',
+      description: 'Paraprofessional registration',
+      route: '/paraprofessionals',
+    },
   ]
 
   return (
