@@ -3,9 +3,10 @@ import { getLiveInfoSessions, getCompletedInfoSessions, getNewHireOrientations, 
 import type { InfoSessionWithSteps, NewHireOrientation, NewHireOrientationWithSteps } from '../types'
 import { formatMiamiTime, getMiamiDateKey, formatMiamiDateDisplay } from '../utils/dateUtils'
 import CHRPage from './CHRPage'
+import StorageManagement from '../components/StorageManagement'
 import StatisticsDashboard from './StatisticsDashboard'
 
-type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr'
+type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'storage'
 
 function UserDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('info-session')
@@ -1120,6 +1121,16 @@ function UserDashboard() {
             >
               📝 CHR
             </button>
+            <button
+              onClick={() => setActiveTab('storage')}
+              className={`px-6 py-3 font-semibold transition-colors ${
+                activeTab === 'storage'
+                  ? 'bg-teal-600 text-white border-b-2 border-teal-600'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              📦 Storage
+            </button>
           </div>
         </div>
 
@@ -1133,6 +1144,7 @@ function UserDashboard() {
           {activeTab === 'my-visits' && renderMyVisits()}
           {activeTab === 'statistics' && <StatisticsDashboard />}
           {activeTab === 'chr' && <CHRPage />}
+          {activeTab === 'storage' && <StorageManagement />}
         </div>
       </div>
 

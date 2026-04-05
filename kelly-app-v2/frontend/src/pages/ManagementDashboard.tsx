@@ -5,8 +5,9 @@ import { formatMiamiTime, getMiamiDateKey, formatMiamiDateDisplay } from '../uti
 import CHRPage from './CHRPage'
 import StatisticsDashboard from './StatisticsDashboard'
 import EventManagement from '../components/EventManagement'
+import StorageManagement from '../components/StorageManagement'
 
-type TabType = 'info-session' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event'
+type TabType = 'info-session' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'storage'
 
 function ManagementDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('info-session')
@@ -981,6 +982,16 @@ function ManagementDashboard() {
             >
               🎟️ Event
             </button>
+            <button
+              onClick={() => setActiveTab('storage')}
+              className={`px-6 py-3 font-semibold transition-colors ${
+                activeTab === 'storage'
+                  ? 'bg-teal-600 text-white border-b-2 border-teal-600'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              📦 Storage
+            </button>
           </div>
         </div>
 
@@ -994,6 +1005,7 @@ function ManagementDashboard() {
           {activeTab === 'statistics' && <StatisticsDashboard />}
           {activeTab === 'chr' && <CHRPage />}
           {activeTab === 'event' && <EventManagement />}
+          {activeTab === 'storage' && <StorageManagement />}
         </div>
       </div>
 

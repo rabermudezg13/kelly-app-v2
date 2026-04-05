@@ -33,8 +33,9 @@ import { formatMiamiTime, getMiamiDateKey, formatMiamiDateDisplay } from '../uti
 import CHRPage from './CHRPage'
 import StatisticsDashboard from './StatisticsDashboard'
 import EventManagement from '../components/EventManagement'
+import StorageManagement from '../components/StorageManagement'
 
-type RecruiterTabType = 'sessions' | 'all-info-sessions' | 'new-hire-orientation' | 'fingerprints' | 'badges' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'ksn-tool'
+type RecruiterTabType = 'sessions' | 'all-info-sessions' | 'new-hire-orientation' | 'fingerprints' | 'badges' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'ksn-tool' | 'storage'
 
 function RecruiterDashboard() {
   const { recruiterId } = useParams<{ recruiterId: string }>()
@@ -2059,12 +2060,24 @@ function RecruiterDashboard() {
             >
               🔧 KSN Tool
             </button>
+            <button
+              onClick={() => setActiveTab('storage')}
+              className={`px-6 py-3 font-semibold transition-colors ${
+                activeTab === 'storage'
+                  ? 'bg-teal-600 text-white border-b-2 border-teal-600'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              📦 Storage
+            </button>
           </div>
         </div>
 
         {/* Content */}
         {activeTab === 'ksn-tool' ? (
           <KsnTool />
+        ) : activeTab === 'storage' ? (
+          <StorageManagement />
         ) : activeTab === 'statistics' ? (
           <StatisticsDashboard />
         ) : activeTab === 'chr' ? (

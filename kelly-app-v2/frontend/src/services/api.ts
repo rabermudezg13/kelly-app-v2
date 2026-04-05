@@ -961,4 +961,50 @@ export const exportInfoSessionExcel = async (period: string = 'all'): Promise<vo
   window.URL.revokeObjectURL(url)
 }
 
+// Storage API
+export interface StorageLocation {
+  id: number
+  name: string
+  storage_type: string
+  items: string[]
+  notes: string | null
+  unique_code: string
+  is_active: boolean
+  created_at: string | null
+}
+
+export const getStorageLocations = async (): Promise<StorageLocation[]> => {
+  const response = await api.get('/storage/')
+  return response.data
+}
+
+export const createStorageLocation = async (data: {
+  name: string
+  storage_type: string
+  items: string[]
+  notes?: string
+}): Promise<StorageLocation> => {
+  const response = await api.post('/storage/', data)
+  return response.data
+}
+
+export const updateStorageLocation = async (id: number, data: {
+  name?: string
+  storage_type?: string
+  items?: string[]
+  notes?: string
+}): Promise<StorageLocation> => {
+  const response = await api.put(`/storage/${id}`, data)
+  return response.data
+}
+
+export const deleteStorageLocation = async (id: number): Promise<void> => {
+  await api.delete(`/storage/${id}`)
+}
+
+export const getStorageByCode = async (code: string): Promise<StorageLocation> => {
+  const response = await api.get(`/storage/scan/${code}`)
+  return response.data
+}
+
 

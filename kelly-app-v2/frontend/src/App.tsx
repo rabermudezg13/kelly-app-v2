@@ -21,6 +21,7 @@ import RecruiterDashboard from './pages/RecruiterDashboard'
 import EventRegistrationPage from './pages/EventRegistrationPage'
 import InfoSessionQuestionsPage from './pages/InfoSessionQuestionsPage'
 import ParaprofessionalPage from './pages/ParaprofessionalPage'
+import StorageScanPage from './pages/StorageScanPage'
 import './index.css'
 
 function App() {
@@ -49,6 +50,7 @@ function App() {
         <Route path="/event/:unique_code/register" element={<EventRegistrationPage />} />
         <Route path="/info-session/:sessionId/questions" element={<InfoSessionQuestionsPage />} />
         <Route path="/paraprofessionals" element={<ParaprofessionalPage />} />
+        <Route path="/storage/scan/:code" element={<StorageScanPage />} />
       </Routes>
     </BrowserRouter>
   )

@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 import uvicorn
 import os
 
-from app.api import info_session, admin, announcements, info_session_config, new_hire_orientation_config, new_hire_orientation, recruiter, auth, visits, exclusion_list, row_template, chr, statistics, event, meet_greet, paraprofessional_config
+from app.api import info_session, admin, announcements, info_session_config, new_hire_orientation_config, new_hire_orientation, recruiter, auth, visits, exclusion_list, row_template, chr, statistics, event, meet_greet, paraprofessional_config, storage
 from app.database import engine, Base, SessionLocal
 from app.services.user_service import initialize_default_admin
 import sqlite3
@@ -28,7 +28,8 @@ from app.models import (
     chr as chr_model,
     visit as visit_model,
     event as event_model,
-    paraprofessional_config as paraprofessional_config_model
+    paraprofessional_config as paraprofessional_config_model,
+    storage as storage_model
 )
 
 # Create database tables (models must be imported first)
@@ -232,6 +233,7 @@ app.include_router(statistics.router, prefix="/api/statistics", tags=["Statistic
 app.include_router(event.router, prefix="/api/event", tags=["Event"])
 app.include_router(meet_greet.router, prefix="/api/meet-greet", tags=["Meet & Greet"])
 app.include_router(paraprofessional_config.router, prefix="/api/paraprofessional-config", tags=["Paraprofessional Config"])
+app.include_router(storage.router, prefix="/api/storage", tags=["Storage"])
 
 @app.get("/")
 async def root():
