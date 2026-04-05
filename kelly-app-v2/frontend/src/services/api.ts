@@ -276,6 +276,29 @@ export const updateNewHireOrientationConfig = async (config: {
   await api.put('/new-hire-orientation-config/', config)
 }
 
+export const getParaprofessionalConfig = async (): Promise<{
+  id: number
+  max_sessions_per_day: number
+  time_slots: string[]
+  is_active: boolean
+}> => {
+  const response = await api.get('/paraprofessional-config/')
+  return response.data
+}
+
+export const updateParaprofessionalConfig = async (config: {
+  max_sessions_per_day: number
+  time_slots: string[]
+  is_active?: boolean
+}): Promise<void> => {
+  await api.put('/paraprofessional-config/', config)
+}
+
+export const getParaprofessionalTimeSlots = async (): Promise<string[]> => {
+  const response = await api.get('/paraprofessional-config/time-slots')
+  return response.data
+}
+
 
 // Recruiter API
 export const getRecruiters = async (): Promise<Array<{

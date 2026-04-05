@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { registerInfoSession } from '../services/api'
+import { registerInfoSession, getParaprofessionalTimeSlots } from '../services/api'
 
 type FormData = {
   first_name: string
@@ -8,6 +8,7 @@ type FormData = {
   zip_code: string
   email: string
   phone: string
+  time_slot: string
 }
 
 const EMPTY_FORM: FormData = {
@@ -16,6 +17,7 @@ const EMPTY_FORM: FormData = {
   zip_code: '',
   email: '',
   phone: '',
+  time_slot: '',
 }
 
 const STORAGE_KEY = 'kelly_paraprofessional_data'
@@ -25,8 +27,16 @@ function ParaprofessionalPage() {
   const [step, setStep] = useState<'form' | 'waiting'>('form')
   const [sessionId, setSessionId] = useState<number | null>(null)
   const [formData, setFormData] = useState<FormData>(EMPTY_FORM)
+  const [timeSlots, setTimeSlots] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    getParaprofessionalTimeSlots().then(slots => {
+      setTimeSlots(slots)
+      if (slots.length > 0) setFormData(prev => ({ ...prev, time_slot: slots[0] }))
+    }).catch(() => setTimeSlots([]))
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -35,7 +45,7 @@ function ParaprofessionalPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.first_name || !formData.last_name || !formData.zip_code || !formData.email || !formData.phone) {
+    if (!formData.first_name || !formData.last_name || !formData.zip_code || !formData.email || !formData.phone || !formData.time_slot) {
       setError('Please fill in all fields.')
       return
     }
@@ -49,7 +59,7 @@ function ParaprofessionalPage() {
         phone: formData.phone,
         zip_code: formData.zip_code,
         session_type: 'paraprofessional',
-        time_slot: 'N/A',
+        time_slot: formData.time_slot,
       })
       setSessionId(result.id)
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ id: result.id, ...formData }))
@@ -179,6 +189,23 @@ function ParaprofessionalPage() {
                 required
               />
             </div>
+
+            {timeSlots.length > 0 && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Session Time *</label>
+                <select
+                  name="time_slot"
+                  value={formData.time_slot}
+                  onChange={(e) => setFormData(prev => ({ ...prev, time_slot: e.target.value }))}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-white"
+                  required
+                >
+                  {timeSlots.map(slot => (
+                    <option key={slot} value={slot}>{slot}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <button
               type="submit"

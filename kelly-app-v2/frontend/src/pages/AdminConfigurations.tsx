@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { 
-  getInfoSessionConfig, 
+import {
+  getInfoSessionConfig,
   updateInfoSessionConfig,
   getNewHireOrientationConfig,
   updateNewHireOrientationConfig,
+  getParaprofessionalConfig,
+  updateParaprofessionalConfig,
   type StepConfig
 } from '../services/api'
 
@@ -24,8 +26,14 @@ function AdminConfigurations() {
     time_slots: ['9:00 AM', '2:00 PM'],
     is_active: true,
   })
+  const [paraConfig, setParaConfig] = useState<{ max_sessions_per_day: number; time_slots: string[]; is_active: boolean }>({
+    max_sessions_per_day: 2,
+    time_slots: ['9:00 AM', '1:00 PM'],
+    is_active: true,
+  })
   const [newInfoTimeSlot, setNewInfoTimeSlot] = useState('')
   const [newHireTimeSlot, setNewHireTimeSlot] = useState('')
+  const [newParaTimeSlot, setNewParaTimeSlot] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -37,14 +45,20 @@ function AdminConfigurations() {
   const loadConfigs = async () => {
     try {
       setLoading(true)
-      const [infoData, newHireData] = await Promise.all([
+      const [infoData, newHireData, paraData] = await Promise.all([
         getInfoSessionConfig(),
-        getNewHireOrientationConfig()
+        getNewHireOrientationConfig(),
+        getParaprofessionalConfig(),
       ])
       setInfoSessionConfig({
         max_sessions_per_day: infoData.max_sessions_per_day,
         time_slots: infoData.time_slots,
         is_active: infoData.is_active,
+      })
+      setParaConfig({
+        max_sessions_per_day: paraData.max_sessions_per_day,
+        time_slots: paraData.time_slots,
+        is_active: paraData.is_active,
       })
       setNewHireConfig({
         max_sessions_per_day: newHireData.max_sessions_per_day,
@@ -85,6 +99,30 @@ function AdminConfigurations() {
     } finally {
       setSaving(null)
     }
+  }
+
+  const handleSavePara = async () => {
+    try {
+      setSaving('para')
+      setMessage(null)
+      await updateParaprofessionalConfig(paraConfig)
+      setMessage({ type: 'success', text: 'Paraprofessional configuration saved successfully!' })
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Error saving Paraprofessional configuration' })
+    } finally {
+      setSaving(null)
+    }
+  }
+
+  const addParaTimeSlot = () => {
+    if (newParaTimeSlot.trim() && !paraConfig.time_slots.includes(newParaTimeSlot.trim())) {
+      setParaConfig({ ...paraConfig, time_slots: [...paraConfig.time_slots, newParaTimeSlot.trim()] })
+      setNewParaTimeSlot('')
+    }
+  }
+
+  const removeParaTimeSlot = (slot: string) => {
+    setParaConfig({ ...paraConfig, time_slots: paraConfig.time_slots.filter((s) => s !== slot) })
   }
 
   const addInfoTimeSlot = () => {
@@ -141,7 +179,7 @@ function AdminConfigurations() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold">Session Configurations</h1>
-              <p className="text-gray-600">Configure Info Sessions and New Hire Orientations</p>
+              <p className="text-gray-600">Configure Info Sessions, New Hire Orientations, and Paraprofessionals</p>
             </div>
             <button
               onClick={() => navigate('/admin/dashboard')}
@@ -164,7 +202,7 @@ function AdminConfigurations() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Info Session Configuration */}
           <div className="bg-white rounded-lg shadow-lg p-8">
             <h2 className="text-2xl font-bold mb-6 text-green-600">📋 Info Session Configuration</h2>
@@ -333,6 +371,76 @@ function AdminConfigurations() {
                 className="w-full px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving === 'new-hire' ? 'Saving...' : 'Save New Hire Orientation Config'}
+              </button>
+            </div>
+          </div>
+
+          {/* Paraprofessional Configuration */}
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <h2 className="text-2xl font-bold mb-6 text-purple-600">🎓 Paraprofessional Configuration</h2>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Maximum Sessions Per Day
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={paraConfig.max_sessions_per_day}
+                  onChange={(e) => setParaConfig({ ...paraConfig, max_sessions_per_day: parseInt(e.target.value) || 1 })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+                <p className="text-sm text-gray-600 mt-1">
+                  Maximum number of paraprofessional sessions per day
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Available Time Slots
+                </label>
+                <div className="space-y-3">
+                  {paraConfig.time_slots.map((slot, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <span className="font-medium">{slot}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeParaTimeSlot(slot)}
+                        className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 flex gap-2">
+                  <input
+                    type="text"
+                    value={newParaTimeSlot}
+                    onChange={(e) => setNewParaTimeSlot(e.target.value)}
+                    placeholder="e.g., 9:00 AM, 1:00 PM"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    onKeyPress={(e) => { if (e.key === 'Enter') { e.preventDefault(); addParaTimeSlot() } }}
+                  />
+                  <button
+                    type="button"
+                    onClick={addParaTimeSlot}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              <button
+                onClick={handleSavePara}
+                disabled={saving === 'para'}
+                className="w-full px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving === 'para' ? 'Saving...' : 'Save Paraprofessional Config'}
               </button>
             </div>
           </div>
