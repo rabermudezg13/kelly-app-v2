@@ -748,7 +748,7 @@ async def get_answers_pdf(
 @router.get("/", response_model=List[InfoSessionResponse])
 async def list_info_sessions(
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 5000,
     status: Optional[str] = None,
     db: Session = Depends(get_db)
 ):

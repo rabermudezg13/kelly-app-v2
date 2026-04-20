@@ -296,7 +296,7 @@ async def complete_new_hire_orientation(
 @router.get("/", response_model=List[NewHireOrientationResponse])
 async def list_new_hire_orientations(
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 5000,
     status: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
