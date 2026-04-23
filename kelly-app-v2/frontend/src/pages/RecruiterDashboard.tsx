@@ -117,11 +117,12 @@ function RecruiterDashboard() {
     if (!recruiterId) return
     try {
       setLoading(true)
-      // Load only critical data for the sessions tab in parallel
-      const [recruiterResult, sessionsResult, templatesResult] = await Promise.allSettled([
+      // Load critical data for the sessions tab in parallel (including recruiters for reassign modal)
+      const [recruiterResult, sessionsResult, templatesResult, recruitersResult] = await Promise.allSettled([
         getRecruiterStatus(parseInt(recruiterId)),
         getAssignedSessions(parseInt(recruiterId)),
         getRowTemplates(true),
+        getAllRecruiters(),
       ])
 
       if (recruiterResult.status === 'fulfilled') {
@@ -149,6 +150,10 @@ function RecruiterDashboard() {
       const templatesData: RowTemplate[] = templatesResult.status === 'fulfilled' && Array.isArray(templatesResult.value) ? templatesResult.value : []
       setTemplates(templatesData)
       if (templatesData.length > 0 && !selectedTemplate) setSelectedTemplate(templatesData[0])
+
+      if (recruitersResult.status === 'fulfilled') {
+        setAllRecruiters(recruitersResult.value || [])
+      }
 
       return convertedSessions
     } catch (error: any) {
