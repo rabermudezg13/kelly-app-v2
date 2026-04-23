@@ -69,6 +69,7 @@ function RecruiterDashboard() {
   const [myVisits, setMyVisits] = useState<any[]>([])
   const [allInfoSessions, setAllInfoSessions] = useState<any[]>([])
   const [allRecruiters, setAllRecruiters] = useState<Recruiter[]>([])
+  const [sessionsDaysBack, setSessionsDaysBack] = useState<number>(90)
   const [showReassignModal, setShowReassignModal] = useState(false)
   const [selectedNewRecruiter, setSelectedNewRecruiter] = useState<number | null>(null)
   useEffect(() => {
@@ -158,7 +159,7 @@ function RecruiterDashboard() {
       }
       
       try {
-        const allSessions = await getInfoSessions()
+        const allSessions = await getInfoSessions(sessionsDaysBack)
         setAllInfoSessions(allSessions || [])
       } catch (error) {
         console.error('Error loading all info sessions:', error)
@@ -274,7 +275,7 @@ function RecruiterDashboard() {
         getFingerprints(),
         getBadges(),
         getMyVisits(),
-        getInfoSessions()
+        getInfoSessions(sessionsDaysBack)
       ])
       
       let allSessionsData: any[] = []
@@ -431,7 +432,7 @@ function RecruiterDashboard() {
       // If row was generated, load it for editing
       if (result.generated_row) {
         // Reload sessions to get updated data
-        const allSessionsData = await getInfoSessions()
+        const allSessionsData = await getInfoSessions(sessionsDaysBack)
         const updatedSessionData = allSessionsData.find(s => s.id === sessionId)
         if (updatedSessionData) {
           // Convert to AssignedSession format
@@ -682,26 +683,50 @@ function RecruiterDashboard() {
     
     return (
       <div className="space-y-4">
-        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 flex justify-between items-center">
+        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 flex flex-wrap justify-between items-center gap-3">
           <p className="text-blue-800 font-bold">📋 All Info Sessions</p>
-          <button
-            onClick={async () => {
-              try {
-                setLoading(true)
-                const allSessions = await getInfoSessions()
-                setAllInfoSessions(allSessions || [])
-                alert('Data refreshed!')
-              } catch (error) {
-                console.error('Error refreshing:', error)
-                alert('Error refreshing data')
-              } finally {
-                setLoading(false)
-              }
-            }}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-semibold"
-          >
+          <div className="flex items-center gap-2">
+            <select
+              value={sessionsDaysBack}
+              onChange={async (e) => {
+                const val = parseInt(e.target.value)
+                setSessionsDaysBack(val)
+                try {
+                  setLoading(true)
+                  const allSessions = await getInfoSessions(val)
+                  setAllInfoSessions(allSessions || [])
+                } catch (error) {
+                  console.error('Error loading sessions:', error)
+                } finally {
+                  setLoading(false)
+                }
+              }}
+              className="px-3 py-2 border border-blue-300 rounded text-sm bg-white"
+            >
+              <option value={7}>Last 7 days</option>
+              <option value={30}>Last 30 days</option>
+              <option value={90}>Last 90 days</option>
+              <option value={180}>Last 6 months</option>
+              <option value={365}>Last year</option>
+              <option value={0}>All time</option>
+            </select>
+            <button
+              onClick={async () => {
+                try {
+                  setLoading(true)
+                  const allSessions = await getInfoSessions(sessionsDaysBack)
+                  setAllInfoSessions(allSessions || [])
+                } catch (error) {
+                  console.error('Error refreshing:', error)
+                } finally {
+                  setLoading(false)
+                }
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-semibold"
+            >
             🔄 Refresh
-          </button>
+            </button>
+          </div>
         </div>
         {allInfoSessions.length === 0 ? (
           <p className="text-center py-8 text-gray-500">No info sessions found</p>
@@ -888,7 +913,7 @@ function RecruiterDashboard() {
                                       // Reload data
                                       await loadData()
                                       // Also refresh all info sessions
-                                      const allSessions = await getInfoSessions()
+                                      const allSessions = await getInfoSessions(sessionsDaysBack)
                                       setAllInfoSessions(allSessions || [])
                                     } catch (error: any) {
                                       console.error('Error deleting session:', error)

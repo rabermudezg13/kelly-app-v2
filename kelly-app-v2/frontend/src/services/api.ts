@@ -164,8 +164,8 @@ export const getAnnouncements = async (activeOnly: boolean = true): Promise<Anno
   return response.data
 }
 
-export const getInfoSessions = async (): Promise<InfoSessionWithSteps[]> => {
-  const response = await api.get('/info-session/?limit=5000')
+export const getInfoSessions = async (daysBack: number = 90): Promise<InfoSessionWithSteps[]> => {
+  const response = await api.get(`/info-session/?limit=1000&days_back=${daysBack}`)
   return response.data
 }
 

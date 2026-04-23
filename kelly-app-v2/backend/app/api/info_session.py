@@ -748,59 +748,65 @@ async def get_answers_pdf(
 @router.get("/", response_model=List[InfoSessionResponse])
 async def list_info_sessions(
     skip: int = 0,
-    limit: int = 5000,
+    limit: int = 1000,
     status: Optional[str] = None,
+    days_back: int = 90,
     db: Session = Depends(get_db)
 ):
     """List all info sessions (for staff dashboard)"""
-    # First, assign recruiters to any unassigned sessions
     from app.services.recruiter_service import get_next_recruiter, initialize_default_recruiters
-    from datetime import date
-    
+    from datetime import date, timedelta
+
     initialize_default_recruiters(db)
-    
-    # Find all unassigned sessions and assign them
-    unassigned_sessions = db.query(InfoSession).filter(
-        InfoSession.assigned_recruiter_id == None
+
+    # Only auto-assign TODAY's unassigned sessions (not all historical)
+    today = date.today()
+    unassigned_today = db.query(InfoSession).filter(
+        InfoSession.assigned_recruiter_id == None,
+        func.date(InfoSession.created_at) == today
     ).all()
-    
-    for session in unassigned_sessions:
-        session_date = session.created_at.date() if session.created_at else date.today()
-        assigned_recruiter = get_next_recruiter(db, session.time_slot, session_date)
-        
+
+    for session in unassigned_today:
+        assigned_recruiter = get_next_recruiter(db, session.time_slot, today)
         if assigned_recruiter:
             session.assigned_recruiter_id = assigned_recruiter.id
-            print(f"✅ Auto-assigned session {session.id} ({session.first_name} {session.last_name}) to {assigned_recruiter.name}")
         else:
-            # Only assign to available recruiters, never to busy ones
-            fallback_recruiter = db.query(Recruiter).filter(Recruiter.is_active == True, Recruiter.status == "available").first()
+            fallback_recruiter = db.query(Recruiter).filter(
+                Recruiter.is_active == True, Recruiter.status == "available"
+            ).first()
             if fallback_recruiter:
                 session.assigned_recruiter_id = fallback_recruiter.id
-                print(f"✅ Auto-assigned session {session.id} ({session.first_name} {session.last_name}) to {fallback_recruiter.name} (fallback)")
 
-    if unassigned_sessions:
+    if unassigned_today:
         db.commit()
-        print(f"✅ Auto-assigned {len(unassigned_sessions)} unassigned sessions")
 
     query = db.query(InfoSession)
-    
+
     if status:
         query = query.filter(InfoSession.status == status)
-    
+
+    # Filter by date range (days_back=0 means all time)
+    if days_back > 0:
+        cutoff = today - timedelta(days=days_back)
+        query = query.filter(func.date(InfoSession.created_at) >= cutoff)
+
     sessions = query.order_by(InfoSession.created_at.desc()).offset(skip).limit(limit).all()
+
+    # Pre-load all recruiters in one query to avoid N+1
+    recruiter_ids = {s.assigned_recruiter_id for s in sessions if s.assigned_recruiter_id}
+    recruiters_map = {}
+    if recruiter_ids:
+        recruiters = db.query(Recruiter).filter(Recruiter.id.in_(recruiter_ids)).all()
+        recruiters_map = {r.id: r.name for r in recruiters}
+
     result = []
     for session in sessions:
         session_data = InfoSessionResponse.model_validate(session).model_dump()
-        # Get recruiter name if assigned
-        if session.assigned_recruiter_id:
-            recruiter = db.query(Recruiter).filter(Recruiter.id == session.assigned_recruiter_id).first()
-            if recruiter:
-                session_data["assigned_recruiter_name"] = recruiter.name
-        # Get exclusion match info if in exclusion list
+        if session.assigned_recruiter_id and session.assigned_recruiter_id in recruiters_map:
+            session_data["assigned_recruiter_name"] = recruiters_map[session.assigned_recruiter_id]
         if session.is_in_exclusion_list:
             exclusion_match_info = get_exclusion_match_info(db, session.first_name, session.last_name)
             session_data["exclusion_match"] = exclusion_match_info.model_dump() if exclusion_match_info else None
-        # Include all new fields
         session_data["rejected"] = session.rejected
         session_data["drug_screen"] = session.drug_screen
         session_data["questions"] = session.questions
