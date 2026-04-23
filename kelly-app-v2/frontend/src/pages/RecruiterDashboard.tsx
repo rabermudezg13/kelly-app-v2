@@ -78,338 +78,178 @@ function RecruiterDashboard() {
     }
   }, [recruiterId])
 
+  const convertSessions = (rawSessions: any[]): AssignedSession[] => {
+    const converted = rawSessions.map(session => ({
+      id: session.id,
+      first_name: session.first_name,
+      last_name: session.last_name,
+      email: session.email,
+      phone: session.phone,
+      zip_code: session.zip_code,
+      session_type: session.session_type,
+      time_slot: session.time_slot,
+      status: session.status,
+      is_in_exclusion_list: session.is_in_exclusion_list || false,
+      exclusion_warning_shown: session.exclusion_warning_shown || false,
+      ob365_sent: session.ob365_sent || false,
+      i9_sent: session.i9_sent || false,
+      existing_i9: session.existing_i9 || false,
+      ineligible: session.ineligible || false,
+      rejected: session.rejected || false,
+      drug_screen: session.drug_screen || false,
+      questions: session.questions || false,
+      started_at: session.started_at || null,
+      completed_at: session.completed_at || null,
+      duration_minutes: session.duration_minutes || null,
+      created_at: session.created_at,
+      assigned_recruiter_id: session.assigned_recruiter_id,
+      assigned_recruiter_name: session.assigned_recruiter_name,
+      generated_row: session.generated_row || null,
+      is_duplicate: session.is_duplicate || false,
+      duplicate_count: session.duplicate_count || 1,
+    }))
+    converted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    return converted
+  }
+
   const loadData = async () => {
     if (!recruiterId) return
     try {
       setLoading(true)
-      // Load critical data first
-      const recruiterData = await getRecruiterStatus(parseInt(recruiterId))
-      setRecruiter(recruiterData as Recruiter)
-      
-      // Load other data in parallel, but handle errors gracefully
-      let allSessionsData: any[] = []
-      let templatesData: any[] = []
-      let orientationsData: any[] = []
-      let fingerprintsData: any[] = []
-      
-      try {
-        // Use getAssignedSessions to get only sessions assigned to this recruiter
-        const sessionsResponse = await getAssignedSessions(parseInt(recruiterId))
-        if (sessionsResponse && sessionsResponse.sessions && Array.isArray(sessionsResponse.sessions)) {
-          allSessionsData = sessionsResponse.sessions
-          console.log('🔍 Loaded sessions for My Sessions:', allSessionsData.length)
-          console.log('🔍 First session data:', allSessionsData[0])
-          console.log('🔍 Has is_in_exclusion_list field?', allSessionsData[0]?.is_in_exclusion_list)
-        } else if (Array.isArray(sessionsResponse)) {
-          // Fallback: if it's already an array, use it directly
-          allSessionsData = sessionsResponse
-        }
-      } catch (error) {
-        console.error('Error loading assigned sessions:', error)
-        // Continue with empty array
-      }
-      
-      try {
-        templatesData = await getRowTemplates(true)
-      } catch (error) {
-        console.error('Error loading templates:', error)
-        // Continue with empty array
-      }
-      
-      try {
-        orientationsData = await getNewHireOrientations()
-        console.log('✅ Initial load - New Hire Orientations:', orientationsData?.length || 0)
-      } catch (error) {
-        console.error('❌ Error loading orientations:', error)
-        // Continue with empty array
-        orientationsData = []
-      }
-      
-      try {
-        fingerprintsData = await getFingerprints()
-      } catch (error) {
-        console.error('Error loading fingerprints:', error)
-        // Continue with empty array
-      }
-      
-      try {
-        const badgesData = await getBadges()
-        setBadges(badgesData)
-      } catch (error) {
-        console.error('Error loading badges:', error)
-        // Continue with empty array
-      }
-      
-      try {
-        const visitsData = await getMyVisits()
-        console.log('Loaded visits:', visitsData)
-        setMyVisits(visitsData || [])
-      } catch (error: any) {
-        console.error('Error loading my visits:', error)
-        // Show more detailed error
-        if (error.response?.status === 401) {
-          console.error('Authentication error - user may not be logged in')
-        } else if (error.response?.status === 403) {
-          console.error('Permission denied')
-        } else {
-          console.error('Error details:', error.response?.data || error.message)
-        }
-        // Continue with empty array
-        setMyVisits([])
-      }
-      
-      try {
-        const allSessions = await getInfoSessions(sessionsDaysBack)
-        setAllInfoSessions(allSessions || [])
-      } catch (error) {
-        console.error('Error loading all info sessions:', error)
-        setAllInfoSessions([])
-      }
+      // Load only critical data for the sessions tab in parallel
+      const [recruiterResult, sessionsResult, templatesResult] = await Promise.allSettled([
+        getRecruiterStatus(parseInt(recruiterId)),
+        getAssignedSessions(parseInt(recruiterId)),
+        getRowTemplates(true),
+      ])
 
-      try {
-        const recruiters = await getAllRecruiters()
-        setAllRecruiters(recruiters || [])
-      } catch (error) {
-        console.error('Error loading recruiters:', error)
-        setAllRecruiters([])
-      }
-
-      // Convert InfoSessionWithSteps to AssignedSession format
-      const convertedSessions = allSessionsData.map(session => ({
-        id: session.id,
-        first_name: session.first_name,
-        last_name: session.last_name,
-        email: session.email,
-        phone: session.phone,
-        zip_code: session.zip_code,
-        session_type: session.session_type,
-        time_slot: session.time_slot,
-        status: session.status,
-        is_in_exclusion_list: session.is_in_exclusion_list || false,
-        exclusion_warning_shown: session.exclusion_warning_shown || false,
-        ob365_sent: session.ob365_sent || false,
-        i9_sent: session.i9_sent || false,
-        existing_i9: session.existing_i9 || false,
-        ineligible: session.ineligible || false,
-        rejected: session.rejected || false,
-        drug_screen: session.drug_screen || false,
-        questions: session.questions || false,
-        started_at: session.started_at || null,
-        completed_at: session.completed_at || null,
-        duration_minutes: session.duration_minutes || null,
-        created_at: session.created_at,
-        assigned_recruiter_id: session.assigned_recruiter_id,
-        assigned_recruiter_name: session.assigned_recruiter_name,
-        generated_row: null, // Will be loaded separately if needed
-        is_duplicate: session.is_duplicate || false,
-        duplicate_count: session.duplicate_count || 1,
-      }))
-      // Sort by created_at descending (newest first)
-      convertedSessions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      setSessions(convertedSessions)
-      setTemplates(templatesData)
-      
-      // Set default template if available
-      if (templatesData.length > 0 && !selectedTemplate) {
-        setSelectedTemplate(templatesData[0])
-      }
-      
-      setNewHireOrientations(orientationsData)
-      setFingerprints(fingerprintsData)
-
-      // Update selected session if it exists, but DON'T reset documentStatus or sessionRowData
-      // to prevent checkbox jumping and losing row generator data when user is actively interacting with the modal
-      if (selectedSession) {
-        const updatedSession = convertedSessions.find(s => s.id === selectedSession.id)
-        if (updatedSession) {
-          setSelectedSession(updatedSession)
-          // Do NOT update documentStatus here - user might be actively checking boxes
-          // Do NOT update sessionRowData or sessionGeneratedRow - user might be editing the row
-          // The current state should be preserved until modal is closed
-        }
-      }
-
-      return convertedSessions
-    } catch (error: any) {
-      console.error('Error loading data:', error)
-      console.error('Error details:', error.response?.data)
-      console.error('Error status:', error.response?.status)
-      console.error('Error message:', error.message)
-      // Don't show alert for 401 (unauthorized) - redirect to login instead
-      if (error.response?.status === 401) {
+      if (recruiterResult.status === 'fulfilled') {
+        setRecruiter(recruiterResult.value as Recruiter)
+      } else if ((recruiterResult.reason as any)?.response?.status === 401) {
         localStorage.removeItem('token')
         window.location.href = '/staff/login'
         return
       }
-      // Check if backend is not running
-      if (error.message?.includes('Backend server is not responding') || 
-          error.message?.includes('Cannot connect to backend') ||
-          error.code === 'ERR_NETWORK' ||
-          error.code === 'ECONNABORTED') {
-        alert('No se puede conectar al servidor. Por favor, asegúrate de que el backend esté corriendo en el puerto 3026.')
-        return
+
+      let rawSessions: any[] = []
+      if (sessionsResult.status === 'fulfilled') {
+        const val = sessionsResult.value
+        rawSessions = val?.sessions && Array.isArray(val.sessions) ? val.sessions : Array.isArray(val) ? val : []
       }
-      // Show more detailed error message
-      const errorMessage = error.response?.data?.detail || error.message || 'Unknown error'
-      alert(`Error loading dashboard data: ${errorMessage}`)
+
+      const convertedSessions = convertSessions(rawSessions)
+      setSessions(convertedSessions)
+
+      if (sessionsResult.status === 'fulfilled') {
+        const updatedSelected = convertedSessions.find(s => s.id === selectedSession?.id)
+        if (updatedSelected) setSelectedSession(updatedSelected)
+      }
+
+      const templatesData: RowTemplate[] = templatesResult.status === 'fulfilled' && Array.isArray(templatesResult.value) ? templatesResult.value : []
+      setTemplates(templatesData)
+      if (templatesData.length > 0 && !selectedTemplate) setSelectedTemplate(templatesData[0])
+
+      return convertedSessions
+    } catch (error: any) {
+      if (error?.response?.status === 401) {
+        localStorage.removeItem('token')
+        window.location.href = '/staff/login'
+      }
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Load tab-specific data lazily when tab changes
+  const loadTabData = async (tab: RecruiterTabType) => {
+    if (!recruiterId) return
+    try {
+      switch (tab) {
+        case 'new-hire-orientation': {
+          const data = await getNewHireOrientations()
+          setNewHireOrientations(data || [])
+          break
+        }
+        case 'fingerprints': {
+          const data = await getFingerprints()
+          setFingerprints(data || [])
+          break
+        }
+        case 'badges': {
+          const data = await getBadges()
+          setBadges(data || [])
+          break
+        }
+        case 'my-visits': {
+          const data = await getMyVisits()
+          setMyVisits(data || [])
+          break
+        }
+        case 'all-info-sessions': {
+          const [sessions, recruiters] = await Promise.allSettled([
+            getInfoSessions(sessionsDaysBack),
+            getAllRecruiters(),
+          ])
+          if (sessions.status === 'fulfilled') setAllInfoSessions(sessions.value || [])
+          if (recruiters.status === 'fulfilled') setAllRecruiters(recruiters.value || [])
+          break
+        }
+      }
+    } catch (error) {
+      console.error('Error loading tab data:', error)
     }
   }
 
   const refreshDataInBackground = async () => {
     if (!recruiterId) return
     try {
-      setRefreshing(true)
-      // Load data in background without clearing the screen
-      const recruiterData = await getRecruiterStatus(parseInt(recruiterId))
-      if (recruiterData) {
-        setRecruiter(recruiterData as Recruiter)
-      }
-      
-      // Use Promise.allSettled to handle individual failures gracefully
-      const [sessionsResult, templatesResult, orientationsResult, fingerprintsResult, badgesResult, visitsResult, allSessionsResult] = await Promise.allSettled([
+      // Only refresh recruiter status + assigned sessions (2 lightweight calls)
+      const [recruiterResult, sessionsResult] = await Promise.allSettled([
+        getRecruiterStatus(parseInt(recruiterId)),
         getAssignedSessions(parseInt(recruiterId)),
-        getRowTemplates(),
-        getNewHireOrientations(),
-        getFingerprints(),
-        getBadges(),
-        getMyVisits(),
-        getInfoSessions(sessionsDaysBack)
       ])
-      
-      let allSessionsData: any[] = []
-      if (sessionsResult.status === 'fulfilled') {
-        // getAssignedSessions returns { sessions: [], count: number }
-        if (sessionsResult.value && sessionsResult.value.sessions && Array.isArray(sessionsResult.value.sessions)) {
-          allSessionsData = sessionsResult.value.sessions
-        } else if (Array.isArray(sessionsResult.value)) {
-          // Fallback: if it's already an array, use it directly
-          allSessionsData = sessionsResult.value
-        }
-      } else {
-        console.error('Error loading sessions:', sessionsResult.reason)
-      }
-      
-      let templatesData: RowTemplate[] = []
-      if (templatesResult.status === 'fulfilled' && Array.isArray(templatesResult.value)) {
-        templatesData = templatesResult.value
-      } else {
-        console.error('Error loading templates:', templatesResult.reason)
-      }
-      
-      let orientationsData: any[] = []
-      if (orientationsResult.status === 'fulfilled' && Array.isArray(orientationsResult.value)) {
-        orientationsData = orientationsResult.value
-        console.log('✅ Loaded New Hire Orientations:', orientationsData.length)
-      } else {
-        console.error('❌ Error loading orientations:', orientationsResult.reason)
-        orientationsData = []
-      }
-      
-      let fingerprintsData: any[] = []
-      if (fingerprintsResult.status === 'fulfilled' && Array.isArray(fingerprintsResult.value)) {
-        fingerprintsData = fingerprintsResult.value
-      } else {
-        console.error('Error loading fingerprints:', fingerprintsResult.reason)
-      }
-      
-      if (badgesResult.status === 'fulfilled' && Array.isArray(badgesResult.value)) {
-        setBadges(badgesResult.value)
-      } else {
-        console.error('Error loading badges:', badgesResult.reason)
-      }
-      
-      if (visitsResult.status === 'fulfilled' && Array.isArray(visitsResult.value)) {
-        setMyVisits(visitsResult.value)
-      } else {
-        console.error('Error loading my visits:', visitsResult.reason)
-      }
-      
-      if (allSessionsResult.status === 'fulfilled' && Array.isArray(allSessionsResult.value)) {
-        setAllInfoSessions(allSessionsResult.value)
-      } else {
-        console.error('Error loading all info sessions:', allSessionsResult.reason)
-      }
-      
-      // Convert InfoSessionWithSteps to AssignedSession format
-      const convertedSessions = (allSessionsData || []).map((session: any) => ({
-        id: session.id,
-        first_name: session.first_name,
-        last_name: session.last_name,
-        email: session.email,
-        phone: session.phone,
-        zip_code: session.zip_code,
-        session_type: session.session_type,
-        time_slot: session.time_slot,
-        status: session.status,
-        is_in_exclusion_list: session.is_in_exclusion_list || false,
-        exclusion_warning_shown: session.exclusion_warning_shown || false,
-        ob365_sent: session.ob365_sent || false,
-        i9_sent: session.i9_sent || false,
-        existing_i9: session.existing_i9 || false,
-        ineligible: session.ineligible || false,
-        rejected: session.rejected || false,
-        drug_screen: session.drug_screen || false,
-        questions: session.questions || false,
-        started_at: session.started_at || null,
-        completed_at: session.completed_at || null,
-        duration_minutes: session.duration_minutes || null,
-        assigned_recruiter_id: session.assigned_recruiter_id,
-        assigned_recruiter_name: session.assigned_recruiter_name,
-        generated_row: session.generated_row || null,
-        created_at: session.created_at,
-        is_duplicate: session.is_duplicate || false,
-        duplicate_count: session.duplicate_count || 1,
-      }))
 
-      setSessions(convertedSessions)
-      setTemplates(templatesData)
-      setNewHireOrientations(orientationsData)
-      setFingerprints(fingerprintsData)
-
-      // Update selected session if it exists, but DON'T update documentStatus
-      // to prevent checkbox jumping during background refresh
-      if (selectedSession) {
-        const updatedSession = convertedSessions.find(s => s.id === selectedSession.id)
-        if (updatedSession) {
-          setSelectedSession(updatedSession)
-          // Do NOT update documentStatus here - user might be actively checking boxes
-          // Only update it when explicitly saved or when modal is first opened
-        }
-      }
-    } catch (error: any) {
-      console.error('Error refreshing data:', error)
-      console.error('Error details:', error.response?.data)
-      console.error('Error status:', error.response?.status)
-      // Handle 401 (unauthorized) - redirect to login
-      if (error.response?.status === 401) {
+      if (recruiterResult.status === 'fulfilled') {
+        setRecruiter(recruiterResult.value as Recruiter)
+      } else if ((recruiterResult.reason as any)?.response?.status === 401) {
         localStorage.removeItem('token')
         window.location.href = '/staff/login'
         return
       }
-      // Silently fail for other errors - don't show error on background refresh
-    } finally {
-      setRefreshing(false)
+
+      if (sessionsResult.status === 'fulfilled') {
+        const val = sessionsResult.value
+        const raw = val?.sessions && Array.isArray(val.sessions) ? val.sessions : Array.isArray(val) ? val : []
+        const converted = convertSessions(raw)
+        setSessions(converted)
+        if (selectedSession) {
+          const updated = converted.find(s => s.id === selectedSession.id)
+          if (updated) setSelectedSession(updated)
+        }
+      }
+    } catch (error: any) {
+      if (error?.response?.status === 401) {
+        localStorage.removeItem('token')
+        window.location.href = '/staff/login'
+      }
     }
   }
 
-  // Reload data periodically to catch new sessions (in background without clearing screen)
+  // Load tab data lazily when tab changes
+  useEffect(() => {
+    loadTabData(activeTab)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab])
+
+  // Background refresh only for sessions tab — every 30 seconds
   useEffect(() => {
     if (!recruiterId) return
-    // Wait a bit before starting the interval to avoid conflicts with initial load
-    let intervalId: NodeJS.Timeout | null = null
-    const timeout = setTimeout(() => {
-      intervalId = setInterval(() => {
-        refreshDataInBackground()
-      }, 10000) // Reload every 10 seconds (more frequent to catch new registrations)
-    }, 3000) // Start refreshing 3 seconds after initial load
-    return () => {
-      clearTimeout(timeout)
-      if (intervalId) clearInterval(intervalId)
-    }
+    const intervalId = setInterval(() => {
+      if (activeTab === 'sessions') refreshDataInBackground()
+    }, 30000)
+    return () => clearInterval(intervalId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recruiterId])
+  }, [recruiterId, activeTab])
 
   const handleStatusToggle = async () => {
     if (!recruiter || !recruiterId) return
