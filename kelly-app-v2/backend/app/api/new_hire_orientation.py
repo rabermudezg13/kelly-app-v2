@@ -296,29 +296,40 @@ async def complete_new_hire_orientation(
 @router.get("/", response_model=List[NewHireOrientationResponse])
 async def list_new_hire_orientations(
     skip: int = 0,
-    limit: int = 5000,
+    limit: int = 1000,
     status: Optional[str] = None,
+    days_back: int = 7,
     db: Session = Depends(get_db)
 ):
     """List all new hire orientations (for staff dashboard)"""
+    from datetime import timedelta
+    from app.models.recruiter import Recruiter
+
     query = db.query(NewHireOrientation)
-    
+
     if status:
         query = query.filter(NewHireOrientation.status == status)
-    
+
+    if days_back > 0:
+        cutoff = date.today() - timedelta(days=days_back)
+        query = query.filter(func.date(NewHireOrientation.created_at) >= cutoff)
+
     orientations = query.order_by(NewHireOrientation.created_at.desc()).offset(skip).limit(limit).all()
-    
+
+    # Pre-load recruiters in one query to avoid N+1
+    recruiter_ids = {o.assigned_recruiter_id for o in orientations if o.assigned_recruiter_id}
+    recruiters_map = {}
+    if recruiter_ids:
+        recruiters = db.query(Recruiter).filter(Recruiter.id.in_(recruiter_ids)).all()
+        recruiters_map = {r.id: r.name for r in recruiters}
+
     result = []
     for orientation in orientations:
         orientation_data = NewHireOrientationResponse.model_validate(orientation).model_dump()
-        # Get recruiter name if assigned
-        if orientation.assigned_recruiter_id:
-            from app.models.recruiter import Recruiter
-            recruiter = db.query(Recruiter).filter(Recruiter.id == orientation.assigned_recruiter_id).first()
-            if recruiter:
-                orientation_data["assigned_recruiter_name"] = recruiter.name
+        if orientation.assigned_recruiter_id and orientation.assigned_recruiter_id in recruiters_map:
+            orientation_data["assigned_recruiter_name"] = recruiters_map[orientation.assigned_recruiter_id]
         result.append(orientation_data)
-    
+
     return result
 
 class NewHireOrientationUpdate(BaseModel):

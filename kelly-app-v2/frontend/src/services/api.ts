@@ -164,7 +164,7 @@ export const getAnnouncements = async (activeOnly: boolean = true): Promise<Anno
   return response.data
 }
 
-export const getInfoSessions = async (daysBack: number = 90): Promise<InfoSessionWithSteps[]> => {
+export const getInfoSessions = async (daysBack: number = 7): Promise<InfoSessionWithSteps[]> => {
   const response = await api.get(`/info-session/?limit=1000&days_back=${daysBack}`)
   return response.data
 }
@@ -201,8 +201,8 @@ export const getNewHireOrientationTimeSlots = async (): Promise<string[]> => {
   return response.data
 }
 
-export const getNewHireOrientations = async (): Promise<NewHireOrientation[]> => {
-  const response = await api.get('/new-hire-orientation/?limit=5000')
+export const getNewHireOrientations = async (daysBack: number = 7): Promise<NewHireOrientation[]> => {
+  const response = await api.get(`/new-hire-orientation/?limit=1000&days_back=${daysBack}`)
   return response.data
 }
 

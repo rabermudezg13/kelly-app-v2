@@ -750,7 +750,7 @@ async def list_info_sessions(
     skip: int = 0,
     limit: int = 1000,
     status: Optional[str] = None,
-    days_back: int = 90,
+    days_back: int = 7,
     db: Session = Depends(get_db)
 ):
     """List all info sessions (for staff dashboard)"""
