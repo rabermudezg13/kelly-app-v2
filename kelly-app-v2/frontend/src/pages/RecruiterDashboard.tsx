@@ -79,6 +79,13 @@ function RecruiterDashboard() {
     }
   }, [recruiterId])
 
+  // Persist selected session across page refreshes
+  useEffect(() => {
+    if (selectedSession) {
+      localStorage.setItem(`selectedSessionId_${recruiterId}`, String(selectedSession.id))
+    }
+  }, [selectedSession?.id, recruiterId])
+
   const convertSessions = (rawSessions: any[]): AssignedSession[] => {
     const converted = rawSessions.map(session => ({
       id: session.id,
@@ -144,7 +151,16 @@ function RecruiterDashboard() {
 
       if (sessionsResult.status === 'fulfilled') {
         const updatedSelected = convertedSessions.find(s => s.id === selectedSession?.id)
-        if (updatedSelected) setSelectedSession(updatedSelected)
+        if (updatedSelected) {
+          setSelectedSession(updatedSelected)
+        } else {
+          // Restore previously selected session from localStorage after a page refresh
+          const savedId = localStorage.getItem(`selectedSessionId_${recruiterId}`)
+          if (savedId) {
+            const restored = convertedSessions.find(s => s.id === parseInt(savedId))
+            if (restored) setSelectedSession(restored)
+          }
+        }
       }
 
       const templatesData: RowTemplate[] = templatesResult.status === 'fulfilled' && Array.isArray(templatesResult.value) ? templatesResult.value : []
