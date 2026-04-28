@@ -268,7 +268,7 @@ function RecruiterDashboard() {
     if (!recruiterId) return
     const intervalId = setInterval(() => {
       if (activeTab === 'sessions') refreshDataInBackground()
-    }, 30000)
+    }, 10000)
     return () => clearInterval(intervalId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recruiterId, activeTab])
