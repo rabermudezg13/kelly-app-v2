@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import {
   getRecruiterStatus,
@@ -47,6 +47,7 @@ function RecruiterDashboard() {
   const [exportLoading, setExportLoading] = useState(false)
   const [exportPeriod, setExportPeriod] = useState<'day' | 'week' | 'month' | 'all'>('all')
   const [selectedSession, setSelectedSession] = useState<AssignedSession | null>(null)
+  const selectedSessionRef = useRef<AssignedSession | null>(null)
   const [documentStatus, setDocumentStatus] = useState({
     ob365_sent: false,
     i9_sent: false,
@@ -73,6 +74,9 @@ function RecruiterDashboard() {
   const [nhoDaysBack, setNhoDaysBack] = useState<number>(7)
   const [showReassignModal, setShowReassignModal] = useState(false)
   const [selectedNewRecruiter, setSelectedNewRecruiter] = useState<number | null>(null)
+  // Keep ref in sync with state so interval callbacks always read the latest value
+  selectedSessionRef.current = selectedSession
+
   useEffect(() => {
     if (recruiterId) {
       loadData()
@@ -244,8 +248,10 @@ function RecruiterDashboard() {
         const raw = val?.sessions && Array.isArray(val.sessions) ? val.sessions : Array.isArray(val) ? val : []
         const converted = convertSessions(raw)
         setSessions(converted)
-        if (selectedSession) {
-          const updated = converted.find(s => s.id === selectedSession.id)
+        // Use ref to always read the current selected session, avoiding stale closure issues
+        const current = selectedSessionRef.current
+        if (current) {
+          const updated = converted.find(s => s.id === current.id)
           if (updated) setSelectedSession(updated)
         }
       }
