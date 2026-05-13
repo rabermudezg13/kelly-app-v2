@@ -22,7 +22,7 @@ function PCListCheck() {
       setMatches(result.matches)
       setSearched(true)
     } catch {
-      setError('Error al consultar el PC list. Intente de nuevo.')
+      setError('Error querying the PC list. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -57,7 +57,7 @@ function PCListCheck() {
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-1">PC List</h2>
-        <p className="text-gray-500 text-sm">Verifica si un aspirante aparece en el PC list</p>
+        <p className="text-gray-500 text-sm">Check if an applicant appears in the PC list</p>
       </div>
 
       <form onSubmit={handleSearch} className="bg-white rounded-xl shadow p-6 mb-6">
@@ -91,7 +91,7 @@ function PCListCheck() {
             disabled={loading || !firstName.trim() || !lastName.trim()}
             className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold py-2 rounded-lg transition-colors"
           >
-            {loading ? 'Buscando...' : 'Buscar'}
+            {loading ? 'Searching...' : 'Search'}
           </button>
           {searched && (
             <button
@@ -99,7 +99,7 @@ function PCListCheck() {
               onClick={handleReset}
               className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-colors"
             >
-              Limpiar
+              Clear
             </button>
           )}
         </div>
@@ -118,12 +118,12 @@ function PCListCheck() {
             <div>
               <p className="text-lg font-bold">
                 {found
-                  ? `${firstName.trim().toUpperCase()} ${lastName.trim().toUpperCase()} ESTÁ en el PC list`
-                  : `${firstName.trim().toUpperCase()} ${lastName.trim().toUpperCase()} NO está en el PC list`}
+                  ? `${firstName.trim().toUpperCase()} ${lastName.trim().toUpperCase()} IS on the PC list`
+                  : `${firstName.trim().toUpperCase()} ${lastName.trim().toUpperCase()} is NOT on the PC list`}
               </p>
               {found && matches.length > 1 && (
                 <p className="text-sm text-red-600 mt-0.5">
-                  Se encontraron {matches.length} registros con este nombre. Verifica SSN y DOB.
+                  {matches.length} records found with this name. Verify SSN and DOB.
                 </p>
               )}
             </div>
@@ -132,7 +132,7 @@ function PCListCheck() {
           {found && matches.map((match, idx) => (
             <div key={match.id} className={`bg-white rounded-lg p-4 border border-red-200 ${idx > 0 ? 'mt-3' : ''}`}>
               {matches.length > 1 && (
-                <p className="text-xs font-bold text-red-500 uppercase mb-2">Registro #{idx + 1}</p>
+                <p className="text-xs font-bold text-red-500 uppercase mb-2">Record #{idx + 1}</p>
               )}
               <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                 <div>
