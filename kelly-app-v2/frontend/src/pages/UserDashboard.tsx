@@ -5,8 +5,9 @@ import { formatMiamiTime, getMiamiDateKey, formatMiamiDateDisplay } from '../uti
 import CHRPage from './CHRPage'
 import StorageManagement from '../components/StorageManagement'
 import StatisticsDashboard from './StatisticsDashboard'
+import PCListCheck from '../components/PCListCheck'
 
-type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'storage'
+type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'storage' | 'pc-check'
 
 function UserDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('info-session')
@@ -1131,6 +1132,16 @@ function UserDashboard() {
             >
               📦 Storage
             </button>
+            <button
+              onClick={() => setActiveTab('pc-check')}
+              className={`px-6 py-3 font-semibold transition-colors ${
+                activeTab === 'pc-check'
+                  ? 'bg-red-600 text-white border-b-2 border-red-600'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              PC List
+            </button>
           </div>
         </div>
 
@@ -1145,6 +1156,7 @@ function UserDashboard() {
           {activeTab === 'statistics' && <StatisticsDashboard />}
           {activeTab === 'chr' && <CHRPage />}
           {activeTab === 'storage' && <StorageManagement />}
+          {activeTab === 'pc-check' && <PCListCheck />}
         </div>
       </div>
 

@@ -14,7 +14,7 @@ from dateutil import parser
 from app.database import get_db
 from app.models.exclusion_list import ExclusionList
 from app.models.user import User
-from app.api.auth import get_current_admin
+from app.api.auth import get_current_admin, get_current_user
 
 router = APIRouter()
 
@@ -32,6 +32,26 @@ class ExclusionListItem(BaseModel):
 class ExclusionListResponse(BaseModel):
     items: List[ExclusionListItem]
     total: int
+
+class PCListSearchResult(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    found: bool
+    matches: List[ExclusionListItem]
+
+@router.get("/search", response_model=PCListSearchResult)
+async def search_pc_list(
+    first_name: str,
+    last_name: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Search for a person by name in the PC list (exclusion list). Available to all authenticated users."""
+    full_name = f"{first_name.strip()} {last_name.strip()}".upper()
+    matches = db.query(ExclusionList).filter(
+        ExclusionList.name == full_name
+    ).all()
+    return {"found": len(matches) > 0, "matches": matches}
 
 @router.post("/upload", status_code=status.HTTP_200_OK)
 async def upload_exclusion_list(

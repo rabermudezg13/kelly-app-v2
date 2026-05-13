@@ -6,8 +6,9 @@ import CHRPage from './CHRPage'
 import StatisticsDashboard from './StatisticsDashboard'
 import EventManagement from '../components/EventManagement'
 import StorageManagement from '../components/StorageManagement'
+import PCListCheck from '../components/PCListCheck'
 
-type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'storage'
+type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'storage' | 'pc-check'
 
 function StaffDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('info-session')
@@ -1136,6 +1137,16 @@ function StaffDashboard() {
             >
               📦 Storage
             </button>
+            <button
+              onClick={() => setActiveTab('pc-check')}
+              className={`px-6 py-3 font-semibold transition-colors ${
+                activeTab === 'pc-check'
+                  ? 'bg-red-600 text-white border-b-2 border-red-600'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              PC List
+            </button>
           </div>
         </div>
 
@@ -1151,6 +1162,7 @@ function StaffDashboard() {
           {activeTab === 'chr' && <CHRPage />}
           {activeTab === 'event' && <EventManagement />}
           {activeTab === 'storage' && <StorageManagement />}
+          {activeTab === 'pc-check' && <PCListCheck />}
         </div>
       </div>
 

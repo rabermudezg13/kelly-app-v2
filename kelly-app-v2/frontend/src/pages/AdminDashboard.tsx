@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getUsers, createUser, deleteUser, getCurrentUser, uploadExclusionList, clearExclusionList, getExclusionList } from '../services/api'
 import type { User } from '../types'
+import PCListCheck from '../components/PCListCheck'
 
 function AdminDashboard() {
   const navigate = useNavigate()
@@ -482,6 +483,11 @@ function AdminDashboard() {
               <p className="text-center py-8 text-gray-500">No users found</p>
             )}
           </div>
+        </div>
+
+        {/* PC List Check Section */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
+          <PCListCheck />
         </div>
       </div>
     </div>

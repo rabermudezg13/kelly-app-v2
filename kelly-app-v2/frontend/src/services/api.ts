@@ -790,6 +790,26 @@ export const clearExclusionList = async (): Promise<{
   return response.data
 }
 
+export interface PCListMatch {
+  id: number
+  name: string
+  code?: string | null
+  dob?: string | null
+  ssn?: string | null
+  notes?: string | null
+  created_at: string
+}
+
+export const searchPCList = async (firstName: string, lastName: string): Promise<{
+  found: boolean
+  matches: PCListMatch[]
+}> => {
+  const response = await api.get('/exclusion-list/search', {
+    params: { first_name: firstName, last_name: lastName }
+  })
+  return response.data
+}
+
 // Row Template API
 export interface ColumnDefinition {
   id?: number

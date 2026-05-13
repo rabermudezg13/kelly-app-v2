@@ -34,8 +34,9 @@ import CHRPage from './CHRPage'
 import StatisticsDashboard from './StatisticsDashboard'
 import EventManagement from '../components/EventManagement'
 import StorageManagement from '../components/StorageManagement'
+import PCListCheck from '../components/PCListCheck'
 
-type RecruiterTabType = 'sessions' | 'all-info-sessions' | 'new-hire-orientation' | 'fingerprints' | 'badges' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'ksn-tool' | 'storage'
+type RecruiterTabType = 'sessions' | 'all-info-sessions' | 'new-hire-orientation' | 'fingerprints' | 'badges' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'ksn-tool' | 'storage' | 'pc-check'
 
 function RecruiterDashboard() {
   const { recruiterId } = useParams<{ recruiterId: string }>()
@@ -1987,6 +1988,16 @@ function RecruiterDashboard() {
             >
               📦 Storage
             </button>
+            <button
+              onClick={() => setActiveTab('pc-check')}
+              className={`px-6 py-3 font-semibold transition-colors ${
+                activeTab === 'pc-check'
+                  ? 'bg-red-600 text-white border-b-2 border-red-600'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              PC List
+            </button>
           </div>
         </div>
 
@@ -1995,6 +2006,8 @@ function RecruiterDashboard() {
           <KsnTool />
         ) : activeTab === 'storage' ? (
           <StorageManagement />
+        ) : activeTab === 'pc-check' ? (
+          <div className="bg-white rounded-lg shadow-lg p-6"><PCListCheck /></div>
         ) : activeTab === 'statistics' ? (
           <StatisticsDashboard />
         ) : activeTab === 'chr' ? (
