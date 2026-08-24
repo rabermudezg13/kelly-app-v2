@@ -264,10 +264,13 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
             Welcome to Kelly Education Miami Dade
           </h1>
 
-          {sessionData.assigned_recruiter_name && (
-            <div className="mb-6 p-4 bg-green-50 rounded-lg border-l-4 border-green-500 text-center">
-              <p className="text-green-800 font-semibold text-lg">
-                Your recruiter will be: <span className="font-bold">{sessionData.assigned_recruiter_name}</span>
+          {(currentSessionData.assigned_recruiter_name || sessionData.assigned_recruiter_name) && (
+            <div className="mb-8 p-6 bg-green-50 rounded-xl border-2 border-green-500 text-center shadow-sm">
+              <p className="text-green-800 font-semibold text-xl mb-2">
+                Your recruiter will be:
+              </p>
+              <p className="text-3xl font-bold text-green-900">
+                {currentSessionData.assigned_recruiter_name || sessionData.assigned_recruiter_name}
               </p>
             </div>
           )}
@@ -613,5 +616,3 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
 }
 
 export default InfoSessionWelcome
-
-

@@ -11,9 +11,10 @@ interface Recruiter {
 
 interface Props {
   isAdmin?: boolean
+  showDashboardLinks?: boolean
 }
 
-function RecruiterManagement({ isAdmin = false }: Props) {
+function RecruiterManagement({ isAdmin = false, showDashboardLinks = false }: Props) {
   const [recruiters, setRecruiters] = useState<Recruiter[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
@@ -127,12 +128,12 @@ function RecruiterManagement({ isAdmin = false }: Props) {
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Name</th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Email</th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Status</th>
-              {isAdmin && <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Actions</th>}
+              {(isAdmin || showDashboardLinks) && <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Actions</th>}
             </tr>
           </thead>
           <tbody>
             {recruiters.length === 0 && (
-              <tr><td colSpan={isAdmin ? 4 : 3} className="px-4 py-8 text-center text-gray-500">No recruiters found</td></tr>
+              <tr><td colSpan={isAdmin || showDashboardLinks ? 4 : 3} className="px-4 py-8 text-center text-gray-500">No recruiters found</td></tr>
             )}
             {recruiters.map(r => (
               <tr key={r.id} className="border-t border-gray-100 hover:bg-gray-50">
@@ -161,6 +162,16 @@ function RecruiterManagement({ isAdmin = false }: Props) {
                       >
                         {r.is_active ? 'Deactivate' : 'Reactivate'}
                     </button>
+                  </td>
+                )}
+                {!isAdmin && showDashboardLinks && (
+                  <td className="px-4 py-3">
+                    <a
+                      href={`/recruiter/${r.id}/dashboard`}
+                      className="inline-flex px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold"
+                    >
+                      View Dashboard
+                    </a>
                   </td>
                 )}
               </tr>
