@@ -48,7 +48,8 @@ function RecruiterDashboard() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [exportLoading, setExportLoading] = useState(false)
-  const [exportPeriod, setExportPeriod] = useState<'day' | 'week' | 'month' | 'all'>('all')
+  const [exportPeriod, setExportPeriod] = useState<'day' | 'week' | 'month' | 'year' | 'all'>('all')
+  const [exportYear, setExportYear] = useState(new Date().getFullYear() - 1)
   const [selectedSession, setSelectedSession] = useState<AssignedSession | null>(null)
   const selectedSessionRef = useRef<AssignedSession | null>(null)
   const [documentStatus, setDocumentStatus] = useState({
@@ -2055,19 +2056,32 @@ function RecruiterDashboard() {
                   <div className="flex gap-2 items-center">
                     <select
                       value={exportPeriod}
-                      onChange={(e) => setExportPeriod(e.target.value as 'day' | 'week' | 'month' | 'all')}
+                      onChange={(e) => setExportPeriod(e.target.value as 'day' | 'week' | 'month' | 'year' | 'all')}
                       className="px-3 py-2 border border-gray-300 rounded text-sm bg-white"
                     >
                       <option value="day">Today</option>
                       <option value="week">Last 7 days</option>
                       <option value="month">Last 30 days</option>
+                      <option value="year">Export by Year</option>
                       <option value="all">All time</option>
                     </select>
+                    {exportPeriod === 'year' && (
+                      <select
+                        value={exportYear}
+                        onChange={(e) => setExportYear(parseInt(e.target.value))}
+                        aria-label="Select export year"
+                        className="px-3 py-2 border border-gray-300 rounded text-sm bg-white"
+                      >
+                        {Array.from({ length: new Date().getFullYear() - 2019 }, (_, index) => new Date().getFullYear() - index).map(year => (
+                          <option key={year} value={year}>{year}</option>
+                        ))}
+                      </select>
+                    )}
                     <button
                       onClick={async () => {
                         try {
                           setExportLoading(true)
-                          await exportInfoSessionExcel(exportPeriod)
+                          await exportInfoSessionExcel(exportPeriod, exportPeriod === 'year' ? exportYear : undefined)
                         } catch (error) {
                           console.error('Error exporting:', error)
                           alert('Error exporting to Excel')
