@@ -511,6 +511,20 @@ class RecruiterCreate(BaseModel):
     name: str
     email: str
 
+
+class RecruiterActiveUpdate(BaseModel):
+    is_active: bool
+
+
+@router.get("/admin/all", response_model=List[RecruiterResponse])
+async def get_all_recruiters_for_admin(
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(get_current_admin)
+):
+    """Get active and inactive recruiters (admin only)."""
+    recruiters = db.query(Recruiter).order_by(Recruiter.name).all()
+    return [RecruiterResponse.model_validate(r).model_dump() for r in recruiters]
+
 @router.post("/admin/create", response_model=RecruiterResponse)
 async def create_recruiter(
     data: RecruiterCreate,
@@ -544,4 +558,22 @@ async def delete_recruiter(
     db.commit()
     return {"message": f"Recruiter '{recruiter.name}' deleted successfully"}
 
+
+@router.patch("/admin/{recruiter_id}/active", response_model=RecruiterResponse)
+async def set_recruiter_active(
+    recruiter_id: int,
+    data: RecruiterActiveUpdate,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(get_current_admin)
+):
+    """Deactivate or reactivate a recruiter without deleting history (admin only)."""
+    recruiter = db.query(Recruiter).filter(Recruiter.id == recruiter_id).first()
+    if not recruiter:
+        raise HTTPException(status_code=404, detail="Recruiter not found")
+
+    recruiter.is_active = data.is_active
+    recruiter.status = "available" if data.is_active else "busy"
+    db.commit()
+    db.refresh(recruiter)
+    return RecruiterResponse.model_validate(recruiter).model_dump()
 
