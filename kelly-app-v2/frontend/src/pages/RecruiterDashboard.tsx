@@ -26,6 +26,8 @@ import {
   getAllRecruiters,
   reassignSession,
   exportInfoSessionExcel,
+  getCurrentUser,
+  getRecruiterReassignmentPermission,
 } from '../services/api'
 import type { AssignedSession, Recruiter, NewHireOrientation, NewHireOrientationWithSteps } from '../types'
 import type { RowTemplate } from '../services/api'
@@ -75,6 +77,8 @@ function RecruiterDashboard() {
   const [nhoDaysBack, setNhoDaysBack] = useState<number>(7)
   const [showReassignModal, setShowReassignModal] = useState(false)
   const [selectedNewRecruiter, setSelectedNewRecruiter] = useState<number | null>(null)
+  const [canReassignTalents, setCanReassignTalents] = useState(false)
+  const [reassignmentBlockedForRecruiter, setReassignmentBlockedForRecruiter] = useState(false)
   // Keep ref in sync with state so interval callbacks always read the latest value
   selectedSessionRef.current = selectedSession
 
@@ -83,6 +87,20 @@ function RecruiterDashboard() {
       loadData()
     }
   }, [recruiterId])
+
+  useEffect(() => {
+    Promise.all([getCurrentUser(), getRecruiterReassignmentPermission()])
+      .then(([user, permission]) => {
+        const isAlwaysAllowed = user.role === 'admin' || user.role === 'management'
+        const isAllowedRecruiter = user.role === 'recruiter' && permission.allow_reassignments
+        setCanReassignTalents(isAlwaysAllowed || isAllowedRecruiter)
+        setReassignmentBlockedForRecruiter(user.role === 'recruiter' && !permission.allow_reassignments)
+      })
+      .catch(() => {
+        setCanReassignTalents(false)
+        setReassignmentBlockedForRecruiter(false)
+      })
+  }, [])
 
   // Persist selected session across page refreshes
   useEffect(() => {
@@ -2866,14 +2884,21 @@ function RecruiterDashboard() {
                   </div>
 
                   {/* Reassign Button */}
-                  <div className="pt-4 border-t">
+                  {canReassignTalents && <div className="pt-4 border-t">
                     <button
                       onClick={() => setShowReassignModal(true)}
                       className="w-full px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
                     >
                       Reassign to Another Recruiter
                     </button>
-                  </div>
+                  </div>}
+                  {reassignmentBlockedForRecruiter && (
+                    <div className="pt-4 border-t">
+                      <p className="rounded-md bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+                        Talent reassignment is currently disabled by an administrator.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -3014,7 +3039,7 @@ function RecruiterDashboard() {
       )}
 
       {/* Reassign Modal */}
-      {showReassignModal && selectedSession && (
+      {canReassignTalents && showReassignModal && selectedSession && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <div className="flex justify-between items-center mb-4">
@@ -3173,4 +3198,3 @@ function KsnTool() {
 }
 
 export default RecruiterDashboard
-
