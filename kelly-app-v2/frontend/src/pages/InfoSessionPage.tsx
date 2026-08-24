@@ -100,6 +100,21 @@ function InfoSessionPage() {
     }
   }
 
+  const handleStartNewRegistration = () => {
+    const confirmed = window.confirm(
+      'Start a new registration on this device? The current registration will remain saved in our system.'
+    )
+    if (!confirmed) return
+
+    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(STORAGE_EXCLUSION_KEY)
+    setSessionData(null)
+    setExclusionWarning(null)
+    setDuplicateError(null)
+    setStep('form')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-500 to-green-700 py-8 flex items-center justify-center">
@@ -118,6 +133,7 @@ function InfoSessionPage() {
         localStorage.removeItem(STORAGE_KEY)
         localStorage.removeItem(STORAGE_EXCLUSION_KEY)
       }}
+      onStartNewRegistration={handleStartNewRegistration}
     />
   }
 
@@ -147,5 +163,4 @@ function InfoSessionPage() {
 }
 
 export default InfoSessionPage
-
 
