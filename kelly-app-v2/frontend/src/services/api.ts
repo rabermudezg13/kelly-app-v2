@@ -501,15 +501,18 @@ export interface RecruiterReassignmentPermission {
   allow_reassignments: boolean
 }
 
-export const getRecruiterReassignmentPermission = async (): Promise<RecruiterReassignmentPermission> => {
-  const response = await api.get('/recruiter/permissions/reassignment')
+export const getRecruiterReassignmentPermission = async (recruiterId?: number): Promise<RecruiterReassignmentPermission> => {
+  const response = await api.get('/recruiter/permissions/reassignment', {
+    params: recruiterId ? { recruiter_id: recruiterId } : undefined,
+  })
   return response.data
 }
 
 export const updateRecruiterReassignmentPermission = async (
+  recruiterId: number,
   allowReassignments: boolean
 ): Promise<RecruiterReassignmentPermission> => {
-  const response = await api.patch('/recruiter/admin/permissions/reassignment', {
+  const response = await api.patch(`/recruiter/admin/permissions/reassignment/${recruiterId}`, {
     allow_reassignments: allowReassignments,
   })
   return response.data

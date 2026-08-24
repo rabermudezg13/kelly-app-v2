@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, Integer
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer
 from sqlalchemy.sql import func
 
 from app.database import Base
@@ -7,9 +7,9 @@ from app.database import Base
 class RecruiterPermission(Base):
     """Global permissions that an administrator can grant to recruiters."""
 
-    __tablename__ = "recruiter_permissions"
+    __tablename__ = "recruiter_reassignment_permissions"
 
-    id = Column(Integer, primary_key=True, default=1)
+    recruiter_id = Column(Integer, ForeignKey("recruiters.id"), primary_key=True)
     allow_reassignments = Column(Boolean, nullable=False, default=True)
     updated_at = Column(
         DateTime(timezone=True),

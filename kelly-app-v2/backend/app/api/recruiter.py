@@ -24,10 +24,15 @@ class RecruiterReassignmentPermissionUpdate(BaseModel):
     allow_reassignments: bool
 
 
-def get_or_create_reassignment_permission(db: Session) -> RecruiterPermission:
-    permission = db.query(RecruiterPermission).filter(RecruiterPermission.id == 1).first()
+def get_or_create_reassignment_permission(db: Session, recruiter_id: int) -> RecruiterPermission:
+    permission = db.query(RecruiterPermission).filter(
+        RecruiterPermission.recruiter_id == recruiter_id
+    ).first()
     if permission is None:
-        permission = RecruiterPermission(id=1, allow_reassignments=True)
+        recruiter = db.query(Recruiter).filter(Recruiter.id == recruiter_id).first()
+        if recruiter is None:
+            raise HTTPException(status_code=404, detail="Recruiter not found")
+        permission = RecruiterPermission(recruiter_id=recruiter_id, allow_reassignments=True)
         db.add(permission)
         db.commit()
         db.refresh(permission)
@@ -36,22 +41,39 @@ def get_or_create_reassignment_permission(db: Session) -> RecruiterPermission:
 
 @router.get("/permissions/reassignment")
 async def get_reassignment_permission(
+    recruiter_id: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Return whether recruiters may reassign talents."""
-    permission = get_or_create_reassignment_permission(db)
+    """Return the individual reassignment permission for a recruiter."""
+    if current_user.role == "recruiter":
+        authenticated_recruiter = db.query(Recruiter).filter(
+            Recruiter.email.ilike(current_user.email)
+        ).first()
+        if authenticated_recruiter is None:
+            raise HTTPException(status_code=404, detail="Recruiter profile not found")
+        if recruiter_id is not None and recruiter_id != authenticated_recruiter.id:
+            raise HTTPException(status_code=403, detail="Recruiters can only view their own permission")
+        recruiter_id = authenticated_recruiter.id
+    elif current_user.role in ("admin", "management"):
+        if recruiter_id is None:
+            raise HTTPException(status_code=400, detail="recruiter_id is required")
+    else:
+        return {"allow_reassignments": False}
+
+    permission = get_or_create_reassignment_permission(db, recruiter_id)
     return {"allow_reassignments": permission.allow_reassignments}
 
 
-@router.patch("/admin/permissions/reassignment")
+@router.patch("/admin/permissions/reassignment/{recruiter_id}")
 async def update_reassignment_permission(
+    recruiter_id: int,
     update: RecruiterReassignmentPermissionUpdate,
     db: Session = Depends(get_db),
     current_admin: User = Depends(get_current_admin),
 ):
-    """Allow an administrator to grant or revoke recruiter reassignments."""
-    permission = get_or_create_reassignment_permission(db)
+    """Allow an administrator to grant or revoke one recruiter's permission."""
+    permission = get_or_create_reassignment_permission(db, recruiter_id)
     permission.allow_reassignments = update.allow_reassignments
     db.commit()
     db.refresh(permission)
@@ -519,7 +541,7 @@ async def reassign_session(
             detail="Only administrators, management, or recruiters can reassign talents",
         )
 
-    permission = get_or_create_reassignment_permission(db)
+    permission = get_or_create_reassignment_permission(db, recruiter_id)
     if current_user.role == "recruiter" and not permission.allow_reassignments:
         raise HTTPException(
             status_code=403,
