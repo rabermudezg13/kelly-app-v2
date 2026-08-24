@@ -1079,3 +1079,41 @@ export const getStorageByCode = async (code: string): Promise<StorageLocation> =
   const response = await api.get(`/storage/scan/${code}`)
   return response.data
 }
+
+export interface DataArchiveSummary {
+  year: number
+  counts: Record<string, number>
+  total_deletable: number
+  protected: string[]
+}
+
+export const getDataArchiveSummary = async (year: number): Promise<DataArchiveSummary> => {
+  const response = await api.get('/admin/data-archive/summary', { params: { year } })
+  return response.data
+}
+
+export const exportCompleteDataArchive = async (year: number): Promise<void> => {
+  const response = await api.get('/admin/data-archive/export', {
+    params: { year },
+    responseType: 'blob',
+  })
+  const url = window.URL.createObjectURL(new Blob([response.data]))
+  const link = document.createElement('a')
+  link.href = url
+  const today = new Date().toISOString().slice(0, 10)
+  link.setAttribute('download', `kelly_complete_archive_${year}_${today}.xlsx`)
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.URL.revokeObjectURL(url)
+}
+
+export const deleteDataArchiveYear = async (
+  year: number,
+  confirmation: string
+): Promise<{ total_deleted: number; deleted: Record<string, number> }> => {
+  const response = await api.delete(`/admin/data-archive/${year}`, {
+    params: { confirmation },
+  })
+  return response.data
+}
