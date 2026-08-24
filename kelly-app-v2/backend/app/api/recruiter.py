@@ -11,12 +11,51 @@ from app.database import get_db
 from app.models.recruiter import Recruiter
 from app.models.info_session import InfoSession
 from app.models.user import User
-from app.api.auth import get_current_admin
+from app.models.recruiter_permission import RecruiterPermission
+from app.api.auth import get_current_admin, get_current_user
 
 router = APIRouter()
 
 class RecruiterStatusUpdate(BaseModel):
     status: str  # "available" or "busy"
+
+
+class RecruiterReassignmentPermissionUpdate(BaseModel):
+    allow_reassignments: bool
+
+
+def get_or_create_reassignment_permission(db: Session) -> RecruiterPermission:
+    permission = db.query(RecruiterPermission).filter(RecruiterPermission.id == 1).first()
+    if permission is None:
+        permission = RecruiterPermission(id=1, allow_reassignments=True)
+        db.add(permission)
+        db.commit()
+        db.refresh(permission)
+    return permission
+
+
+@router.get("/permissions/reassignment")
+async def get_reassignment_permission(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return whether recruiters may reassign talents."""
+    permission = get_or_create_reassignment_permission(db)
+    return {"allow_reassignments": permission.allow_reassignments}
+
+
+@router.patch("/admin/permissions/reassignment")
+async def update_reassignment_permission(
+    update: RecruiterReassignmentPermissionUpdate,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(get_current_admin),
+):
+    """Allow an administrator to grant or revoke recruiter reassignments."""
+    permission = get_or_create_reassignment_permission(db)
+    permission.allow_reassignments = update.allow_reassignments
+    db.commit()
+    db.refresh(permission)
+    return {"allow_reassignments": permission.allow_reassignments}
 
 class RecruiterResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -470,9 +509,33 @@ async def reassign_session(
     recruiter_id: int,
     session_id: int,
     new_recruiter_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Reassign a session to a different recruiter"""
+    if current_user.role not in ("admin", "management", "recruiter"):
+        raise HTTPException(
+            status_code=403,
+            detail="Only administrators, management, or recruiters can reassign talents",
+        )
+
+    permission = get_or_create_reassignment_permission(db)
+    if current_user.role == "recruiter" and not permission.allow_reassignments:
+        raise HTTPException(
+            status_code=403,
+            detail="Recruiter reassignment is currently disabled by an administrator",
+        )
+
+    if current_user.role == "recruiter":
+        authenticated_recruiter = db.query(Recruiter).filter(
+            Recruiter.email.ilike(current_user.email)
+        ).first()
+        if authenticated_recruiter is None or authenticated_recruiter.id != recruiter_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Recruiters can only reassign talents from their own dashboard",
+            )
+
     # Verify current recruiter has access to this session
     session = db.query(InfoSession).filter(
         InfoSession.id == session_id,
@@ -576,4 +639,3 @@ async def set_recruiter_active(
     db.commit()
     db.refresh(recruiter)
     return RecruiterResponse.model_validate(recruiter).model_dump()
-

@@ -1125,7 +1125,7 @@ function ManagementDashboard() {
           {activeTab === 'event' && <EventManagement />}
           {activeTab === 'storage' && <StorageManagement />}
           {activeTab === 'pc-check' && <PCListCheck />}
-          {activeTab === 'recruiters' && <RecruiterManagement isAdmin={false} />}
+          {activeTab === 'recruiters' && <RecruiterManagement isAdmin={false} showDashboardLinks={true} />}
         </div>
       </div>
 

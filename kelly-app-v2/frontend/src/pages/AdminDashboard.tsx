@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getUsers, createUser, deleteUser, getCurrentUser, uploadExclusionList, clearExclusionList, getExclusionList } from '../services/api'
+import { getUsers, createUser, deleteUser, getCurrentUser, uploadExclusionList, clearExclusionList, getExclusionList, getRecruiterReassignmentPermission, updateRecruiterReassignmentPermission } from '../services/api'
 import type { User } from '../types'
 import PCListCheck from '../components/PCListCheck'
 import RecruiterManagement from '../components/RecruiterManagement'
@@ -23,6 +23,8 @@ function AdminDashboard() {
   const [exclusionPreview, setExclusionPreview] = useState<any[]>([])
   const [exclusionTotal, setExclusionTotal] = useState(0)
   const [loadingExclusion, setLoadingExclusion] = useState(false)
+  const [allowRecruiterReassignments, setAllowRecruiterReassignments] = useState(true)
+  const [savingReassignmentPermission, setSavingReassignmentPermission] = useState(false)
 
   useEffect(() => {
     checkAuthAndLoad()
@@ -61,13 +63,38 @@ function AdminDashboard() {
       }
       // If authenticated, load users
       console.log('User is admin, loading users...')
-      await loadUsers()
+      await Promise.all([loadUsers(), loadReassignmentPermission()])
     } catch (error: any) {
       console.error('Error in checkAuthAndLoad:', error)
       // If authentication fails, redirect to login
       localStorage.removeItem('token')
       localStorage.removeItem('user')
       navigate('/admin/login')
+    }
+  }
+
+  const loadReassignmentPermission = async () => {
+    const permission = await getRecruiterReassignmentPermission()
+    setAllowRecruiterReassignments(permission.allow_reassignments)
+  }
+
+  const handleReassignmentPermissionChange = async () => {
+    const nextValue = !allowRecruiterReassignments
+    setSavingReassignmentPermission(true)
+    setError(null)
+    setSuccess(null)
+    try {
+      const permission = await updateRecruiterReassignmentPermission(nextValue)
+      setAllowRecruiterReassignments(permission.allow_reassignments)
+      setSuccess(
+        permission.allow_reassignments
+          ? 'Recruiters can now reassign talents.'
+          : 'Recruiter talent reassignment has been blocked.'
+      )
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Unable to update recruiter reassignment permission.')
+    } finally {
+      setSavingReassignmentPermission(false)
     }
   }
 
@@ -491,9 +518,38 @@ function AdminDashboard() {
           <PCListCheck />
         </div>
 
+        {/* Recruiter Reassignment Permission */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Recruiter Reassignment Permission</h2>
+              <p className="mt-2 text-gray-600">
+                Allow or block recruiters from reassigning talents. Admin and Management always retain access.
+              </p>
+              <p className={`mt-2 font-semibold ${allowRecruiterReassignments ? 'text-green-700' : 'text-red-700'}`}>
+                Recruiter access: {allowRecruiterReassignments ? 'Allowed' : 'Blocked'}
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={allowRecruiterReassignments}
+              aria-label="Allow recruiters to reassign talents"
+              onClick={handleReassignmentPermissionChange}
+              disabled={savingReassignmentPermission}
+              className={`relative inline-flex h-12 w-24 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-wait disabled:opacity-60 ${allowRecruiterReassignments ? 'bg-green-600' : 'bg-gray-400'}`}
+            >
+              <span
+                className={`inline-block h-10 w-10 transform rounded-full bg-white shadow transition-transform ${allowRecruiterReassignments ? 'translate-x-[52px]' : 'translate-x-1'}`}
+              />
+              <span className="sr-only">{allowRecruiterReassignments ? 'Allowed' : 'Blocked'}</span>
+            </button>
+          </div>
+        </div>
+
         {/* Recruiter Management Section */}
         <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
-          <RecruiterManagement isAdmin={true} />
+          <RecruiterManagement isAdmin={true} showDashboardLinks={true} />
         </div>
       </div>
     </div>
@@ -501,4 +557,3 @@ function AdminDashboard() {
 }
 
 export default AdminDashboard
-

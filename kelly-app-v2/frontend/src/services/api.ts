@@ -497,6 +497,24 @@ export const reassignSession = async (
   })
 }
 
+export interface RecruiterReassignmentPermission {
+  allow_reassignments: boolean
+}
+
+export const getRecruiterReassignmentPermission = async (): Promise<RecruiterReassignmentPermission> => {
+  const response = await api.get('/recruiter/permissions/reassignment')
+  return response.data
+}
+
+export const updateRecruiterReassignmentPermission = async (
+  allowReassignments: boolean
+): Promise<RecruiterReassignmentPermission> => {
+  const response = await api.patch('/recruiter/admin/permissions/reassignment', {
+    allow_reassignments: allowReassignments,
+  })
+  return response.data
+}
+
 export const getAllRecruiters = async (): Promise<Array<{
   id: number
   name: string

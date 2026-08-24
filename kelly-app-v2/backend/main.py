@@ -29,7 +29,8 @@ from app.models import (
     visit as visit_model,
     event as event_model,
     paraprofessional_config as paraprofessional_config_model,
-    storage as storage_model
+    storage as storage_model,
+    recruiter_permission as recruiter_permission_model
 )
 
 # Create database tables (models must be imported first)
@@ -245,4 +246,3 @@ async def health_check():
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=3026, reload=True)
-
