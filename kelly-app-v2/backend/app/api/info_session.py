@@ -406,8 +406,8 @@ async def get_completed_info_sessions(db: Session = Depends(get_db)):
     return result
 
 @router.get("/export-excel")
-def export_excel(period: str = "all", db: Session = Depends(get_db)):
-    """Export info session attendees to Excel filtered by period (day/week/month/all)"""
+def export_excel(period: str = "all", year: Optional[int] = None, db: Session = Depends(get_db)):
+    """Export info session attendees filtered by a relative period or calendar year."""
     import pandas as pd
     from io import BytesIO
     from fastapi.responses import StreamingResponse
@@ -426,6 +426,15 @@ def export_excel(period: str = "all", db: Session = Depends(get_db)):
     elif period == "month":
         start = now - timedelta(days=30)
         query = query.filter(InfoSession.created_at >= start)
+    elif period == "year":
+        if year is None or year < 2000 or year > now.year:
+            raise HTTPException(status_code=400, detail="Please select a valid year")
+        start = datetime(year, 1, 1, tzinfo=timezone.utc)
+        end = datetime(year + 1, 1, 1, tzinfo=timezone.utc)
+        query = query.filter(
+            InfoSession.created_at >= start,
+            InfoSession.created_at < end,
+        )
     # "all" — no filter
 
     sessions = query.order_by(InfoSession.created_at.desc()).all()
@@ -446,7 +455,8 @@ def export_excel(period: str = "all", db: Session = Depends(get_db)):
         df.to_excel(writer, index=False, sheet_name="Info Session Attendees")
     buffer.seek(0)
 
-    filename = f"info_session_{period}_{now.strftime('%Y%m%d')}.xlsx"
+    export_label = str(year) if period == "year" else period
+    filename = f"info_session_{export_label}_{now.strftime('%Y%m%d')}.xlsx"
     return StreamingResponse(
         buffer,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -867,4 +877,3 @@ async def check_exclusion(
         print(f"Error in check_exclusion: {e}")
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Error checking exclusion list: {str(e)}")
-
