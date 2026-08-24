@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { getRecruiters, getAllRecruitersForAdmin, createRecruiter, setRecruiterActive } from '../services/api'
+import { getRecruiters, getAllRecruitersForAdmin, createRecruiter, setRecruiterActive, getRecruiterReassignmentPermission, updateRecruiterReassignmentPermission } from '../services/api'
 
 interface Recruiter {
   id: number
@@ -23,6 +23,8 @@ function RecruiterManagement({ isAdmin = false, showDashboardLinks = false }: Pr
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [reassignmentPermissions, setReassignmentPermissions] = useState<Record<number, boolean>>({})
+  const [savingPermissionId, setSavingPermissionId] = useState<number | null>(null)
 
   useEffect(() => {
     load()
@@ -33,10 +35,38 @@ function RecruiterManagement({ isAdmin = false, showDashboardLinks = false }: Pr
       setLoading(true)
       const data = isAdmin ? await getAllRecruitersForAdmin() : await getRecruiters()
       setRecruiters(data as Recruiter[])
+      if (isAdmin) {
+        const permissions = await Promise.all(
+          (data as Recruiter[]).map(async recruiter => [
+            recruiter.id,
+            (await getRecruiterReassignmentPermission(recruiter.id)).allow_reassignments,
+          ] as const)
+        )
+        setReassignmentPermissions(Object.fromEntries(permissions))
+      }
     } catch {
       setError('Error loading recruiters.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handlePermissionChange = async (recruiter: Recruiter) => {
+    const nextValue = !(reassignmentPermissions[recruiter.id] ?? true)
+    setSavingPermissionId(recruiter.id)
+    setError(null)
+    setSuccess(null)
+    try {
+      const result = await updateRecruiterReassignmentPermission(recruiter.id, nextValue)
+      setReassignmentPermissions(current => ({
+        ...current,
+        [recruiter.id]: result.allow_reassignments,
+      }))
+      setSuccess(`${recruiter.name}'s reassignment access is now ${result.allow_reassignments ? 'allowed' : 'blocked'}.`)
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Unable to update reassignment permission.')
+    } finally {
+      setSavingPermissionId(null)
     }
   }
 
@@ -128,12 +158,13 @@ function RecruiterManagement({ isAdmin = false, showDashboardLinks = false }: Pr
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Name</th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Email</th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Status</th>
+              {isAdmin && <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Can Reassign</th>}
               {(isAdmin || showDashboardLinks) && <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Actions</th>}
             </tr>
           </thead>
           <tbody>
             {recruiters.length === 0 && (
-              <tr><td colSpan={isAdmin || showDashboardLinks ? 4 : 3} className="px-4 py-8 text-center text-gray-500">No recruiters found</td></tr>
+              <tr><td colSpan={isAdmin ? 5 : isAdmin || showDashboardLinks ? 4 : 3} className="px-4 py-8 text-center text-gray-500">No recruiters found</td></tr>
             )}
             {recruiters.map(r => (
               <tr key={r.id} className="border-t border-gray-100 hover:bg-gray-50">
@@ -150,6 +181,26 @@ function RecruiterManagement({ isAdmin = false, showDashboardLinks = false }: Pr
                         {!r.is_active ? '● Inactive' : r.status === 'available' ? '● Available' : '● Busy'}
                   </span>
                 </td>
+                {isAdmin && (
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={reassignmentPermissions[r.id] ?? true}
+                        aria-label={`Allow ${r.name} to reassign talents`}
+                        onClick={() => handlePermissionChange(r)}
+                        disabled={savingPermissionId === r.id || !r.is_active}
+                        className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-50 ${(reassignmentPermissions[r.id] ?? true) ? 'bg-green-600' : 'bg-gray-400'}`}
+                      >
+                        <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${(reassignmentPermissions[r.id] ?? true) ? 'translate-x-8' : 'translate-x-1'}`} />
+                      </button>
+                      <span className={`text-xs font-semibold ${(reassignmentPermissions[r.id] ?? true) ? 'text-green-700' : 'text-red-700'}`}>
+                        {(reassignmentPermissions[r.id] ?? true) ? 'Allowed' : 'Blocked'}
+                      </span>
+                    </div>
+                  </td>
+                )}
                 {(isAdmin || showDashboardLinks) && (
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-2">
