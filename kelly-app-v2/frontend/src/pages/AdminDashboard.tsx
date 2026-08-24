@@ -4,6 +4,7 @@ import { getUsers, createUser, deleteUser, getCurrentUser, uploadExclusionList, 
 import type { User } from '../types'
 import PCListCheck from '../components/PCListCheck'
 import RecruiterManagement from '../components/RecruiterManagement'
+import DataArchiveManagement from '../components/DataArchiveManagement'
 
 function AdminDashboard() {
   const navigate = useNavigate()
@@ -489,6 +490,11 @@ function AdminDashboard() {
         {/* PC List Check Section */}
         <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
           <PCListCheck />
+        </div>
+
+        {/* Complete Data Archive */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
+          <DataArchiveManagement />
         </div>
 
         {/* Recruiter Management Section */}
