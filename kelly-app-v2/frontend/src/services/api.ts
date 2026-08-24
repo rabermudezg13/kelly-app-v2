@@ -312,6 +312,18 @@ export const getRecruiters = async (): Promise<Array<{
   return response.data
 }
 
+export const createRecruiter = async (name: string, email: string): Promise<{
+  id: number; name: string; email: string; is_active: boolean; status: string
+}> => {
+  const response = await api.post('/recruiter/admin/create', { name, email })
+  return response.data
+}
+
+export const deleteRecruiter = async (recruiterId: number): Promise<{ message: string }> => {
+  const response = await api.delete(`/recruiter/admin/${recruiterId}`)
+  return response.data
+}
+
 export const getRecruiterStatus = async (recruiterId: number): Promise<{
   id: number
   name: string

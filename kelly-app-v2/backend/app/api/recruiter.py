@@ -10,6 +10,8 @@ from datetime import datetime, timezone
 from app.database import get_db
 from app.models.recruiter import Recruiter
 from app.models.info_session import InfoSession
+from app.models.user import User
+from app.api.auth import get_current_admin
 
 router = APIRouter()
 
@@ -503,5 +505,43 @@ async def reassign_session(
         "old_recruiter_id": old_recruiter_id,
         "new_recruiter_id": new_recruiter_id
     }
+
+
+class RecruiterCreate(BaseModel):
+    name: str
+    email: str
+
+@router.post("/admin/create", response_model=RecruiterResponse)
+async def create_recruiter(
+    data: RecruiterCreate,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(get_current_admin)
+):
+    """Create a new recruiter (admin only)"""
+    existing = db.query(Recruiter).filter(Recruiter.email == data.email.strip().lower()).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="A recruiter with this email already exists")
+    recruiter = Recruiter(name=data.name.strip(), email=data.email.strip().lower(), status="available")
+    db.add(recruiter)
+    db.commit()
+    db.refresh(recruiter)
+    return RecruiterResponse.model_validate(recruiter).model_dump()
+
+@router.delete("/admin/{recruiter_id}")
+async def delete_recruiter(
+    recruiter_id: int,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(get_current_admin)
+):
+    """Delete a recruiter and unassign their sessions (admin only)"""
+    recruiter = db.query(Recruiter).filter(Recruiter.id == recruiter_id).first()
+    if not recruiter:
+        raise HTTPException(status_code=404, detail="Recruiter not found")
+    db.query(InfoSession).filter(InfoSession.assigned_recruiter_id == recruiter_id).update(
+        {"assigned_recruiter_id": None}
+    )
+    db.delete(recruiter)
+    db.commit()
+    return {"message": f"Recruiter '{recruiter.name}' deleted successfully"}
 
 

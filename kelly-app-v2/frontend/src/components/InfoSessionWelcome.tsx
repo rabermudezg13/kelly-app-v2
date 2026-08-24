@@ -264,6 +264,14 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
             Welcome to Kelly Education Miami Dade
           </h1>
 
+          {sessionData.assigned_recruiter_name && (
+            <div className="mb-6 p-4 bg-green-50 rounded-lg border-l-4 border-green-500 text-center">
+              <p className="text-green-800 font-semibold text-lg">
+                Your recruiter will be: <span className="font-bold">{sessionData.assigned_recruiter_name}</span>
+              </p>
+            </div>
+          )}
+
           <div className="mb-8 p-6 bg-blue-50 rounded-lg border-l-4 border-blue-500">
             <p className="text-gray-700 mb-4">
               For our process you must be able to communicate in English, have your Education Proof. 

@@ -7,8 +7,9 @@ import StatisticsDashboard from './StatisticsDashboard'
 import EventManagement from '../components/EventManagement'
 import StorageManagement from '../components/StorageManagement'
 import PCListCheck from '../components/PCListCheck'
+import RecruiterManagement from '../components/RecruiterManagement'
 
-type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'storage' | 'pc-check'
+type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'storage' | 'pc-check' | 'recruiters'
 
 function FrontdeskDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('info-session')
@@ -1155,6 +1156,16 @@ function FrontdeskDashboard() {
             >
               PC List
             </button>
+            <button
+              onClick={() => setActiveTab('recruiters')}
+              className={`px-6 py-3 font-semibold transition-colors ${
+                activeTab === 'recruiters'
+                  ? 'bg-indigo-600 text-white border-b-2 border-indigo-600'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              Recruiters
+            </button>
           </div>
         </div>
 
@@ -1171,6 +1182,7 @@ function FrontdeskDashboard() {
           {activeTab === 'event' && <EventManagement />}
           {activeTab === 'storage' && <StorageManagement />}
           {activeTab === 'pc-check' && <PCListCheck />}
+          {activeTab === 'recruiters' && <RecruiterManagement isAdmin={false} />}
         </div>
       </div>
 

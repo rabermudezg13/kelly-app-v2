@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getUsers, createUser, deleteUser, getCurrentUser, uploadExclusionList, clearExclusionList, getExclusionList } from '../services/api'
 import type { User } from '../types'
 import PCListCheck from '../components/PCListCheck'
+import RecruiterManagement from '../components/RecruiterManagement'
 
 function AdminDashboard() {
   const navigate = useNavigate()
@@ -488,6 +489,11 @@ function AdminDashboard() {
         {/* PC List Check Section */}
         <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
           <PCListCheck />
+        </div>
+
+        {/* Recruiter Management Section */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
+          <RecruiterManagement isAdmin={true} />
         </div>
       </div>
     </div>

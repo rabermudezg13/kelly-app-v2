@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { getLiveInfoSessions, getNewHireOrientations, getBadges, getFingerprints, getMyVisits, getCurrentUser, notifyTeamVisit, getNewHireOrientation, updateNewHireOrientation, bulkDeleteNewHireOrientations, deleteNewHireOrientationDuplicates } from '../services/api'
+import { getLiveInfoSessions, getCompletedInfoSessions, getNewHireOrientations, getBadges, getFingerprints, getMyVisits, getCurrentUser, notifyTeamVisit, getNewHireOrientation, updateNewHireOrientation, bulkDeleteNewHireOrientations, deleteNewHireOrientationDuplicates } from '../services/api'
 import type { InfoSessionWithSteps, NewHireOrientation, NewHireOrientationWithSteps } from '../types'
 import { formatMiamiTime, getMiamiDateKey, formatMiamiDateDisplay } from '../utils/dateUtils'
 import CHRPage from './CHRPage'
@@ -7,12 +7,14 @@ import StatisticsDashboard from './StatisticsDashboard'
 import EventManagement from '../components/EventManagement'
 import StorageManagement from '../components/StorageManagement'
 import PCListCheck from '../components/PCListCheck'
+import RecruiterManagement from '../components/RecruiterManagement'
 
-type TabType = 'info-session' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'storage' | 'pc-check'
+type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'storage' | 'pc-check' | 'recruiters'
 
 function ManagementDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('info-session')
   const [liveSessions, setLiveSessions] = useState<InfoSessionWithSteps[]>([])
+  const [completedSessions, setCompletedSessions] = useState<InfoSessionWithSteps[]>([])
   const [newHireOrientations, setNewHireOrientations] = useState<NewHireOrientation[]>([])
   const [selectedOrientation, setSelectedOrientation] = useState<NewHireOrientationWithSteps | null>(null)
   const [selectedNhoIds, setSelectedNhoIds] = useState<Set<number>>(new Set())
@@ -60,6 +62,10 @@ function ManagementDashboard() {
           console.log('📊 ManagementDashboard: Loaded live sessions:', live.length)
           setLiveSessions(live)
           break
+        case 'info-session-completed':
+          const completed = await getCompletedInfoSessions()
+          setCompletedSessions(completed)
+          break
         case 'new-hire-orientation':
           const orientations = await getNewHireOrientations()
           setNewHireOrientations(orientations)
@@ -93,6 +99,10 @@ function ManagementDashboard() {
           const live = await getLiveInfoSessions()
           console.log('🔄 ManagementDashboard: Refreshed live sessions:', live.length)
           setLiveSessions(live)
+          break
+        case 'info-session-completed':
+          const completed = await getCompletedInfoSessions()
+          setCompletedSessions(completed)
           break
         case 'new-hire-orientation':
           const orientations = await getNewHireOrientations()
@@ -279,6 +289,82 @@ function ManagementDashboard() {
                         </tr>
                         )
                       })}
+                    </React.Fragment>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  const renderInfoSessionCompleted = () => {
+    if (loading) return <p className="text-center py-8">Loading...</p>
+    const groupedSessions: { [key: string]: InfoSessionWithSteps[] } = {}
+    completedSessions.forEach((session) => {
+      const dateKey = getMiamiDateKey(session.created_at)
+      if (!groupedSessions[dateKey]) groupedSessions[dateKey] = []
+      groupedSessions[dateKey].push(session)
+    })
+    const sortedDateKeys = Object.keys(groupedSessions).sort().reverse()
+    return (
+      <div className="space-y-4">
+        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
+          <p className="text-blue-800 font-bold">✅ Completed Info Sessions</p>
+        </div>
+        {completedSessions.length === 0 ? (
+          <p className="text-center py-8 text-gray-500">No completed sessions</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full table-auto">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="px-4 py-2 text-left">#</th>
+                  <th className="px-4 py-2 text-left">Name</th>
+                  <th className="px-4 py-2 text-left">Email</th>
+                  <th className="px-4 py-2 text-left">Session Type</th>
+                  <th className="px-4 py-2 text-left">Time Slot</th>
+                  <th className="px-4 py-2 text-left">Assigned Recruiter</th>
+                  <th className="px-4 py-2 text-left">Registered At</th>
+                  <th className="px-4 py-2 text-left">Completed At</th>
+                  <th className="px-4 py-2 text-left">Duration</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedDateKeys.map((dateKey, dateIndex) => {
+                  const sessionsForDate = groupedSessions[dateKey]
+                  return (
+                    <React.Fragment key={dateKey}>
+                      {dateIndex > 0 && (
+                        <tr>
+                          <td colSpan={9} className="px-4 py-3 bg-gray-100 border-t-2 border-gray-300 text-center">
+                            <span className="text-gray-700 font-bold">─── {formatMiamiDateDisplay(sessionsForDate[0].created_at)} ───</span>
+                          </td>
+                        </tr>
+                      )}
+                      {sessionsForDate.map((session, idx) => (
+                        <tr key={session.id} className="border-b hover:bg-gray-50">
+                          <td className="px-4 py-2 text-gray-500">{idx + 1}</td>
+                          <td className="px-4 py-2 font-semibold">{session.first_name} {session.last_name}</td>
+                          <td className="px-4 py-2">{session.email}</td>
+                          <td className="px-4 py-2 capitalize">{session.session_type}</td>
+                          <td className="px-4 py-2">{session.time_slot}</td>
+                          <td className="px-4 py-2">
+                            {session.assigned_recruiter_name ? (
+                              <span className="px-2 py-1 rounded bg-blue-100 text-blue-800 text-sm">{session.assigned_recruiter_name}</span>
+                            ) : <span className="text-gray-400">Not assigned</span>}
+                          </td>
+                          <td className="px-4 py-2 text-sm">{formatMiamiTime(session.created_at)}</td>
+                          <td className="px-4 py-2 text-sm">{formatMiamiTime(session.completed_at)}</td>
+                          <td className="px-4 py-2 text-sm">
+                            {session.duration_minutes
+                              ? <span className="text-blue-600 font-semibold">{Math.floor(session.duration_minutes / 60)}h {session.duration_minutes % 60}m</span>
+                              : <span className="text-gray-400">N/A</span>}
+                          </td>
+                        </tr>
+                      ))}
                     </React.Fragment>
                   )
                 })}
@@ -914,6 +1000,16 @@ function ManagementDashboard() {
               📋 Info Session (Live)
             </button>
             <button
+              onClick={() => setActiveTab('info-session-completed')}
+              className={`px-6 py-3 font-semibold transition-colors ${
+                activeTab === 'info-session-completed'
+                  ? 'bg-blue-600 text-white border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              ✅ Info Session (Completed)
+            </button>
+            <button
               onClick={() => setActiveTab('new-hire-orientation')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'new-hire-orientation'
@@ -1003,12 +1099,23 @@ function ManagementDashboard() {
             >
               PC List
             </button>
+            <button
+              onClick={() => setActiveTab('recruiters')}
+              className={`px-6 py-3 font-semibold transition-colors ${
+                activeTab === 'recruiters'
+                  ? 'bg-indigo-600 text-white border-b-2 border-indigo-600'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              👤 Recruiters
+            </button>
           </div>
         </div>
 
         {/* Content */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           {activeTab === 'info-session' && renderInfoSessionLive()}
+          {activeTab === 'info-session-completed' && renderInfoSessionCompleted()}
           {activeTab === 'new-hire-orientation' && renderNewHireOrientations()}
           {activeTab === 'badges' && renderBadges()}
           {activeTab === 'fingerprints' && renderFingerprints()}
@@ -1018,6 +1125,7 @@ function ManagementDashboard() {
           {activeTab === 'event' && <EventManagement />}
           {activeTab === 'storage' && <StorageManagement />}
           {activeTab === 'pc-check' && <PCListCheck />}
+          {activeTab === 'recruiters' && <RecruiterManagement isAdmin={false} />}
         </div>
       </div>
 
