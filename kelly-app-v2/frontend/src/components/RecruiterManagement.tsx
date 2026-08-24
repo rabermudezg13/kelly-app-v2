@@ -150,8 +150,18 @@ function RecruiterManagement({ isAdmin = false, showDashboardLinks = false }: Pr
                         {!r.is_active ? '● Inactive' : r.status === 'available' ? '● Available' : '● Busy'}
                   </span>
                 </td>
-                {isAdmin && (
+                {(isAdmin || showDashboardLinks) && (
                   <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-2">
+                    {showDashboardLinks && r.is_active && (
+                      <a
+                        href={`/recruiter/${r.id}/dashboard`}
+                        className="inline-flex px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold"
+                      >
+                        View Dashboard
+                      </a>
+                    )}
+                    {isAdmin && (
                       <button
                         onClick={() => handleActiveChange(r)}
                         className={`px-3 py-1 text-white rounded text-xs font-semibold ${
@@ -161,17 +171,9 @@ function RecruiterManagement({ isAdmin = false, showDashboardLinks = false }: Pr
                         }`}
                       >
                         {r.is_active ? 'Deactivate' : 'Reactivate'}
-                    </button>
-                  </td>
-                )}
-                {!isAdmin && showDashboardLinks && (
-                  <td className="px-4 py-3">
-                    <a
-                      href={`/recruiter/${r.id}/dashboard`}
-                      className="inline-flex px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold"
-                    >
-                      View Dashboard
-                    </a>
+                      </button>
+                    )}
+                    </div>
                   </td>
                 )}
               </tr>
