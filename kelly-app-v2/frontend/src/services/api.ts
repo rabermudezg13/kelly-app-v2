@@ -312,6 +312,17 @@ export const getRecruiters = async (): Promise<Array<{
   return response.data
 }
 
+export const getAllRecruitersForAdmin = async (): Promise<Array<{
+  id: number
+  name: string
+  email: string
+  is_active: boolean
+  status: 'available' | 'busy'
+}>> => {
+  const response = await api.get('/recruiter/admin/all')
+  return response.data
+}
+
 export const createRecruiter = async (name: string, email: string): Promise<{
   id: number; name: string; email: string; is_active: boolean; status: string
 }> => {
@@ -321,6 +332,13 @@ export const createRecruiter = async (name: string, email: string): Promise<{
 
 export const deleteRecruiter = async (recruiterId: number): Promise<{ message: string }> => {
   const response = await api.delete(`/recruiter/admin/${recruiterId}`)
+  return response.data
+}
+
+export const setRecruiterActive = async (recruiterId: number, isActive: boolean) => {
+  const response = await api.patch(`/recruiter/admin/${recruiterId}/active`, {
+    is_active: isActive
+  })
   return response.data
 }
 
@@ -1038,5 +1056,3 @@ export const getStorageByCode = async (code: string): Promise<StorageLocation> =
   const response = await api.get(`/storage/scan/${code}`)
   return response.data
 }
-
-
