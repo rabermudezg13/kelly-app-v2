@@ -89,7 +89,8 @@ function RecruiterDashboard() {
   }, [recruiterId])
 
   useEffect(() => {
-    Promise.all([getCurrentUser(), getRecruiterReassignmentPermission()])
+    if (!recruiterId) return
+    Promise.all([getCurrentUser(), getRecruiterReassignmentPermission(parseInt(recruiterId))])
       .then(([user, permission]) => {
         const isAlwaysAllowed = user.role === 'admin' || user.role === 'management'
         const isAllowedRecruiter = user.role === 'recruiter' && permission.allow_reassignments
@@ -100,7 +101,7 @@ function RecruiterDashboard() {
         setCanReassignTalents(false)
         setReassignmentBlockedForRecruiter(false)
       })
-  }, [])
+  }, [recruiterId])
 
   // Persist selected session across page refreshes
   useEffect(() => {
