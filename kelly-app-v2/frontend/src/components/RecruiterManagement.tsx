@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { getRecruiters, createRecruiter, deleteRecruiter } from '../services/api'
+import { getRecruiters, getAllRecruitersForAdmin, createRecruiter, setRecruiterActive } from '../services/api'
 
 interface Recruiter {
   id: number
@@ -30,7 +30,7 @@ function RecruiterManagement({ isAdmin = false }: Props) {
   const load = async () => {
     try {
       setLoading(true)
-      const data = await getRecruiters()
+      const data = isAdmin ? await getAllRecruitersForAdmin() : await getRecruiters()
       setRecruiters(data as Recruiter[])
     } catch {
       setError('Error loading recruiters.')
@@ -57,15 +57,16 @@ function RecruiterManagement({ isAdmin = false }: Props) {
     }
   }
 
-  const handleDelete = async (recruiter: Recruiter) => {
-    if (!window.confirm(`Delete ${recruiter.name}? Their sessions will be unassigned.`)) return
+  const handleActiveChange = async (recruiter: Recruiter) => {
+    const action = recruiter.is_active ? 'deactivate' : 'reactivate'
+    if (!window.confirm(`${action === 'deactivate' ? 'Deactivate' : 'Reactivate'} ${recruiter.name}?`)) return
     try {
       setError(null)
-      await deleteRecruiter(recruiter.id)
-      setSuccess(`${recruiter.name} deleted successfully.`)
+      await setRecruiterActive(recruiter.id, !recruiter.is_active)
+      setSuccess(`${recruiter.name} ${action}d successfully.`)
       await load()
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error deleting recruiter.')
+      setError(err.response?.data?.detail || `Error trying to ${action} recruiter.`)
     }
   }
 
@@ -139,20 +140,26 @@ function RecruiterManagement({ isAdmin = false }: Props) {
                 <td className="px-4 py-3 text-gray-600 text-sm">{r.email}</td>
                 <td className="px-4 py-3">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                    r.status === 'available'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {r.status === 'available' ? '● Available' : '● Busy'}
+                        !r.is_active
+                          ? 'bg-gray-100 text-gray-600'
+                          : r.status === 'available'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {!r.is_active ? '● Inactive' : r.status === 'available' ? '● Available' : '● Busy'}
                   </span>
                 </td>
                 {isAdmin && (
                   <td className="px-4 py-3">
-                    <button
-                      onClick={() => handleDelete(r)}
-                      className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-semibold"
-                    >
-                      Delete
+                      <button
+                        onClick={() => handleActiveChange(r)}
+                        className={`px-3 py-1 text-white rounded text-xs font-semibold ${
+                          r.is_active
+                            ? 'bg-amber-500 hover:bg-amber-600'
+                            : 'bg-green-600 hover:bg-green-700'
+                        }`}
+                      >
+                        {r.is_active ? 'Deactivate' : 'Reactivate'}
                     </button>
                   </td>
                 )}
