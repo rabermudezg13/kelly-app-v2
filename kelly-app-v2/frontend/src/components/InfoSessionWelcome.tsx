@@ -6,9 +6,10 @@ import type { InfoSessionWithSteps } from '../types'
 interface Props {
   sessionData: InfoSessionWithSteps
   onSessionCompleted?: () => void
+  onStartNewRegistration?: () => void
 }
 
-function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
+function InfoSessionWelcome({ sessionData, onSessionCompleted, onStartNewRegistration }: Props) {
   const navigate = useNavigate()
   const [steps, setSteps] = useState(sessionData.steps)
   const [allStepsCompleted, setAllStepsCompleted] = useState(false)
@@ -263,6 +264,18 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
           <h1 className="text-4xl font-bold text-center mb-6 text-gray-800">
             Welcome to Kelly Education Miami Dade
           </h1>
+
+          {onStartNewRegistration && (
+            <div className="mb-6 flex justify-center">
+              <button
+                type="button"
+                onClick={onStartNewRegistration}
+                className="rounded-lg bg-blue-600 px-6 py-3 text-lg font-bold text-white shadow-md transition-colors hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200"
+              >
+                + Start New Registration
+              </button>
+            </div>
+          )}
 
           <div className="mb-8 p-6 bg-blue-50 rounded-lg border-l-4 border-blue-500">
             <p className="text-gray-700 mb-4">
