@@ -264,17 +264,6 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
             Welcome to Kelly Education Miami Dade
           </h1>
 
-          {(currentSessionData.assigned_recruiter_name || sessionData.assigned_recruiter_name) && (
-            <div className="mb-8 p-6 bg-green-50 rounded-xl border-2 border-green-500 text-center shadow-sm">
-              <p className="text-green-800 font-semibold text-xl mb-2">
-                Your recruiter will be:
-              </p>
-              <p className="text-3xl font-bold text-green-900">
-                {currentSessionData.assigned_recruiter_name || sessionData.assigned_recruiter_name}
-              </p>
-            </div>
-          )}
-
           <div className="mb-8 p-6 bg-blue-50 rounded-lg border-l-4 border-blue-500">
             <p className="text-gray-700 mb-4">
               For our process you must be able to communicate in English, have your Education Proof. 
@@ -477,7 +466,17 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted }: Props) {
               {questionsSubmitted ? (
                 <div className="text-center py-6">
                   <div className="text-5xl mb-4">✅</div>
-                  <h2 className="text-2xl font-bold text-green-700 mb-2">Answers Submitted Successfully</h2>
+                  <h2 className="text-2xl font-bold text-green-700 mb-4">Answers Submitted Successfully!</h2>
+                  {(currentSessionData.assigned_recruiter_name || sessionData.assigned_recruiter_name) && (
+                    <div className="mx-auto mb-6 max-w-xl rounded-xl border-2 border-green-500 bg-white p-5 shadow-sm">
+                      <p className="mb-2 text-xl font-semibold text-green-800">
+                        Your recruiter will be:
+                      </p>
+                      <p className="text-3xl font-bold text-green-900">
+                        {currentSessionData.assigned_recruiter_name || sessionData.assigned_recruiter_name}
+                      </p>
+                    </div>
+                  )}
                   <p className="text-gray-600 mb-6">Your answers have been saved. If you need to make changes, click the button below.</p>
                   <button
                     onClick={() => setQuestionsSubmitted(false)}
