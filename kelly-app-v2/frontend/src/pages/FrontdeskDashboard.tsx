@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { getLiveInfoSessions, getCompletedInfoSessions, getNewHireOrientations, getBadges, getFingerprints, getMyVisits, getCurrentUser, notifyTeamVisit, getNewHireOrientation, updateNewHireOrientation, bulkDeleteNewHireOrientations, deleteNewHireOrientationDuplicates } from '../services/api'
+import { getInfoSessions, getCompletedInfoSessions, getNewHireOrientations, getBadges, getFingerprints, getMyVisits, getCurrentUser, notifyTeamVisit, getNewHireOrientation, updateNewHireOrientation, bulkDeleteNewHireOrientations, deleteNewHireOrientationDuplicates } from '../services/api'
 import type { InfoSessionWithSteps, NewHireOrientation, NewHireOrientationWithSteps } from '../types'
 import { formatMiamiTime, getMiamiDateKey, formatMiamiDateDisplay } from '../utils/dateUtils'
 import CHRPage from './CHRPage'
@@ -55,7 +55,7 @@ function FrontdeskDashboard() {
       setLoading(true)
       switch (activeTab) {
         case 'info-session':
-          const live = await getLiveInfoSessions()
+          const live = await getInfoSessions(7)
           console.log('📊 FrontdeskDashboard: Loaded live sessions:', live.length)
           setLiveSessions(live)
           break
@@ -93,7 +93,7 @@ function FrontdeskDashboard() {
       // Load data in background without clearing the screen
       switch (activeTab) {
         case 'info-session':
-          const live = await getLiveInfoSessions()
+          const live = await getInfoSessions(7)
           console.log('🔄 FrontdeskDashboard: Refreshed live sessions:', live.length)
           setLiveSessions(live)
           break
