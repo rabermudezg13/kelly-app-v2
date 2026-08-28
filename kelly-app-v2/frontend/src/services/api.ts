@@ -723,6 +723,35 @@ export const registerTeamVisit = async (data: {
   return response.data
 }
 
+
+
+export interface InfoSessionWorkflowProgress {
+  info_session_id: number
+  initials: string
+  assigned_recruiter_id?: number | null
+  assigned_recruiter_name?: string | null
+  time_slot: string
+  created_at: string
+  progress: Record<string, boolean>
+  completed_count: number
+  total_count: number
+  percent_complete: number
+}
+
+export const getInfoSessionWorkflowProgress = async (): Promise<InfoSessionWorkflowProgress[]> => {
+  const response = await api.get('/info-session/workflow-progress')
+  return response.data
+}
+
+export const updateInfoSessionWorkflowProgress = async (
+  sessionId: number,
+  field: string,
+  value: boolean
+): Promise<InfoSessionWorkflowProgress> => {
+  const response = await api.patch(`/info-session/${sessionId}/workflow-progress`, { field, value })
+  return response.data
+}
+
 // Statistics API
 export interface StatisticsData {
   total_info_sessions: number
