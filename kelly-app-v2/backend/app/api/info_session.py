@@ -11,6 +11,9 @@ from datetime import datetime
 
 from app.database import get_db
 from app.models.info_session import InfoSession, InfoSessionStep
+from app.models.info_session_progress import InfoSessionProgress
+from app.api.auth import get_current_user
+from app.models.user import User
 from app.models.recruiter import Recruiter
 from app.services.exclusion_service import check_name_in_exclusion_list, is_in_exclusion_list
 from app.models.exclusion_list import ExclusionList
@@ -91,6 +94,87 @@ def get_exclusion_match_info(db: Session, first_name: str, last_name: str) -> Op
             ssn=first_match.ssn
         )
     return None
+
+
+
+PROGRESS_FIELDS = [
+    "ob_sent", "ob_completed", "i9_sent", "i9_completed", "existing_i9",
+    "needs_schedule_fp", "existing_fp", "pending_drug_screening",
+    "drug_screening_complete", "trainings_sent", "nho_scheduled"
+]
+
+class InfoSessionProgressUpdate(BaseModel):
+    field: str
+    value: bool
+
+def _initials(session: InfoSession) -> str:
+    first = (session.first_name or "").strip()
+    last = (session.last_name or "").strip()
+    return f"{first[:1]}{last[:1]}".upper()
+
+def _progress_payload(session: InfoSession, progress: Optional[InfoSessionProgress]):
+    values = {field: bool(getattr(progress, field, False)) for field in PROGRESS_FIELDS}
+    completed = sum(1 for value in values.values() if value)
+    return {
+        "info_session_id": session.id,
+        "initials": _initials(session),
+        "assigned_recruiter_id": session.assigned_recruiter_id,
+        "assigned_recruiter_name": session.assigned_recruiter.name if getattr(session, "assigned_recruiter", None) else None,
+        "time_slot": session.time_slot,
+        "created_at": session.created_at,
+        "progress": values,
+        "completed_count": completed,
+        "total_count": len(PROGRESS_FIELDS),
+        "percent_complete": round((completed / len(PROGRESS_FIELDS)) * 100) if PROGRESS_FIELDS else 0,
+    }
+
+@router.get("/workflow-progress")
+async def get_info_session_workflow_progress(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Shared staff workflow board for Info Session visitors only."""
+    sessions = (
+        db.query(InfoSession)
+        .options(joinedload(InfoSession.assigned_recruiter))
+        .filter(func.date(InfoSession.created_at) == date.today())
+        .order_by(InfoSession.created_at.asc())
+        .all()
+    )
+    progress_rows = {
+        row.info_session_id: row
+        for row in db.query(InfoSessionProgress).filter(
+            InfoSessionProgress.info_session_id.in_([s.id for s in sessions])
+        ).all()
+    } if sessions else {}
+    return [_progress_payload(session, progress_rows.get(session.id)) for session in sessions]
+
+@router.patch("/{session_id}/workflow-progress")
+async def update_info_session_workflow_progress(
+    session_id: int,
+    update: InfoSessionProgressUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Allow any authenticated staff member to update one workflow checkbox."""
+    if update.field not in PROGRESS_FIELDS:
+        raise HTTPException(status_code=400, detail="Invalid workflow progress field")
+
+    session = db.query(InfoSession).filter(InfoSession.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Info Session not found")
+
+    progress = db.query(InfoSessionProgress).filter(
+        InfoSessionProgress.info_session_id == session_id
+    ).first()
+    if not progress:
+        progress = InfoSessionProgress(info_session_id=session_id)
+        db.add(progress)
+
+    setattr(progress, update.field, update.value)
+    db.commit()
+    db.refresh(progress)
+    return _progress_payload(session, progress)
 
 # Default steps for Info Session
 DEFAULT_STEPS = [
