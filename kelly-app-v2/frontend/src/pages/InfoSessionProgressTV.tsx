@@ -28,7 +28,7 @@ export default function InfoSessionProgressTV() {
         <div className="grid gap-5">
           {rows.map(row => (
             <div key={row.info_session_id} className="grid grid-cols-[120px_1fr_2fr] items-center gap-8 rounded-2xl border border-gray-700 bg-gray-900 p-6">
-              <div className="text-5xl font-black">{row.initials}</div>
+              <div className="text-5xl font-black">{row.display_label || row.initials}</div>
               <div>
                 <div className="text-sm uppercase tracking-widest text-gray-500">Recruiter</div>
                 <div className="mt-1 text-3xl font-bold">{row.assigned_recruiter_name || '—'}</div>
