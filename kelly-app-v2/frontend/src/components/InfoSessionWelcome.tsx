@@ -265,6 +265,15 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted, onStartNewRegistr
             Welcome to Kelly Education Miami Dade
           </h1>
 
+          {(currentSessionData.assigned_recruiter_name || sessionData.assigned_recruiter_name) && (
+            <div className="mb-6 text-center">
+              <p className="text-xl font-semibold text-green-800">Your recruiter is:</p>
+              <p className="text-3xl font-bold text-green-900">
+                {currentSessionData.assigned_recruiter_name || sessionData.assigned_recruiter_name}
+              </p>
+            </div>
+          )}
+
           {onStartNewRegistration && (
             <div className="mb-6 flex justify-center">
               <button
@@ -500,11 +509,6 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted, onStartNewRegistr
                 </div>
               ) : (
               <>
-              {(currentSessionData.assigned_recruiter_name || sessionData.assigned_recruiter_name) && (
-                <p className="mb-6 text-center text-3xl font-bold text-green-900">
-                  {currentSessionData.assigned_recruiter_name || sessionData.assigned_recruiter_name}
-                </p>
-              )}
               <h2 className="text-2xl font-bold mb-6 text-blue-900">Please Answer These Questions:</h2>
 
               <div className="space-y-6">
