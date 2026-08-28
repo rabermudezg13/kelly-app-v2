@@ -9,8 +9,9 @@ import StorageManagement from '../components/StorageManagement'
 import PCListCheck from '../components/PCListCheck'
 import RecruiterManagement from '../components/RecruiterManagement'
 import InfoSessionProgressPage from './InfoSessionProgressPage'
+import InfoSessionProgressTV from './InfoSessionProgressTV'
 
-type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'storage' | 'pc-check' | 'recruiters' | 'info-session-progress'
+type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'storage' | 'pc-check' | 'recruiters' | 'info-session-progress' | 'tv-kiosk'
 
 function FrontdeskDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('info-session')
@@ -1170,7 +1171,17 @@ function FrontdeskDashboard() {
           </div>
         </div>
 
-        <div className="mb-4 flex justify-end">
+        <div className="mb-4 flex flex-wrap justify-end gap-2">
+          <button
+            onClick={() => setActiveTab('tv-kiosk')}
+            className={`px-5 py-3 rounded-lg font-semibold transition-colors ${
+              activeTab === 'tv-kiosk'
+                ? 'bg-gray-950 text-white'
+                : 'bg-white text-gray-900 border border-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            📺 TV Kiosk
+          </button>
           <button
             onClick={() => setActiveTab('info-session-progress')}
             className={`px-5 py-3 rounded-lg font-semibold transition-colors ${
@@ -1186,6 +1197,7 @@ function FrontdeskDashboard() {
         {/* Content */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           {activeTab === 'info-session' && renderInfoSessionLive()}
+          {activeTab === 'tv-kiosk' && <InfoSessionProgressTV />}
           {activeTab === 'info-session-progress' && <InfoSessionProgressPage />}
           {activeTab === 'info-session-completed' && renderInfoSessionCompleted()}
           {activeTab === 'new-hire-orientation' && renderNewHireOrientations()}
