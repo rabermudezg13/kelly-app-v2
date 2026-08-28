@@ -728,6 +728,7 @@ export const registerTeamVisit = async (data: {
 export interface InfoSessionWorkflowProgress {
   info_session_id: number
   initials: string
+  display_label: string
   assigned_recruiter_id?: number | null
   assigned_recruiter_name?: string | null
   time_slot: string
