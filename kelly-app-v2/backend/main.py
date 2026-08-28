@@ -30,7 +30,8 @@ from app.models import (
     event as event_model,
     paraprofessional_config as paraprofessional_config_model,
     storage as storage_model,
-    recruiter_permission as recruiter_permission_model
+    recruiter_permission as recruiter_permission_model,
+    info_session_progress as info_session_progress_model
 )
 
 # Create database tables (models must be imported first)
