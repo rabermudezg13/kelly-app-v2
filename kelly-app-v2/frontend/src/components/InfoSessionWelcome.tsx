@@ -501,14 +501,9 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted, onStartNewRegistr
               ) : (
               <>
               {(currentSessionData.assigned_recruiter_name || sessionData.assigned_recruiter_name) && (
-                <div className="mx-auto mb-6 max-w-xl rounded-xl border-2 border-green-500 bg-white p-5 text-center shadow-sm">
-                  <p className="mb-2 text-xl font-semibold text-green-800">
-                    Your recruiter will be:
-                  </p>
-                  <p className="text-3xl font-bold text-green-900">
-                    {currentSessionData.assigned_recruiter_name || sessionData.assigned_recruiter_name}
-                  </p>
-                </div>
+                <p className="mb-6 text-center text-3xl font-bold text-green-900">
+                  {currentSessionData.assigned_recruiter_name || sessionData.assigned_recruiter_name}
+                </p>
               )}
               <h2 className="text-2xl font-bold mb-6 text-blue-900">Please Answer These Questions:</h2>
 
