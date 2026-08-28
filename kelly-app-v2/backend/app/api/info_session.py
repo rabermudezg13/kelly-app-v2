@@ -199,6 +199,20 @@ async def update_info_session_workflow_progress(
         db.add(progress)
 
     setattr(progress, update.field, update.value)
+
+    # Workflow precedence rules: completing a step clears its earlier/pending state.
+    if update.value:
+        if update.field == "ob_completed":
+            progress.ob_sent = False
+        elif update.field == "i9_completed":
+            progress.i9_sent = False
+            progress.existing_i9 = False
+        elif update.field == "existing_i9":
+            progress.i9_sent = False
+            progress.i9_completed = False
+        elif update.field == "drug_screening_complete":
+            progress.pending_drug_screening = False
+
     db.commit()
     db.refresh(progress)
     recruiter = db.query(Recruiter).filter(Recruiter.id == session.assigned_recruiter_id).first() if session.assigned_recruiter_id else None
