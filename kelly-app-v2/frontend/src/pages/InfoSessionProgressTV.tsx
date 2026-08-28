@@ -141,6 +141,41 @@ export default function InfoSessionProgressTV() {
                   <span className="text-xl font-semibold">Progress</span>
                   <span className="text-3xl font-black">{row.percent_complete}%</span>
                 </div>
+
+                <div className="mb-4 flex flex-wrap gap-2">
+                  <span className={`rounded-full px-3 py-1 text-sm font-bold ${
+                    row.progress.ob_completed
+                      ? 'bg-green-500/20 text-green-300'
+                      : 'bg-yellow-500/20 text-yellow-300'
+                  }`}>
+                    {row.progress.ob_completed ? 'OB Complete' : 'OB Pending'}
+                  </span>
+
+                  <span className={`rounded-full px-3 py-1 text-sm font-bold ${
+                    row.progress.i9_completed || row.progress.existing_i9
+                      ? 'bg-green-500/20 text-green-300'
+                      : 'bg-yellow-500/20 text-yellow-300'
+                  }`}>
+                    {row.progress.existing_i9
+                      ? 'Existing I-9'
+                      : row.progress.i9_completed
+                      ? 'I-9 Complete'
+                      : 'I-9 Pending'}
+                  </span>
+
+                  {row.progress.needs_schedule_fp && (
+                    <span className="rounded-full bg-orange-500/20 px-3 py-1 text-sm font-bold text-orange-300">
+                      Need FP
+                    </span>
+                  )}
+
+                  {row.progress.existing_fp && (
+                    <span className="rounded-full bg-green-500/20 px-3 py-1 text-sm font-bold text-green-300">
+                      Existing FP
+                    </span>
+                  )}
+                </div>
+
                 <div className="h-5 overflow-hidden rounded-full bg-gray-700">
                   <div
                     className="h-full bg-green-500 transition-all duration-500"
