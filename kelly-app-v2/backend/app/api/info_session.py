@@ -137,7 +137,10 @@ async def get_info_session_workflow_progress(
     """Shared staff workflow board for Info Session visitors only."""
     sessions = (
         db.query(InfoSession)
-        .filter(func.date(InfoSession.created_at) == date.today())
+        .filter(
+            func.date(InfoSession.created_at) == date.today(),
+            InfoSession.status != "completed",
+        )
         .order_by(InfoSession.created_at.asc())
         .all()
     )
