@@ -112,12 +112,13 @@ def _initials(session: InfoSession) -> str:
     last = (session.last_name or "").strip()
     return f"{first[:1]}{last[:1]}".upper()
 
-def _progress_payload(session: InfoSession, progress: Optional[InfoSessionProgress], recruiter_name: Optional[str] = None):
+def _progress_payload(session: InfoSession, progress: Optional[InfoSessionProgress], recruiter_name: Optional[str] = None, display_label: Optional[str] = None):
     values = {field: bool(getattr(progress, field, False)) for field in PROGRESS_FIELDS}
     completed = sum(1 for value in values.values() if value)
     return {
         "info_session_id": session.id,
         "initials": _initials(session),
+        "display_label": display_label or _initials(session),
         "assigned_recruiter_id": session.assigned_recruiter_id,
         "assigned_recruiter_name": recruiter_name,
         "time_slot": session.time_slot,
@@ -150,10 +151,30 @@ async def get_info_session_workflow_progress(
     recruiter_names = {
         r.id: r.name for r in db.query(Recruiter).filter(Recruiter.id.in_(recruiter_ids)).all()
     } if recruiter_ids else {}
-    return [
-        _progress_payload(session, progress_rows.get(session.id), recruiter_names.get(session.assigned_recruiter_id))
-        for session in sessions
-    ]
+
+    initials_counts = {}
+    for session in sessions:
+        initials = _initials(session)
+        initials_counts[initials] = initials_counts.get(initials, 0) + 1
+
+    result = []
+    for session in sessions:
+        initials = _initials(session)
+        phone_digits = ''.join(ch for ch in (session.phone or '') if ch.isdigit())
+        phone_suffix = phone_digits[-2:] if len(phone_digits) >= 2 else phone_digits
+        display_label = initials
+        if initials_counts.get(initials, 0) > 1 and phone_suffix:
+            display_label = f"{initials} · {phone_suffix}"
+
+        result.append(
+            _progress_payload(
+                session,
+                progress_rows.get(session.id),
+                recruiter_names.get(session.assigned_recruiter_id),
+                display_label,
+            )
+        )
+    return result
 
 @router.patch("/{session_id}/workflow-progress")
 async def update_info_session_workflow_progress(
