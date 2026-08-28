@@ -39,8 +39,9 @@ import StatisticsDashboard from './StatisticsDashboard'
 import EventManagement from '../components/EventManagement'
 import StorageManagement from '../components/StorageManagement'
 import PCListCheck from '../components/PCListCheck'
+import InfoSessionProgressTV from './InfoSessionProgressTV'
 
-type RecruiterTabType = 'sessions' | 'all-info-sessions' | 'new-hire-orientation' | 'fingerprints' | 'badges' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'ksn-tool' | 'storage' | 'pc-check'
+type RecruiterTabType = 'sessions' | 'all-info-sessions' | 'new-hire-orientation' | 'fingerprints' | 'badges' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'ksn-tool' | 'storage' | 'pc-check' | 'tv-kiosk'
 
 function RecruiterDashboard() {
   const { recruiterId } = useParams<{ recruiterId: string }>()
@@ -2074,6 +2075,16 @@ function RecruiterDashboard() {
               📦 Storage
             </button>
             <button
+              onClick={() => setActiveTab('tv-kiosk')}
+              className={`px-6 py-3 font-semibold transition-colors ${
+                activeTab === 'tv-kiosk'
+                  ? 'bg-emerald-700 text-white border-b-2 border-emerald-700'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              📺 TV Kiosk
+            </button>
+            <button
               onClick={() => setActiveTab('pc-check')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'pc-check'
@@ -2087,7 +2098,9 @@ function RecruiterDashboard() {
         </div>
 
         {/* Content */}
-        {activeTab === 'ksn-tool' ? (
+        {activeTab === 'tv-kiosk' ? (
+          <InfoSessionProgressTV />
+        ) : activeTab === 'ksn-tool' ? (
           <KsnTool />
         ) : activeTab === 'storage' ? (
           <StorageManagement />
