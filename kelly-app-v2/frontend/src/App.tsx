@@ -22,6 +22,8 @@ import EventRegistrationPage from './pages/EventRegistrationPage'
 import InfoSessionQuestionsPage from './pages/InfoSessionQuestionsPage'
 import ParaprofessionalPage from './pages/ParaprofessionalPage'
 import StorageScanPage from './pages/StorageScanPage'
+import InfoSessionProgressPage from './pages/InfoSessionProgressPage'
+import InfoSessionProgressTV from './pages/InfoSessionProgressTV'
 import './index.css'
 
 function App() {
@@ -51,6 +53,8 @@ function App() {
         <Route path="/info-session/:sessionId/questions" element={<InfoSessionQuestionsPage />} />
         <Route path="/paraprofessionals" element={<ParaprofessionalPage />} />
         <Route path="/storage/scan/:code" element={<StorageScanPage />} />
+        <Route path="/info-session-progress" element={<InfoSessionProgressPage />} />
+        <Route path="/info-session-progress/tv" element={<InfoSessionProgressTV />} />
       </Routes>
     </BrowserRouter>
   )
