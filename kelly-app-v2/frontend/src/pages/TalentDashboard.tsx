@@ -7,8 +7,9 @@ import StatisticsDashboard from './StatisticsDashboard'
 import EventManagement from '../components/EventManagement'
 import StorageManagement from '../components/StorageManagement'
 import PCListCheck from '../components/PCListCheck'
+import InfoSessionProgressPage from './InfoSessionProgressPage'
 
-type TabType = 'info-session' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'storage' | 'pc-check'
+type TabType = 'info-session' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'storage' | 'pc-check' | 'info-session-progress'
 
 function TalentDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('info-session')
@@ -1001,9 +1002,23 @@ function TalentDashboard() {
           </div>
         </div>
 
+        <div className="mb-4 flex justify-end">
+          <button
+            onClick={() => setActiveTab('info-session-progress')}
+            className={`px-5 py-3 rounded-lg font-semibold transition-colors ${
+              activeTab === 'info-session-progress'
+                ? 'bg-emerald-700 text-white'
+                : 'bg-white text-emerald-800 border border-emerald-600 hover:bg-emerald-50'
+            }`}
+          >
+            📺 Info Session Progress
+          </button>
+        </div>
+
         {/* Content */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           {activeTab === 'info-session' && renderInfoSessionLive()}
+          {activeTab === 'info-session-progress' && <InfoSessionProgressPage />}
           {activeTab === 'new-hire-orientation' && renderNewHireOrientations()}
           {activeTab === 'badges' && renderBadges()}
           {activeTab === 'fingerprints' && renderFingerprints()}
