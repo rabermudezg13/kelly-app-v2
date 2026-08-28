@@ -88,7 +88,7 @@ export default function InfoSessionProgressPage() {
             <tbody>
               {rows.map(row => (
                 <tr key={row.info_session_id} className="border-t border-gray-200">
-                  <td className="sticky left-0 bg-white px-4 py-3 text-xl font-bold">{row.initials}</td>
+                  <td className="sticky left-0 bg-white px-4 py-3 text-xl font-bold">{row.display_label || row.initials}</td>
                   <td className="px-4 py-3 font-semibold">{row.assigned_recruiter_name || '—'}</td>
                   {FIELDS.map(([field]) => {
                     const key = `${row.info_session_id}:${field}`
