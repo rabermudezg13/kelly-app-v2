@@ -28,6 +28,8 @@ import {
   exportInfoSessionExcel,
   getCurrentUser,
   getRecruiterReassignmentPermission,
+  getInfoSessionWorkflowProgress,
+  updateInfoSessionWorkflowProgress,
 } from '../services/api'
 import type { AssignedSession, Recruiter, NewHireOrientation, NewHireOrientationWithSteps } from '../types'
 import type { RowTemplate } from '../services/api'
@@ -60,6 +62,19 @@ function RecruiterDashboard() {
     rejected: false,
     drug_screen: false,
     questions: false,
+  })
+  const [workflowStatus, setWorkflowStatus] = useState<Record<string, boolean>>({
+    ob_sent: false,
+    ob_completed: false,
+    i9_sent: false,
+    i9_completed: false,
+    existing_i9: false,
+    needs_schedule_fp: false,
+    existing_fp: false,
+    pending_drug_screening: false,
+    drug_screening_complete: false,
+    trainings_sent: false,
+    nho_scheduled: false,
   })
   const [templates, setTemplates] = useState<RowTemplate[]>([])
   const [selectedTemplate, setSelectedTemplate] = useState<RowTemplate | null>(null)
@@ -1421,6 +1436,32 @@ function RecruiterDashboard() {
     )
   }
 
+  const handleWorkflowCheckbox = async (
+    field: string,
+    value: boolean,
+    legacyField?: 'ob365_sent' | 'i9_sent' | 'existing_i9' | 'drug_screen'
+  ) => {
+    if (!selectedSession) return
+
+    const previousWorkflowValue = !!workflowStatus[field]
+    setWorkflowStatus(prev => ({ ...prev, [field]: value }))
+
+    if (legacyField) {
+      setDocumentStatus(prev => ({ ...prev, [legacyField]: value }))
+    }
+
+    try {
+      await updateInfoSessionWorkflowProgress(selectedSession.id, field, value)
+    } catch (error) {
+      console.error('Error syncing workflow progress:', error)
+      setWorkflowStatus(prev => ({ ...prev, [field]: previousWorkflowValue }))
+      if (legacyField) {
+        setDocumentStatus(prev => ({ ...prev, [legacyField]: previousWorkflowValue }))
+      }
+      alert('Could not update the TV progress. Please try again.')
+    }
+  }
+
   const openSessionDetails = async (session: AssignedSession) => {
     setSelectedSession(session)
     setDocumentStatus({
@@ -1432,6 +1473,30 @@ function RecruiterDashboard() {
       drug_screen: session.drug_screen,
       questions: session.questions,
     })
+
+    try {
+      const progressRows = await getInfoSessionWorkflowProgress()
+      const progressRow = progressRows.find(row => row.info_session_id === session.id)
+      if (progressRow) {
+        setWorkflowStatus(progressRow.progress)
+      } else {
+        setWorkflowStatus({
+          ob_sent: session.ob365_sent || false,
+          ob_completed: false,
+          i9_sent: session.i9_sent || false,
+          i9_completed: false,
+          existing_i9: session.existing_i9 || false,
+          needs_schedule_fp: false,
+          existing_fp: false,
+          pending_drug_screening: false,
+          drug_screening_complete: session.drug_screen || false,
+          trainings_sent: false,
+          nho_scheduled: false,
+        })
+      }
+    } catch (error) {
+      console.error('Error loading workflow progress:', error)
+    }
     
     // Ensure template is selected - use first template if none selected
     let templateToUse = selectedTemplate
@@ -2752,87 +2817,150 @@ function RecruiterDashboard() {
                   })()}
 
                   <div className="border-t pt-4">
-                    <h3 className="font-bold mb-3">Document Status</h3>
-                    <div className="space-y-2">
+                    <h3 className="font-bold mb-3">Info Session Progress</h3>
+                    <p className="text-sm text-gray-500 mb-3">
+                      These checks update the TV kiosk automatically.
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <label className="flex items-center">
                         <input
                           type="checkbox"
-                          checked={documentStatus.ob365_sent}
-                          onChange={(e) =>
-                            setDocumentStatus({ ...documentStatus, ob365_sent: e.target.checked })
-                          }
+                          checked={!!workflowStatus.ob_sent}
+                          onChange={(e) => handleWorkflowCheckbox('ob_sent', e.target.checked, 'ob365_sent')}
                           className="mr-2"
                         />
-                        OB365 Sent
+                        OB Sent
                       </label>
                       <label className="flex items-center">
                         <input
                           type="checkbox"
-                          checked={documentStatus.i9_sent}
-                          onChange={(e) =>
-                            setDocumentStatus({ ...documentStatus, i9_sent: e.target.checked })
-                          }
+                          checked={!!workflowStatus.ob_completed}
+                          onChange={(e) => handleWorkflowCheckbox('ob_completed', e.target.checked)}
                           className="mr-2"
                         />
-                        I9 Sent
+                        OB Completed
                       </label>
                       <label className="flex items-center">
                         <input
                           type="checkbox"
-                          checked={documentStatus.existing_i9}
-                          onChange={(e) =>
-                            setDocumentStatus({ ...documentStatus, existing_i9: e.target.checked })
-                          }
+                          checked={!!workflowStatus.i9_sent}
+                          onChange={(e) => handleWorkflowCheckbox('i9_sent', e.target.checked, 'i9_sent')}
                           className="mr-2"
                         />
-                        Has Existing I9
+                        I-9 Sent
                       </label>
                       <label className="flex items-center">
                         <input
                           type="checkbox"
-                          checked={documentStatus.ineligible}
-                          onChange={(e) =>
-                            setDocumentStatus({ ...documentStatus, ineligible: e.target.checked })
-                          }
+                          checked={!!workflowStatus.i9_completed}
+                          onChange={(e) => handleWorkflowCheckbox('i9_completed', e.target.checked)}
                           className="mr-2"
                         />
-                        Ineligible
+                        I-9 Completed
                       </label>
                       <label className="flex items-center">
                         <input
                           type="checkbox"
-                          checked={documentStatus.rejected}
-                          onChange={(e) =>
-                            setDocumentStatus({ ...documentStatus, rejected: e.target.checked })
-                          }
+                          checked={!!workflowStatus.existing_i9}
+                          onChange={(e) => handleWorkflowCheckbox('existing_i9', e.target.checked, 'existing_i9')}
                           className="mr-2"
                         />
-                        Rejected
+                        Existing I-9
                       </label>
                       <label className="flex items-center">
                         <input
                           type="checkbox"
-                          checked={documentStatus.drug_screen}
-                          onChange={(e) =>
-                            setDocumentStatus({ ...documentStatus, drug_screen: e.target.checked })
-                          }
+                          checked={!!workflowStatus.needs_schedule_fp}
+                          onChange={(e) => handleWorkflowCheckbox('needs_schedule_fp', e.target.checked)}
                           className="mr-2"
                         />
-                        Drug Screen
+                        FP
                       </label>
                       <label className="flex items-center">
                         <input
                           type="checkbox"
-                          checked={documentStatus.questions}
-                          onChange={(e) =>
-                            setDocumentStatus({ ...documentStatus, questions: e.target.checked })
-                          }
+                          checked={!!workflowStatus.existing_fp}
+                          onChange={(e) => handleWorkflowCheckbox('existing_fp', e.target.checked)}
                           className="mr-2"
                         />
-                        Questions
+                        Existing FP
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={!!workflowStatus.pending_drug_screening}
+                          onChange={(e) => handleWorkflowCheckbox('pending_drug_screening', e.target.checked)}
+                          className="mr-2"
+                        />
+                        Pending Drug Screening
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={!!workflowStatus.drug_screening_complete}
+                          onChange={(e) => handleWorkflowCheckbox('drug_screening_complete', e.target.checked, 'drug_screen')}
+                          className="mr-2"
+                        />
+                        Drug Screening Complete
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={!!workflowStatus.trainings_sent}
+                          onChange={(e) => handleWorkflowCheckbox('trainings_sent', e.target.checked)}
+                          className="mr-2"
+                        />
+                        Trainings Sent
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={!!workflowStatus.nho_scheduled}
+                          onChange={(e) => handleWorkflowCheckbox('nho_scheduled', e.target.checked)}
+                          className="mr-2"
+                        />
+                        NHO Scheduled
                       </label>
                     </div>
 
+                    <div className="mt-4 pt-4 border-t">
+                      <h4 className="font-semibold mb-2 text-gray-700">Other Session Flags</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={documentStatus.ineligible}
+                            onChange={(e) =>
+                              setDocumentStatus({ ...documentStatus, ineligible: e.target.checked })
+                            }
+                            className="mr-2"
+                          />
+                          Ineligible
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={documentStatus.rejected}
+                            onChange={(e) =>
+                              setDocumentStatus({ ...documentStatus, rejected: e.target.checked })
+                            }
+                            className="mr-2"
+                          />
+                          Rejected
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={documentStatus.questions}
+                            onChange={(e) =>
+                              setDocumentStatus({ ...documentStatus, questions: e.target.checked })
+                            }
+                            className="mr-2"
+                          />
+                          Questions
+                        </label>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="flex gap-2 pt-4 border-t">
