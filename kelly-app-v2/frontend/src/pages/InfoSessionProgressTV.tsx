@@ -163,6 +163,14 @@ export default function InfoSessionProgressTV() {
                       : 'I-9 Pending'}
                   </span>
 
+                  <span className={`rounded-full px-3 py-1 text-sm font-bold ${
+                    row.progress.drug_screening_complete
+                      ? 'bg-green-500/20 text-green-300'
+                      : 'bg-yellow-500/20 text-yellow-300'
+                  }`}>
+                    {row.progress.drug_screening_complete ? 'DS Completed' : 'DS Pending'}
+                  </span>
+
                   {row.progress.needs_schedule_fp && (
                     <span className="rounded-full bg-orange-500/20 px-3 py-1 text-sm font-bold text-orange-300">
                       Need FP
