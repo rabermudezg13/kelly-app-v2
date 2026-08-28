@@ -112,14 +112,14 @@ def _initials(session: InfoSession) -> str:
     last = (session.last_name or "").strip()
     return f"{first[:1]}{last[:1]}".upper()
 
-def _progress_payload(session: InfoSession, progress: Optional[InfoSessionProgress]):
+def _progress_payload(session: InfoSession, progress: Optional[InfoSessionProgress], recruiter_name: Optional[str] = None):
     values = {field: bool(getattr(progress, field, False)) for field in PROGRESS_FIELDS}
     completed = sum(1 for value in values.values() if value)
     return {
         "info_session_id": session.id,
         "initials": _initials(session),
         "assigned_recruiter_id": session.assigned_recruiter_id,
-        "assigned_recruiter_name": session.assigned_recruiter.name if getattr(session, "assigned_recruiter", None) else None,
+        "assigned_recruiter_name": recruiter_name,
         "time_slot": session.time_slot,
         "created_at": session.created_at,
         "progress": values,
@@ -136,7 +136,6 @@ async def get_info_session_workflow_progress(
     """Shared staff workflow board for Info Session visitors only."""
     sessions = (
         db.query(InfoSession)
-        .options(joinedload(InfoSession.assigned_recruiter))
         .filter(func.date(InfoSession.created_at) == date.today())
         .order_by(InfoSession.created_at.asc())
         .all()
@@ -147,7 +146,14 @@ async def get_info_session_workflow_progress(
             InfoSessionProgress.info_session_id.in_([s.id for s in sessions])
         ).all()
     } if sessions else {}
-    return [_progress_payload(session, progress_rows.get(session.id)) for session in sessions]
+    recruiter_ids = {s.assigned_recruiter_id for s in sessions if s.assigned_recruiter_id}
+    recruiter_names = {
+        r.id: r.name for r in db.query(Recruiter).filter(Recruiter.id.in_(recruiter_ids)).all()
+    } if recruiter_ids else {}
+    return [
+        _progress_payload(session, progress_rows.get(session.id), recruiter_names.get(session.assigned_recruiter_id))
+        for session in sessions
+    ]
 
 @router.patch("/{session_id}/workflow-progress")
 async def update_info_session_workflow_progress(
@@ -174,7 +180,8 @@ async def update_info_session_workflow_progress(
     setattr(progress, update.field, update.value)
     db.commit()
     db.refresh(progress)
-    return _progress_payload(session, progress)
+    recruiter = db.query(Recruiter).filter(Recruiter.id == session.assigned_recruiter_id).first() if session.assigned_recruiter_id else None
+    return _progress_payload(session, progress, recruiter.name if recruiter else None)
 
 # Default steps for Info Session
 DEFAULT_STEPS = [
