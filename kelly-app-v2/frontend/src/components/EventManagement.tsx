@@ -452,6 +452,7 @@ function EventManagement() {
                       <th className="px-4 py-2 text-left">ZIP Code</th>
                       <th className="px-4 py-2 text-left">English</th>
                       <th className="px-4 py-2 text-left">Education</th>
+                      {selectedEvent.event_type === 'therapy' && <th className="px-4 py-2 text-left">Certified</th>}
                       <th className="px-4 py-2 text-left">Recruiter</th>
                       <th className="px-4 py-2 text-left">Status</th>
                       <th className="px-4 py-2 text-left">Actions</th>
@@ -488,6 +489,11 @@ function EventManagement() {
                         <td className="px-4 py-2">
                           {attendee.education_proof ? '✅' : '❌'}
                         </td>
+                        {selectedEvent.event_type === 'therapy' && (
+                          <td className="px-4 py-2">
+                            {attendee.is_certified === true ? '✅ Yes' : attendee.is_certified === false ? '❌ No' : '—'}
+                          </td>
+                        )}
                         <td className="px-4 py-2">
                           {attendee.assigned_recruiter_name || (
                             <span className="text-gray-400">Unassigned</span>
