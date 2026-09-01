@@ -20,6 +20,7 @@ function EventRegistrationPage() {
     zip_code: '',
     english_communication: false,
     education_proof: false,
+    is_certified: null,
   })
 
   useEffect(() => {
@@ -63,6 +64,11 @@ function EventRegistrationPage() {
       return
     }
 
+    if (event?.event_type === 'therapy' && formData.is_certified === null) {
+      alert('Please answer: Are you certified?')
+      return
+    }
+
     if (!formData.english_communication || !formData.education_proof) {
       alert('Please confirm both requirements before registering')
       return
@@ -82,6 +88,7 @@ function EventRegistrationPage() {
         zip_code: '',
         english_communication: false,
         education_proof: false,
+        is_certified: null,
       })
     } catch (err: any) {
       console.error('Error registering:', err)
@@ -241,6 +248,36 @@ function EventRegistrationPage() {
             {/* Requirements */}
             <div>
               <h2 className="text-2xl font-bold text-gray-800 mb-4">Requirements</h2>
+
+              {event.event_type === 'therapy' && (
+                <div className="mb-5 rounded-lg border-2 border-purple-300 bg-purple-50 p-4">
+                  <p className="mb-3 font-semibold text-gray-800">
+                    Are you certified? <span className="text-red-500">*</span>
+                  </p>
+                  <div className="flex gap-6">
+                    <label className="flex cursor-pointer items-center gap-2">
+                      <input
+                        type="radio"
+                        name="is_certified"
+                        checked={formData.is_certified === true}
+                        onChange={() => setFormData(prev => ({ ...prev, is_certified: true }))}
+                        required
+                      />
+                      Yes
+                    </label>
+                    <label className="flex cursor-pointer items-center gap-2">
+                      <input
+                        type="radio"
+                        name="is_certified"
+                        checked={formData.is_certified === false}
+                        onChange={() => setFormData(prev => ({ ...prev, is_certified: false }))}
+                        required
+                      />
+                      No
+                    </label>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-4">
                 <div className="flex items-start gap-3 p-4 border-2 border-gray-300 rounded-lg hover:border-blue-500 transition-colors">
