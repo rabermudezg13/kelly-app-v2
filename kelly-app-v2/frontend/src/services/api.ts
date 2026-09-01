@@ -965,8 +965,8 @@ export const generateRow = async (templateId: number, data: Record<string, any>)
 
 // ========== Event API ==========
 
-export const createEvent = async (name: string): Promise<Event> => {
-  const response = await api.post('/event/events', { name })
+export const createEvent = async (name: string, event_type: 'regular_sub' | 'therapy' = 'regular_sub'): Promise<Event> => {
+  const response = await api.post('/event/events', { name, event_type })
   return response.data
 }
 
