@@ -190,6 +190,7 @@ export interface Event {
   unique_code: string
   qr_code_data?: string | null
   is_active: boolean
+  event_type: 'regular_sub' | 'therapy'
   created_at: string
   updated_at?: string | null
   attendee_count?: number
@@ -205,6 +206,7 @@ export interface EventAttendee {
   zip_code: string
   english_communication: boolean
   education_proof: boolean
+  is_certified?: boolean | null
   assigned_recruiter_id?: number | null
   assigned_recruiter_name?: string | null
   is_duplicate: boolean
@@ -220,6 +222,7 @@ export interface EventAttendeeCreate {
   zip_code: string
   english_communication: boolean
   education_proof: boolean
+  is_certified?: boolean | null
 }
 
 export interface RecruiterList {
