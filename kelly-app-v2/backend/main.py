@@ -123,6 +123,26 @@ try:
                     conn.execute(text("ALTER TABLE meet_greets ADD COLUMN subparty_suggestion TEXT"))
                     conn.commit()
                     print("✅ Column 'subparty_suggestion' added successfully")
+            # Migration: Event type + Therapy certification.
+            # ALTER TABLE only adds nullable/defaulted columns; existing event and attendee data is preserved.
+            if 'events' in inspector.get_table_names():
+                event_columns = [col['name'] for col in inspector.get_columns('events')]
+                if 'event_type' not in event_columns:
+                    print("📝 Adding 'event_type' column to events...")
+                    conn.execute(text("ALTER TABLE events ADD COLUMN event_type VARCHAR(20) DEFAULT 'regular_sub'"))
+                    conn.execute(text("UPDATE events SET event_type = 'regular_sub' WHERE event_type IS NULL"))
+                    conn.execute(text("ALTER TABLE events ALTER COLUMN event_type SET NOT NULL"))
+                    conn.commit()
+                    print("✅ Column 'event_type' added; existing events preserved as Regular Sub")
+
+            if 'event_attendees' in inspector.get_table_names():
+                attendee_columns = [col['name'] for col in inspector.get_columns('event_attendees')]
+                if 'is_certified' not in attendee_columns:
+                    print("📝 Adding nullable 'is_certified' column to event_attendees...")
+                    conn.execute(text("ALTER TABLE event_attendees ADD COLUMN is_certified BOOLEAN"))
+                    conn.commit()
+                    print("✅ Column 'is_certified' added; existing attendee data preserved")
+
             # Migration: add question_5-8 to info_sessions (paraprofessional questions)
             if 'info_sessions' in inspector.get_table_names():
                 is_columns = [col['name'] for col in inspector.get_columns('info_sessions')]
