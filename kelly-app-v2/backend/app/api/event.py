@@ -24,6 +24,7 @@ router = APIRouter()
 # Pydantic models
 class EventCreate(BaseModel):
     name: str
+    event_type: str = "regular_sub"
 
 class EventUpdate(BaseModel):
     name: str
@@ -36,6 +37,7 @@ class EventAttendeeCreate(BaseModel):
     zip_code: str
     english_communication: bool
     education_proof: bool
+    is_certified: Optional[bool] = None
 
 class EventAttendeeUpdate(BaseModel):
     is_checked: Optional[bool] = None
@@ -49,6 +51,7 @@ class EventResponse(BaseModel):
     unique_code: str
     qr_code_data: Optional[str] = None
     is_active: bool
+    event_type: str = "regular_sub"
     created_at: datetime
     updated_at: Optional[datetime] = None
     attendee_count: Optional[int] = 0
@@ -64,6 +67,7 @@ class EventAttendeeResponse(BaseModel):
     zip_code: str
     english_communication: bool
     education_proof: bool
+    is_certified: Optional[bool] = None
     assigned_recruiter_id: Optional[int] = None
     assigned_recruiter_name: Optional[str] = None
     is_duplicate: bool
@@ -136,7 +140,8 @@ async def create_event(
         name=data.name,
         unique_code=unique_code,
         qr_code_data=qr_code_data,
-        is_active=True
+        is_active=True,
+        event_type=data.event_type if data.event_type in ("regular_sub", "therapy") else "regular_sub"
     )
 
     db.add(event)
@@ -309,7 +314,8 @@ async def register_attendee(
         phone=data.phone,
         zip_code=data.zip_code,
         english_communication=data.english_communication,
-        education_proof=data.education_proof
+        education_proof=data.education_proof,
+        is_certified=data.is_certified if event.event_type == "therapy" else None
     )
 
     db.add(attendee)
