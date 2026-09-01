@@ -27,6 +27,7 @@ function EventManagement() {
   const [showQRModal, setShowQRModal] = useState(false)
   const [showRecruiterListsModal, setShowRecruiterListsModal] = useState(false)
   const [newEventName, setNewEventName] = useState('')
+  const [newEventType, setNewEventType] = useState<'regular_sub' | 'therapy'>('regular_sub')
   const [editEventName, setEditEventName] = useState('')
   const [selectedAttendees, setSelectedAttendees] = useState<number[]>([])
   const [assignRecruiterMode, setAssignRecruiterMode] = useState(false)
@@ -77,8 +78,9 @@ function EventManagement() {
     }
 
     try {
-      await createEvent(newEventName)
+      await createEvent(newEventName, newEventType)
       setNewEventName('')
+      setNewEventType('regular_sub')
       setShowCreateModal(false)
       await loadData()
       alert('Event created successfully!')
@@ -546,6 +548,17 @@ function EventManagement() {
               placeholder="Event name"
               className="w-full px-4 py-2 border border-gray-300 rounded mb-4"
             />
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Event Type</label>
+              <select
+                value={newEventType}
+                onChange={(e) => setNewEventType(e.target.value as 'regular_sub' | 'therapy')}
+                className="w-full px-4 py-2 border border-gray-300 rounded"
+              >
+                <option value="regular_sub">Regular Sub</option>
+                <option value="therapy">Therapy</option>
+              </select>
+            </div>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowCreateModal(false)}
