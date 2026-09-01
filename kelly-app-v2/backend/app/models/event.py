@@ -14,6 +14,7 @@ class Event(Base):
 
     # Status
     is_active = Column(Boolean, default=True)  # Active events can receive registrations
+    event_type = Column(String(20), default="regular_sub", nullable=False)  # regular_sub or therapy
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -37,6 +38,7 @@ class EventAttendee(Base):
     # Requirements checkboxes
     english_communication = Column(Boolean, default=False)  # Speaks English
     education_proof = Column(Boolean, default=False)  # Has proof of education
+    is_certified = Column(Boolean, nullable=True)  # Therapy events only
 
     # Recruiter assignment
     assigned_recruiter_id = Column(Integer, ForeignKey("recruiters.id"), nullable=True)
