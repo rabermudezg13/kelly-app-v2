@@ -1309,9 +1309,12 @@ function RecruiterDashboard() {
           .replace(/"/g, '&quot;')
 
       const tableRows = rows.map((orientation, index) => {
-        const fullName = `${orientation.first_name || ''} ${orientation.last_name || ''}`
-          .trim()
-          .toUpperCase()
+        const titleCase = (value: string) =>
+          value
+            .trim()
+            .toLowerCase()
+            .replace(/(^|[\\s'-])([a-z])/g, (_, prefix, letter) => prefix + letter.toUpperCase())
+        const fullName = `${titleCase(orientation.first_name || '')} ${titleCase(orientation.last_name || '')}`.trim()
         return `<tr><td>${index + 1}</td><td>${escapeHtml(fullName)}</td><td>${escapeHtml(orientation.email || '')}</td></tr>`
       }).join('')
 
