@@ -1290,6 +1290,43 @@ function RecruiterDashboard() {
       }
     }
 
+    const handleExportNhoDate = (dateKey: string) => {
+      const rows = (groupedOrientations[dateKey] || [])
+        .slice()
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+
+      if (rows.length === 0) {
+        alert('No visitors to export for this date.')
+        return
+      }
+
+      // Excel opens HTML tables saved with an .xls extension without adding a frontend dependency.
+      const escapeHtml = (value: string) =>
+        value
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+
+      const tableRows = rows.map((orientation, index) => {
+        const fullName = `${orientation.first_name || ''} ${orientation.last_name || ''}`
+          .trim()
+          .toUpperCase()
+        return `<tr><td>${index + 1}</td><td>${escapeHtml(fullName)}</td><td>${escapeHtml(orientation.email || '')}</td></tr>`
+      }).join('')
+
+      const excelHtml = `<html><head><meta charset="UTF-8"></head><body><table border="1"><thead><tr><th>N</th><th>NAME</th><th>EMAIL</th></tr></thead><tbody>${tableRows}</tbody></table></body></html>`
+      const blob = new Blob([excelHtml], { type: 'application/vnd.ms-excel;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `NHO_${dateKey}.xls`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    }
+
     return (
       <div className="space-y-4">
         <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 flex flex-wrap justify-between items-center gap-3">
@@ -1349,6 +1386,15 @@ function RecruiterDashboard() {
             >
               🔄 Refresh
             </button>
+            {sortedDateKeys.length > 0 && (
+              <button
+                onClick={() => handleExportNhoDate(sortedDateKeys[0])}
+                className="px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-semibold"
+                title="Export the most recent New Hire Orientation date shown"
+              >
+                📊 Export Latest Day
+              </button>
+            )}
           </div>
         </div>
         {newHireOrientations.length === 0 ? (
@@ -1382,6 +1428,15 @@ function RecruiterDashboard() {
                               <span className="text-gray-700 font-bold text-lg">
                                 ─── {formatMiamiDateDisplay(orientationsForDate[0].created_at)} ───
                               </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleExportNhoDate(dateKey)
+                                }}
+                                className="ml-4 rounded bg-green-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-green-700"
+                              >
+                                📊 Export Excel
+                              </button>
                             </div>
                           </td>
                         </tr>
