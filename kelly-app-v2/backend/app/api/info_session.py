@@ -119,6 +119,7 @@ def _progress_payload(session: InfoSession, progress: Optional[InfoSessionProgre
         "info_session_id": session.id,
         "initials": _initials(session),
         "display_label": display_label or _initials(session),
+        "full_name": f"{(session.first_name or '').strip()} {(session.last_name or '').strip()}".strip(),
         "assigned_recruiter_id": session.assigned_recruiter_id,
         "assigned_recruiter_name": recruiter_name,
         "time_slot": session.time_slot,
