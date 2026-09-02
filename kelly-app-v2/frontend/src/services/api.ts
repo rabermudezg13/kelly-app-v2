@@ -729,6 +729,7 @@ export interface InfoSessionWorkflowProgress {
   info_session_id: number
   initials: string
   display_label: string
+  full_name: string
   assigned_recruiter_id?: number | null
   assigned_recruiter_name?: string | null
   time_slot: string
