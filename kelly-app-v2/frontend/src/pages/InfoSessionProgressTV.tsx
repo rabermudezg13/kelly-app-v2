@@ -123,13 +123,16 @@ export default function InfoSessionProgressTV() {
               key={row.info_session_id}
               className="grid w-full grid-cols-[120px_1fr_2fr] items-center gap-8 rounded-2xl border border-gray-700 bg-gray-900 p-6"
             >
-              <button
-                onClick={() => setSelected(row)}
-                className="text-left text-5xl font-black underline decoration-transparent underline-offset-8 transition hover:text-green-400 hover:decoration-green-400"
-                title="Click to edit progress"
+              <a
+                href="/info-session-progress/"
+                className="group relative text-left text-5xl font-black underline decoration-transparent underline-offset-8 transition hover:text-green-400 hover:decoration-green-400"
+                aria-label={`Open progress editor for ${row.full_name || row.display_label || row.initials}`}
               >
                 {row.display_label || row.initials}
-              </button>
+                <span className="pointer-events-none absolute bottom-full left-0 z-20 mb-3 hidden whitespace-nowrap rounded-lg bg-white px-4 py-2 text-lg font-bold text-gray-900 shadow-xl group-hover:block">
+                  {row.full_name || row.display_label || row.initials}
+                </span>
+              </a>
 
               <div>
                 <div className="text-sm uppercase tracking-widest text-gray-500">Recruiter</div>
