@@ -40,6 +40,7 @@ import EventManagement from '../components/EventManagement'
 import StorageManagement from '../components/StorageManagement'
 import PCListCheck from '../components/PCListCheck'
 import InfoSessionProgressTV from './InfoSessionProgressTV'
+import * as XLSX from 'xlsx'
 
 type RecruiterTabType = 'sessions' | 'all-info-sessions' | 'new-hire-orientation' | 'fingerprints' | 'badges' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'ksn-tool' | 'storage' | 'pc-check' | 'tv-kiosk'
 
@@ -1300,34 +1301,28 @@ function RecruiterDashboard() {
         return
       }
 
-      // Excel opens HTML tables saved with an .xls extension without adding a frontend dependency.
-      const escapeHtml = (value: string) =>
+      const titleCase = (value: string) =>
         value
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
+          .trim()
+          .toLowerCase()
+          .replace(/(^|[\\s'-])([a-z])/g, (_, prefix, letter) => prefix + letter.toUpperCase())
 
-      const tableRows = rows.map((orientation, index) => {
-        const titleCase = (value: string) =>
-          value
-            .trim()
-            .toLowerCase()
-            .replace(/(^|[\\s'-])([a-z])/g, (_, prefix, letter) => prefix + letter.toUpperCase())
-        const fullName = `${titleCase(orientation.first_name || '')} ${titleCase(orientation.last_name || '')}`.trim()
-        return `<tr><td>${index + 1}</td><td>${escapeHtml(fullName)}</td><td>${escapeHtml(orientation.email || '')}</td></tr>`
-      }).join('')
+      const excelRows = rows.map((orientation, index) => ({
+        N: index + 1,
+        NAME: `${titleCase(orientation.first_name || '')} ${titleCase(orientation.last_name || '')}`.trim(),
+        EMAIL: orientation.email || '',
+      }))
 
-      const excelHtml = `<html><head><meta charset="UTF-8"></head><body><table border="1"><thead><tr><th>N</th><th>NAME</th><th>EMAIL</th></tr></thead><tbody>${tableRows}</tbody></table></body></html>`
-      const blob = new Blob([excelHtml], { type: 'application/vnd.ms-excel;charset=utf-8;' })
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `NHO_${dateKey}.xls`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
+      const worksheet = XLSX.utils.json_to_sheet(excelRows, { header: ['N', 'NAME', 'EMAIL'] })
+      worksheet['!cols'] = [
+        { wch: 6 },
+        { wch: 32 },
+        { wch: 40 },
+      ]
+
+      const workbook = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'NHO')
+      XLSX.writeFile(workbook, `NHO_${dateKey}.xlsx`)
     }
 
     return (
