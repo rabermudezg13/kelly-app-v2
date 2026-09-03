@@ -79,6 +79,7 @@ function RecruiterDashboard() {
     nho_scheduled: false,
   })
   const [templates, setTemplates] = useState<RowTemplate[]>([])
+  const [templatesLoadFailed, setTemplatesLoadFailed] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState<RowTemplate | null>(null)
   const [sessionRowData, setSessionRowData] = useState<Record<string, any>>({})
   const [sessionGeneratedRow, setSessionGeneratedRow] = useState<string>('')
@@ -205,9 +206,17 @@ function RecruiterDashboard() {
         }
       }
 
-      const templatesData: RowTemplate[] = templatesResult.status === 'fulfilled' && Array.isArray(templatesResult.value) ? templatesResult.value : []
-      setTemplates(templatesData)
-      if (templatesData.length > 0 && !selectedTemplate) setSelectedTemplate(templatesData[0])
+      if (templatesResult.status === 'fulfilled' && Array.isArray(templatesResult.value)) {
+        const templatesData: RowTemplate[] = templatesResult.value
+        setTemplates(templatesData)
+        setTemplatesLoadFailed(false)
+        if (templatesData.length > 0 && !selectedTemplate) setSelectedTemplate(templatesData[0])
+      } else {
+        // A network/auth error is not the same as having no configured template.
+        // Preserve any template already loaded so a transient request cannot break the session UI.
+        console.error('Error loading row templates:', templatesResult.status === 'rejected' ? templatesResult.reason : 'Invalid response')
+        setTemplatesLoadFailed(true)
+      }
 
       if (recruitersResult.status === 'fulfilled') {
         setAllRecruiters(recruitersResult.value || [])
@@ -1505,14 +1514,32 @@ function RecruiterDashboard() {
     }
 
     try {
-      await updateInfoSessionWorkflowProgress(selectedSession.id, field, value)
-    } catch (error) {
+      const updated = await updateInfoSessionWorkflowProgress(selectedSession.id, field, value)
+      // Use the server response as the source of truth. This also applies precedence
+      // rules (completed clears sent/pending) consistently on every device.
+      if (updated?.progress) {
+        setWorkflowStatus(updated.progress)
+      }
+    } catch (error: any) {
       console.error('Error syncing workflow progress:', error)
+
+      // One safe retry covers short-lived network/backend wake-up failures without
+      // changing or deleting any existing session data.
+      try {
+        const updated = await updateInfoSessionWorkflowProgress(selectedSession.id, field, value)
+        if (updated?.progress) {
+          setWorkflowStatus(updated.progress)
+        }
+        return
+      } catch (retryError) {
+        console.error('Error syncing workflow progress after retry:', retryError)
+      }
+
       setWorkflowStatus(prev => ({ ...prev, [field]: previousWorkflowValue }))
       if (legacyField) {
         setDocumentStatus(prev => ({ ...prev, [legacyField]: previousWorkflowValue }))
       }
-      alert('Could not update the TV progress. Please try again.')
+      alert('Could not update the TV progress. Please check your connection and try again.')
     }
   }
 
@@ -2755,7 +2782,11 @@ function RecruiterDashboard() {
                       return (
                         <div className="border-t pt-4 mt-4">
                           <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4">
-                            <p className="text-yellow-800 text-sm">⚠️ Row Generator not available: No template configured. Please contact admin.</p>
+                            <p className="text-yellow-800 text-sm">
+                              {templatesLoadFailed
+                                ? '⚠️ Row Generator temporarily unavailable: template could not be loaded. Your session data is safe; refresh and try again.'
+                                : '⚠️ Row Generator not available: No active template configured. Please contact admin.'}
+                            </p>
                           </div>
                         </div>
                       )
