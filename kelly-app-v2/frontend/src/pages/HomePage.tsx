@@ -28,17 +28,12 @@ function HomePage() {
     weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
   })
   const timeLabel = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  const heroImage = '/welcome-aboard.jp.png'
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-sky-100 text-slate-900">
-      <div
-        className="absolute inset-0 hidden bg-cover bg-center sm:block"
-        style={{ backgroundImage: "url('/welcome-aboard.jpg')" }}
-      />
-      <div
-        className="absolute inset-x-0 top-0 h-[50vh] min-h-[340px] bg-contain bg-top bg-no-repeat sm:hidden"
-        style={{ backgroundImage: "url('/welcome-aboard.jpg')" }}
-      />
+      <div className="absolute inset-0 hidden bg-cover bg-center sm:block" style={{ backgroundImage: `url('${heroImage}')` }} />
+      <div className="absolute inset-x-0 top-0 h-[50vh] min-h-[340px] bg-contain bg-top bg-no-repeat sm:hidden" style={{ backgroundImage: `url('${heroImage}')` }} />
       <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-white/10 to-sky-100/65 sm:bg-white/10" />
       <div className="absolute -left-24 -top-24 h-80 w-80 rounded-full bg-emerald-300/25 blur-3xl" />
       <div className="absolute -right-20 top-1/3 h-96 w-96 rounded-full bg-sky-300/20 blur-3xl" />
