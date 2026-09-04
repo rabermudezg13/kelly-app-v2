@@ -13,9 +13,9 @@ function RegisterVisitPage() {
     },
     {
       id: 'new-hire-orientation',
-      title: 'New Hire Orientation',
+      title: 'Substitute Orientation',
       icon: '👔',
-      description: 'New employee orientation session',
+      description: 'Mandatory Orientation',
       route: '/new-hire-orientation',
     },
     {
@@ -84,6 +84,3 @@ function RegisterVisitPage() {
 }
 
 export default RegisterVisitPage
-
-
-
