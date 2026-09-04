@@ -60,12 +60,8 @@
   const injectInterestQuestions = () => {
     const section = document.querySelector('.questions-section');
     if (!section || section.querySelector('#candidate-interest-questions')) return;
-
-    const submitButton = [...section.querySelectorAll('button')].find((b) =>
-      /submit/i.test((b.textContent || '').trim())
-    );
+    const submitButton = [...section.querySelectorAll('button')].find((b) => /submit/i.test((b.textContent || '').trim()));
     if (!submitButton) return;
-
     const actions = submitButton.closest('.text-center') || submitButton.parentElement;
     if (!actions || !actions.parentElement) return;
 
@@ -76,65 +72,85 @@
       <h3 class="mb-4 text-xl font-bold text-emerald-900">Additional Opportunities</h3>
       <div class="mb-5">
         <p class="mb-2 font-semibold text-gray-800">Are you interested in Special Education or the Head Start Program?</p>
-        <div class="flex gap-3">
-          <button type="button" data-interest="special-ed" data-value="yes">Yes</button>
-          <button type="button" data-interest="special-ed" data-value="no">No</button>
-        </div>
-        <p class="mt-1 text-xs text-gray-500">Yes will set Job Title to ECE. Birth 3 in the recruiter row.</p>
+        <div class="flex gap-3"><button type="button" data-interest="special-ed" data-value="yes">Yes</button><button type="button" data-interest="special-ed" data-value="no">No</button></div>
       </div>
       <div>
         <p class="mb-2 font-semibold text-gray-800">Are you interested in working as a Paraprofessional?</p>
-        <div class="flex gap-3">
-          <button type="button" data-interest="para" data-value="yes">Yes</button>
-          <button type="button" data-interest="para" data-value="no">No</button>
-        </div>
-        <p class="mt-1 text-xs text-gray-500">Yes will add Paraprofessional interested to Notes.</p>
+        <div class="flex gap-3"><button type="button" data-interest="para" data-value="yes">Yes</button><button type="button" data-interest="para" data-value="no">No</button></div>
       </div>`;
-
     actions.parentElement.insertBefore(box, actions);
-    box.querySelectorAll('[data-interest="special-ed"]').forEach((button) => {
-      button.addEventListener('click', () => {
-        state.specialEd = button.dataset.value === 'yes';
-        syncButtons();
-      });
-    });
-    box.querySelectorAll('[data-interest="para"]').forEach((button) => {
-      button.addEventListener('click', () => {
-        state.para = button.dataset.value === 'yes';
-        syncButtons();
-      });
-    });
+
+    box.querySelectorAll('[data-interest="special-ed"]').forEach((button) => button.addEventListener('click', () => {
+      state.specialEd = button.dataset.value === 'yes'; syncButtons();
+    }));
+    box.querySelectorAll('[data-interest="para"]').forEach((button) => button.addEventListener('click', () => {
+      state.para = button.dataset.value === 'yes'; syncButtons();
+    }));
     syncButtons();
     loadInterests(sessionIdFromPath());
-
     submitButton.addEventListener('click', () => saveInterests(sessionIdFromPath()), true);
   };
 
-  const compactRecruiterRow = () => {
+  const findField = (fields, labelName) => {
+    return [...fields.children].find((child) => {
+      const label = child.querySelector('label');
+      return label && (label.textContent || '').replace('*', '').trim().toLowerCase() === labelName.toLowerCase();
+    });
+  };
+
+  const setField = (field, value, append = false) => {
+    if (!field) return;
+    const input = field.querySelector('input, textarea, select');
+    if (!input) return;
+    let next = value;
+    if (append) {
+      const current = (input.value || '').trim();
+      if (current.toLowerCase().includes(value.toLowerCase())) return;
+      next = current ? `${current}; ${value}` : value;
+    }
+    if (input.value === next) return;
+    const setter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(input), 'value')?.set;
+    if (setter) setter.call(input, next); else input.value = next;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+
+  const sessionTypeFromPage = () => {
+    const text = document.body.innerText || '';
+    if (/reactivation/i.test(text)) return 'reactivation';
+    if (/new[- ]?hire/i.test(text)) return 'new-hire';
+    return '';
+  };
+
+  const enhanceRecruiterRow = () => {
     const headings = [...document.querySelectorAll('h3')].filter((h) => (h.textContent || '').trim() === 'Row Generator');
     headings.forEach((heading) => {
       const container = heading.parentElement;
-      if (!container || container.dataset.compactRow === 'true') return;
-      const fields = container.querySelector('.space-y-3');
+      if (!container) return;
+      const fields = container.querySelector('.space-y-3, .recruiter-row-scroll');
       if (!fields) return;
 
-      container.dataset.compactRow = 'true';
-      fields.classList.remove('space-y-3');
-      fields.classList.add('grid', 'grid-cols-1', 'sm:grid-cols-2', 'xl:grid-cols-3', 'gap-3', 'items-start');
+      // Restore the original ordered one-column form and give only this panel its own scrollbar.
+      fields.classList.remove('grid', 'grid-cols-1', 'sm:grid-cols-2', 'xl:grid-cols-3', 'gap-3', 'items-start');
+      fields.classList.add('recruiter-row-scroll');
+      [...fields.children].forEach((child) => child.classList.remove('sm:col-span-2', 'xl:col-span-3'));
+      heading.classList.remove('sticky', 'top-0', 'z-20');
 
-      [...fields.children].forEach((child) => {
-        if (child.tagName === 'BUTTON' || child.querySelector('pre')) {
-          child.classList.add('sm:col-span-2', 'xl:col-span-3');
-        }
-      });
-
-      heading.classList.add('sticky', 'top-0', 'z-20', 'bg-white', 'py-2');
+      // Apply visible row rules immediately as a safety net in addition to backend persistence.
+      const talentType = findField(fields, 'Talent Type');
+      const jobTitle = findField(fields, 'Job Title');
+      const notes = findField(fields, 'Notes');
+      const type = sessionTypeFromPage();
+      if (type === 'reactivation') setField(talentType, 'Re-Activation');
+      if (type === 'new-hire') setField(talentType, 'New');
+      if (state.specialEd) setField(jobTitle, 'ECE. Birth 3');
+      if (state.para) setField(notes, 'Paraprofessional interested', true);
     });
   };
 
   const enhance = () => {
     injectInterestQuestions();
-    compactRecruiterRow();
+    enhanceRecruiterRow();
   };
 
   new MutationObserver(enhance).observe(document.documentElement, { childList: true, subtree: true });
