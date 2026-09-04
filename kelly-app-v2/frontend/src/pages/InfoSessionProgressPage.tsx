@@ -60,8 +60,8 @@ export default function InfoSessionProgressPage() {
   }
 
   return (
-    <div className="p-4">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+    <div className="flex h-[calc(100vh-1rem)] min-h-0 flex-col p-4">
+      <div className="mb-4 flex shrink-0 flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Info Session Progress</h2>
           <p className="text-sm text-gray-600">Today's Info Session visitors. Updates are shared with all staff.</p>
@@ -75,20 +75,20 @@ export default function InfoSessionProgressPage() {
       {loading ? <p className="py-10 text-center">Loading...</p> : rows.length === 0 ? (
         <p className="rounded-lg bg-gray-50 p-8 text-center text-gray-600">No Info Session visitors today.</p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-gray-200 bg-white shadow-sm">
           <table className="min-w-max w-full text-sm">
-            <thead className="bg-gray-900 text-white">
+            <thead className="sticky top-0 z-30 bg-gray-900 text-white shadow-sm">
               <tr>
-                <th className="sticky left-0 z-10 bg-gray-900 px-4 py-3 text-left">Visitor</th>
-                <th className="px-4 py-3 text-left">Recruiter</th>
-                {FIELDS.map(([, label]) => <th key={label} className="px-3 py-3 text-center">{label}</th>)}
-                <th className="px-4 py-3 text-center">Progress</th>
+                <th className="sticky left-0 top-0 z-40 bg-gray-900 px-4 py-3 text-left">Visitor</th>
+                <th className="sticky top-0 z-30 bg-gray-900 px-4 py-3 text-left">Recruiter</th>
+                {FIELDS.map(([, label]) => <th key={label} className="sticky top-0 z-30 bg-gray-900 px-3 py-3 text-center">{label}</th>)}
+                <th className="sticky top-0 z-30 bg-gray-900 px-4 py-3 text-center">Progress</th>
               </tr>
             </thead>
             <tbody>
               {rows.map(row => (
                 <tr key={row.info_session_id} className="border-t border-gray-200">
-                  <td className="sticky left-0 bg-white px-4 py-3 text-xl font-bold">{row.display_label || row.initials}</td>
+                  <td className="sticky left-0 z-10 bg-white px-4 py-3 text-xl font-bold shadow-[2px_0_3px_rgba(0,0,0,0.05)]">{row.display_label || row.initials}</td>
                   <td className="px-4 py-3 font-semibold">{row.assigned_recruiter_name || '—'}</td>
                   {FIELDS.map(([field]) => {
                     const key = `${row.info_session_id}:${field}`
