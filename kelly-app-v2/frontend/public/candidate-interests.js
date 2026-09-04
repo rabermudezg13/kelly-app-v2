@@ -22,17 +22,31 @@
   const sessionTypeFromPage = () => { const text = document.body.innerText || ''; if (/reactivation/i.test(text)) return 'reactivation'; if (/new[- ]?hire/i.test(text)) return 'new-hire'; return ''; };
   const enhanceRecruiterRow = () => { [...document.querySelectorAll('h3')].filter((h) => (h.textContent || '').trim() === 'Row Generator').forEach((heading) => { const container = heading.parentElement; if (!container) return; const fields = container.querySelector('.space-y-3, .recruiter-row-scroll'); if (!fields) return; fields.classList.remove('grid', 'grid-cols-1', 'sm:grid-cols-2', 'xl:grid-cols-3', 'gap-3', 'items-start'); fields.classList.add('recruiter-row-scroll'); [...fields.children].forEach((child) => child.classList.remove('sm:col-span-2', 'xl:col-span-3')); heading.classList.remove('sticky', 'top-0', 'z-20'); const talentType = findField(fields, 'Talent Type'), jobTitle = findField(fields, 'Job Title'), notes = findField(fields, 'Notes'), type = sessionTypeFromPage(); if (type === 'reactivation') setField(talentType, 'Re-Activation'); if (type === 'new-hire') setField(talentType, 'New'); if (state.specialEd) setField(jobTitle, 'ECE. Birth 3'); if (state.para) setField(notes, 'Paraprofessional interested', true); }); };
 
+  const findProgressTarget = () => {
+    const candidates = [...document.querySelectorAll('h1,h2,h3,h4,button,a,p,div')];
+    return candidates.find(el => /info session progress/i.test((el.textContent || '').trim()) && el.id !== 'info-session-progress-quick-access') || null;
+  };
   const addProgressQuickAccess = () => {
     if (document.getElementById('info-session-progress-quick-access')) return;
     const path = window.location.pathname;
     if (/\/info-session-progress/.test(path) || /\/staff\/login/.test(path) || path === '/' || /\/register-visit/.test(path) || /\/info-session\/\d+\/questions/.test(path)) return;
     const dashboardVisible = /dashboard|recruiter/i.test(path) || [...document.querySelectorAll('button')].some((b) => /tv kiosk|all info sessions|my sessions|fingerprints|badges/i.test((b.textContent || '').trim()));
     if (!dashboardVisible) return;
-    const quick = document.createElement('a');
-    quick.id = 'info-session-progress-quick-access'; quick.href = '/info-session-progress';
-    quick.innerHTML = '<span aria-hidden="true">📋</span><span>Info Session Progress</span>';
-    quick.style.cssText = 'position:fixed;top:12px;right:16px;z-index:2147483647;display:flex;align-items:center;gap:8px;padding:12px 17px;border:1px solid rgba(255,255,255,.32);border-radius:14px;background:#047857;color:#fff;text-decoration:none;font-family:inherit;font-weight:800;font-size:14px;line-height:1.2;box-shadow:0 8px 26px rgba(6,78,59,.32);cursor:pointer;';
-    quick.title = 'Open Info Session Progress'; document.body.appendChild(quick);
+    const quick = document.createElement('button');
+    quick.id = 'info-session-progress-quick-access'; quick.type = 'button';
+    quick.innerHTML = '<span aria-hidden="true">↓</span><span>Info Session Progress</span>';
+    quick.style.cssText = 'position:fixed;top:12px;right:16px;z-index:2147483647;display:flex;align-items:center;gap:8px;padding:12px 17px;border:1px solid rgba(255,255,255,.32);border-radius:14px;background:#047857;color:#fff;font-family:inherit;font-weight:800;font-size:14px;line-height:1.2;box-shadow:0 8px 26px rgba(6,78,59,.32);cursor:pointer;';
+    quick.title = 'Scroll to Info Session Progress';
+    quick.addEventListener('click', () => {
+      const target = findProgressTarget();
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      const oldButton = [...document.querySelectorAll('button,a')].find(el => /info session progress/i.test((el.textContent || '').trim()) && el !== quick);
+      if (oldButton) oldButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    document.body.appendChild(quick);
   };
   const enhance = () => { injectInterestQuestions(); enhanceRecruiterRow(); addProgressQuickAccess(); };
   new MutationObserver(enhance).observe(document.documentElement, { childList: true, subtree: true }); document.addEventListener('DOMContentLoaded', enhance); setTimeout(enhance, 300); setTimeout(enhance, 1200);
