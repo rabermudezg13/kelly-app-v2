@@ -23,8 +23,11 @@
   const enhanceRecruiterRow = () => { [...document.querySelectorAll('h3')].filter((h) => (h.textContent || '').trim() === 'Row Generator').forEach((heading) => { const container = heading.parentElement; if (!container) return; const fields = container.querySelector('.space-y-3, .recruiter-row-scroll'); if (!fields) return; fields.classList.remove('grid', 'grid-cols-1', 'sm:grid-cols-2', 'xl:grid-cols-3', 'gap-3', 'items-start'); fields.classList.add('recruiter-row-scroll'); [...fields.children].forEach((child) => child.classList.remove('sm:col-span-2', 'xl:col-span-3')); heading.classList.remove('sticky', 'top-0', 'z-20'); const talentType = findField(fields, 'Talent Type'), jobTitle = findField(fields, 'Job Title'), notes = findField(fields, 'Notes'), type = sessionTypeFromPage(); if (type === 'reactivation') setField(talentType, 'Re-Activation'); if (type === 'new-hire') setField(talentType, 'New'); if (state.specialEd) setField(jobTitle, 'ECE. Birth 3'); if (state.para) setField(notes, 'Paraprofessional interested', true); }); };
 
   const findProgressTarget = () => {
-    const candidates = [...document.querySelectorAll('h1,h2,h3,h4,button,a,p,div')];
-    return candidates.find(el => /info session progress/i.test((el.textContent || '').trim()) && el.id !== 'info-session-progress-quick-access') || null;
+    const exact = [...document.querySelectorAll('button,a,h1,h2,h3,h4')].find((el) => {
+      if (el.id === 'info-session-progress-quick-access') return false;
+      return (el.textContent || '').trim().toLowerCase() === 'info session progress';
+    });
+    return exact || null;
   };
   const addProgressQuickAccess = () => {
     if (document.getElementById('info-session-progress-quick-access')) return;
@@ -40,11 +43,14 @@
     quick.addEventListener('click', () => {
       const target = findProgressTarget();
       if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
-      const oldButton = [...document.querySelectorAll('button,a')].find(el => /info session progress/i.test((el.textContent || '').trim()) && el !== quick);
-      if (oldButton) oldButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const fallback = [...document.querySelectorAll('button,a')].find((el) => {
+        if (el === quick) return false;
+        return /info session progress/i.test((el.textContent || '').trim());
+      });
+      if (fallback) fallback.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
     document.body.appendChild(quick);
   };
