@@ -9,55 +9,32 @@
 }
 .kelly-modern-dashboard > .container { max-width: 1500px !important; }
 .kelly-modern-dashboard h1 { letter-spacing:-.035em; color:#0f172a; }
-.kelly-modern-dashboard .bg-white {
-  border:1px solid rgba(255,255,255,.78);
-  box-shadow:0 16px 42px rgba(15,23,42,.08);
-}
+.kelly-modern-dashboard .bg-white { border:1px solid rgba(255,255,255,.78); box-shadow:0 16px 42px rgba(15,23,42,.08); }
 .kelly-modern-dashboard .rounded-lg { border-radius:1.25rem !important; }
 .kelly-modern-dashboard .shadow-lg { box-shadow:0 18px 50px rgba(15,23,42,.10) !important; }
 .kelly-modern-dashboard table { border-collapse:separate; border-spacing:0; }
 .kelly-modern-dashboard thead tr { background:#f1f5f9 !important; }
-.kelly-modern-dashboard th {
-  color:#475569 !important; font-size:.72rem; text-transform:uppercase;
-  letter-spacing:.06em; font-weight:800 !important; white-space:nowrap;
-}
+.kelly-modern-dashboard th { color:#475569 !important; font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; font-weight:800 !important; white-space:nowrap; }
 .kelly-modern-dashboard td { border-color:#e2e8f0 !important; }
 .kelly-modern-dashboard tbody tr { transition:background-color .18s ease, transform .18s ease; }
-.kelly-modern-dashboard input,
-.kelly-modern-dashboard select,
-.kelly-modern-dashboard textarea {
-  border-radius:.85rem !important; border-color:#cbd5e1 !important;
-  box-shadow:0 1px 2px rgba(15,23,42,.03);
-}
-.kelly-modern-dashboard button,
-.kelly-modern-dashboard a { transition:all .18s ease; }
-.kelly-modern-dashboard .kelly-dashboard-nav {
-  position:sticky; top:.5rem; z-index:20;
-  border:1px solid rgba(255,255,255,.85) !important;
-  border-radius:1.25rem !important;
-  background:rgba(255,255,255,.78) !important;
-  box-shadow:0 14px 40px rgba(15,23,42,.10) !important;
-  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
-  padding:.45rem !important;
-  overflow-x:auto; scrollbar-width:thin;
-}
-.kelly-modern-dashboard .kelly-dashboard-nav button {
-  border-radius:.9rem !important; border-bottom:0 !important;
-  white-space:nowrap; padding:.7rem 1rem !important;
-}
-.kelly-modern-dashboard .kelly-dashboard-nav button.bg-green-600 {
-  box-shadow:0 8px 20px rgba(22,163,74,.22);
-}
-.kelly-modern-dashboard .kelly-dashboard-hero {
-  border-radius:1.5rem !important;
-  background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(240,253,250,.88)) !important;
-  border:1px solid rgba(255,255,255,.9) !important;
-  box-shadow:0 20px 55px rgba(15,23,42,.09) !important;
-  backdrop-filter:blur(16px);
-}
+.kelly-modern-dashboard input,.kelly-modern-dashboard select,.kelly-modern-dashboard textarea { border-radius:.85rem !important; border-color:#cbd5e1 !important; box-shadow:0 1px 2px rgba(15,23,42,.03); }
+.kelly-modern-dashboard button,.kelly-modern-dashboard a { transition:all .18s ease; }
+.kelly-modern-dashboard .kelly-dashboard-nav { position:sticky; top:.5rem; z-index:20; border:1px solid rgba(255,255,255,.85) !important; border-radius:1.25rem !important; background:rgba(255,255,255,.78) !important; box-shadow:0 14px 40px rgba(15,23,42,.10) !important; backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); padding:.45rem !important; overflow-x:auto; scrollbar-width:thin; }
+.kelly-modern-dashboard .kelly-dashboard-nav button { border-radius:.9rem !important; border-bottom:0 !important; white-space:nowrap; padding:.7rem 1rem !important; }
+.kelly-modern-dashboard .kelly-dashboard-nav button.bg-green-600 { box-shadow:0 8px 20px rgba(22,163,74,.22); }
+.kelly-modern-dashboard .kelly-dashboard-hero { border-radius:1.5rem !important; background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(240,253,250,.88)) !important; border:1px solid rgba(255,255,255,.9) !important; box-shadow:0 20px 55px rgba(15,23,42,.09) !important; backdrop-filter:blur(16px); }
+.dashboard-progress-shortcut { position:fixed; right:18px; bottom:20px; z-index:2147483000; display:flex; align-items:center; gap:10px; min-width:178px; padding:11px 13px; border:1px solid rgba(255,255,255,.55); border-radius:18px; background:linear-gradient(135deg,rgba(6,95,70,.96),rgba(4,120,87,.94)); color:white !important; text-decoration:none !important; box-shadow:0 14px 38px rgba(6,78,59,.28); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); }
+.dashboard-progress-shortcut:hover { transform:translateY(-2px); box-shadow:0 18px 44px rgba(6,78,59,.36); }
+.progress-live-dot { width:10px; height:10px; flex:none; border-radius:999px; background:#86efac; box-shadow:0 0 0 5px rgba(134,239,172,.14); }
+.progress-shortcut-copy { display:flex; flex:1; flex-direction:column; line-height:1.05; }
+.progress-shortcut-copy strong { font-size:13px; letter-spacing:-.01em; }
+.progress-shortcut-copy small { margin-top:3px; font-size:11px; font-weight:700; color:rgba(255,255,255,.72); }
+.progress-shortcut-arrow { display:flex; width:30px; height:30px; align-items:center; justify-content:center; border-radius:10px; background:rgba(255,255,255,.14); font-size:17px; font-weight:900; }
 @media (max-width:640px) {
   .kelly-modern-dashboard { padding-top:.65rem !important; }
   .kelly-modern-dashboard > .container { padding-left:.65rem !important; padding-right:.65rem !important; }
   .kelly-modern-dashboard .kelly-dashboard-nav { top:.25rem; }
   .kelly-modern-dashboard th,.kelly-modern-dashboard td { padding-left:.65rem !important; padding-right:.65rem !important; }
+  .dashboard-progress-shortcut { right:10px; bottom:12px; min-width:0; border-radius:16px; padding:10px 11px; }
+  .progress-shortcut-copy strong { font-size:12px; }
 }
