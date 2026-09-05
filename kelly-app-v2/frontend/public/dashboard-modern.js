@@ -5,6 +5,19 @@
 
   const normalize = (value) => (value || '').replace(/\s+/g, ' ').trim().toLowerCase()
 
+  const keepRecruiterRowScroller = (page) => {
+    if (!path.includes('/recruiter/')) return
+    Array.from(page.querySelectorAll('h3')).forEach((heading) => {
+      if (normalize(heading.textContent) !== 'row generator') return
+      const container = heading.parentElement
+      if (!container) return
+      const fields = container.querySelector('.space-y-3, .recruiter-row-scroll')
+      if (!fields) return
+      fields.classList.remove('grid', 'grid-cols-1', 'sm:grid-cols-2', 'xl:grid-cols-3', 'gap-3', 'items-start')
+      fields.classList.add('recruiter-row-scroll')
+    })
+  }
+
   const moveRecruiterProgressAboveRows = (page) => {
     if (!path.includes('/recruiter/')) return
 
@@ -13,9 +26,6 @@
     const progressHeading = headings.find((el) => normalize(el.textContent) === 'info session progress')
     if (!rowHeading || !progressHeading) return
 
-    // Both sections live inside the selected-session detail card. Walk upward
-    // until we find the two direct sibling blocks, then move the existing
-    // Progress block immediately before the existing Row Generator block.
     const rowAncestors = []
     let rowNode = rowHeading
     while (rowNode && rowNode !== page) {
@@ -56,6 +66,7 @@
     })
 
     moveRecruiterProgressAboveRows(page)
+    keepRecruiterRowScroller(page)
   }
 
   enhance()
