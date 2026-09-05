@@ -10,23 +10,25 @@
 
     const headings = Array.from(page.querySelectorAll('h2,h3,h4'))
     const rowHeading = headings.find((el) => normalize(el.textContent) === 'row generator')
-    const progressHeading = headings.find((el) => {
-      const text = normalize(el.textContent)
-      return text.includes('info session') && (text.includes('in progress') || text.includes('in-progress'))
-    })
+    const progressHeading = headings.find((el) => normalize(el.textContent) === 'info session progress')
     if (!rowHeading || !progressHeading) return
 
+    // Both sections live inside the selected-session detail card. Walk upward
+    // until we find the two direct sibling blocks, then move the existing
+    // Progress block immediately before the existing Row Generator block.
     const rowAncestors = []
     let rowNode = rowHeading
-    while (rowNode && rowNode !== page) { rowAncestors.push(rowNode); rowNode = rowNode.parentElement }
+    while (rowNode && rowNode !== page) {
+      rowAncestors.push(rowNode)
+      rowNode = rowNode.parentElement
+    }
 
     let progressNode = progressHeading
     while (progressNode && progressNode !== page) {
-      const commonParent = progressNode.parentElement
-      const rowBlock = rowAncestors.find((node) => node.parentElement === commonParent)
-      if (commonParent && rowBlock && progressNode !== rowBlock) {
-        if (rowBlock.previousElementSibling !== progressNode) commonParent.insertBefore(progressNode, rowBlock)
-        progressNode.dataset.movedAboveRowGenerator = 'true'
+      const parent = progressNode.parentElement
+      const rowBlock = rowAncestors.find((node) => node.parentElement === parent)
+      if (parent && rowBlock && progressNode !== rowBlock) {
+        if (rowBlock.previousElementSibling !== progressNode) parent.insertBefore(progressNode, rowBlock)
         return
       }
       progressNode = progressNode.parentElement
