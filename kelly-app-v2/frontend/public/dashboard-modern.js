@@ -3,6 +3,17 @@
   const isTarget = path.includes('/recruiter/') || path.includes('/management') || path.includes('/frontdesk')
   if (!isTarget) return
 
+  const addProgressShortcut = () => {
+    if (document.getElementById('dashboard-progress-shortcut')) return
+    const shortcut = document.createElement('a')
+    shortcut.id = 'dashboard-progress-shortcut'
+    shortcut.href = '/info-session-progress'
+    shortcut.setAttribute('aria-label', 'Open Info Session Progress')
+    shortcut.innerHTML = '<span class="progress-live-dot"></span><span class="progress-shortcut-copy"><strong>Info Session</strong><small>Progress</small></span><span class="progress-shortcut-arrow">→</span>'
+    shortcut.className = 'dashboard-progress-shortcut'
+    document.body.appendChild(shortcut)
+  }
+
   const enhance = () => {
     const root = document.getElementById('root')
     const page = root?.firstElementChild
@@ -26,6 +37,7 @@
         }
       }
     })
+    addProgressShortcut()
   }
 
   enhance()
