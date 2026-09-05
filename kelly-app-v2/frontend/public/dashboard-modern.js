@@ -11,15 +11,10 @@
       if (normalize(heading.textContent) !== 'row generator') return
       const rowBlock = heading.parentElement
       if (!rowBlock) return
-
-      // The React component renders the Row Generator fields as the first div
-      // immediately after the heading. Target that exact native container instead
-      // of depending on a Tailwind class name that can change during rendering.
       const fields = Array.from(rowBlock.children).find((child) =>
         child instanceof HTMLElement && child.tagName === 'DIV' && child !== heading
       )
       if (!(fields instanceof HTMLElement)) return
-
       fields.classList.add('recruiter-row-scroll')
       fields.style.setProperty('display', 'block', 'important')
       fields.style.setProperty('height', '360px', 'important')
@@ -40,17 +35,28 @@
     const progressHeading = headings.find((el) => normalize(el.textContent) === 'info session progress')
     if (!rowHeading || !progressHeading) return
 
-    const rowBlock = rowHeading.parentElement
-    const progressBlock = progressHeading.parentElement
-    if (!rowBlock || !progressBlock) return
+    // Find the nearest common ancestor, then identify the two direct children
+    // under that ancestor. This works even when React wraps Row Generator and
+    // Info Session Progress at different DOM depths.
+    const rowAncestors = []
+    let node = rowHeading
+    while (node && node !== page) {
+      rowAncestors.push(node)
+      node = node.parentElement
+    }
 
-    // In RecruiterDashboard these are sibling sections inside the selected
-    // candidate card. Move the existing Progress section, never clone it, so
-    // React handlers/state remain attached to the same controls.
-    if (rowBlock.parentElement && rowBlock.parentElement === progressBlock.parentElement) {
-      if (rowBlock.previousElementSibling !== progressBlock) {
-        rowBlock.parentElement.insertBefore(progressBlock, rowBlock)
+    let progressNode = progressHeading
+    while (progressNode && progressNode !== page) {
+      const parent = progressNode.parentElement
+      if (!parent) break
+      const rowNode = rowAncestors.find((candidate) => candidate.parentElement === parent)
+      if (rowNode && rowNode !== progressNode) {
+        if (rowNode.previousElementSibling !== progressNode) {
+          parent.insertBefore(progressNode, rowNode)
+        }
+        return
       }
+      progressNode = parent
     }
   }
 
