@@ -1,0 +1,63 @@
+/* Visual-only modernization for Recruiter, Management and Front Desk dashboards. */
+.kelly-modern-dashboard {
+  background:
+    radial-gradient(circle at 8% 0%, rgba(16,185,129,.14), transparent 30rem),
+    radial-gradient(circle at 96% 12%, rgba(14,165,233,.12), transparent 32rem),
+    linear-gradient(145deg,#f8fafc 0%,#eef7f4 45%,#eff6ff 100%) !important;
+  padding-top: 1.25rem !important;
+  padding-bottom: 2rem !important;
+}
+.kelly-modern-dashboard > .container { max-width: 1500px !important; }
+.kelly-modern-dashboard h1 { letter-spacing:-.035em; color:#0f172a; }
+.kelly-modern-dashboard .bg-white {
+  border:1px solid rgba(255,255,255,.78);
+  box-shadow:0 16px 42px rgba(15,23,42,.08);
+}
+.kelly-modern-dashboard .rounded-lg { border-radius:1.25rem !important; }
+.kelly-modern-dashboard .shadow-lg { box-shadow:0 18px 50px rgba(15,23,42,.10) !important; }
+.kelly-modern-dashboard table { border-collapse:separate; border-spacing:0; }
+.kelly-modern-dashboard thead tr { background:#f1f5f9 !important; }
+.kelly-modern-dashboard th {
+  color:#475569 !important; font-size:.72rem; text-transform:uppercase;
+  letter-spacing:.06em; font-weight:800 !important; white-space:nowrap;
+}
+.kelly-modern-dashboard td { border-color:#e2e8f0 !important; }
+.kelly-modern-dashboard tbody tr { transition:background-color .18s ease, transform .18s ease; }
+.kelly-modern-dashboard input,
+.kelly-modern-dashboard select,
+.kelly-modern-dashboard textarea {
+  border-radius:.85rem !important; border-color:#cbd5e1 !important;
+  box-shadow:0 1px 2px rgba(15,23,42,.03);
+}
+.kelly-modern-dashboard button,
+.kelly-modern-dashboard a { transition:all .18s ease; }
+.kelly-modern-dashboard .kelly-dashboard-nav {
+  position:sticky; top:.5rem; z-index:20;
+  border:1px solid rgba(255,255,255,.85) !important;
+  border-radius:1.25rem !important;
+  background:rgba(255,255,255,.78) !important;
+  box-shadow:0 14px 40px rgba(15,23,42,.10) !important;
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  padding:.45rem !important;
+  overflow-x:auto; scrollbar-width:thin;
+}
+.kelly-modern-dashboard .kelly-dashboard-nav button {
+  border-radius:.9rem !important; border-bottom:0 !important;
+  white-space:nowrap; padding:.7rem 1rem !important;
+}
+.kelly-modern-dashboard .kelly-dashboard-nav button.bg-green-600 {
+  box-shadow:0 8px 20px rgba(22,163,74,.22);
+}
+.kelly-modern-dashboard .kelly-dashboard-hero {
+  border-radius:1.5rem !important;
+  background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(240,253,250,.88)) !important;
+  border:1px solid rgba(255,255,255,.9) !important;
+  box-shadow:0 20px 55px rgba(15,23,42,.09) !important;
+  backdrop-filter:blur(16px);
+}
+@media (max-width:640px) {
+  .kelly-modern-dashboard { padding-top:.65rem !important; }
+  .kelly-modern-dashboard > .container { padding-left:.65rem !important; padding-right:.65rem !important; }
+  .kelly-modern-dashboard .kelly-dashboard-nav { top:.25rem; }
+  .kelly-modern-dashboard th,.kelly-modern-dashboard td { padding-left:.65rem !important; padding-right:.65rem !important; }
+}
