@@ -8,22 +8,40 @@
   const findHeading = (page, label) =>
     Array.from(page.querySelectorAll('h2,h3,h4')).find((el) => normalize(el.textContent) === label)
 
-  const getRowParts = (page) => {
-    const heading = findHeading(page, 'row generator')
-    if (!heading) return null
-    const block = heading.parentElement
-    if (!block) return null
-    const fields = Array.from(block.children).find((child) =>
-      child instanceof HTMLElement && child.tagName === 'DIV' && child !== heading
-    )
-    return fields instanceof HTMLElement ? { heading, block, fields } : null
-  }
-
-  const keepRecruiterRowScroller = (page) => {
+  const stabilizeRecruiterDetails = (page) => {
     if (!path.includes('/recruiter/')) return
-    const row = getRowParts(page)
-    if (!row) return
-    const { fields } = row
+
+    const rowHeading = findHeading(page, 'row generator')
+    const progressHeading = findHeading(page, 'info session progress')
+    if (!rowHeading || !progressHeading) return
+
+    const rowBlock = rowHeading.parentElement
+    const progressBlock = progressHeading.parentElement
+    if (!(rowBlock instanceof HTMLElement) || !(progressBlock instanceof HTMLElement)) return
+
+    // React already renders both sections inside the same Session Details stack.
+    // Do NOT move DOM nodes. Visual ordering via flex order avoids fighting React.
+    const detailsStack = rowBlock.parentElement
+    if (detailsStack instanceof HTMLElement && detailsStack === progressBlock.parentElement) {
+      detailsStack.style.setProperty('display', 'flex', 'important')
+      detailsStack.style.setProperty('flex-direction', 'column', 'important')
+      detailsStack.style.setProperty('gap', '1rem', 'important')
+      rowBlock.style.setProperty('order', '20', 'important')
+      progressBlock.style.setProperty('order', '10', 'important')
+
+      // Everything after Progress/Row keeps its original relative order.
+      Array.from(detailsStack.children).forEach((child, index) => {
+        if (!(child instanceof HTMLElement) || child === rowBlock || child === progressBlock) return
+        child.style.setProperty('order', index < Array.from(detailsStack.children).indexOf(rowBlock) ? '0' : String(30 + index), 'important')
+      })
+    }
+
+    // Native independent viewport for Row Generator fields.
+    const fields = Array.from(rowBlock.children).find((child) =>
+      child instanceof HTMLElement && child.tagName === 'DIV'
+    )
+    if (!(fields instanceof HTMLElement)) return
+
     fields.classList.add('recruiter-row-scroll')
     fields.style.setProperty('display', 'block', 'important')
     fields.style.setProperty('height', '360px', 'important')
@@ -34,34 +52,6 @@
     fields.style.setProperty('padding-right', '10px', 'important')
     fields.style.setProperty('overscroll-behavior', 'contain', 'important')
     fields.style.setProperty('scrollbar-gutter', 'stable', 'important')
-  }
-
-  const moveRecruiterProgressAboveRows = (page) => {
-    if (!path.includes('/recruiter/')) return
-    const row = getRowParts(page)
-    const progressHeading = findHeading(page, 'info session progress')
-    if (!row || !progressHeading) return
-
-    const rowAncestors = []
-    let node = row.heading
-    while (node && node !== page) {
-      rowAncestors.push(node)
-      node = node.parentElement
-    }
-
-    let progressNode = progressHeading
-    while (progressNode && progressNode !== page) {
-      const parent = progressNode.parentElement
-      if (!parent) break
-      const rowNode = rowAncestors.find((candidate) => candidate.parentElement === parent)
-      if (rowNode && rowNode !== progressNode) {
-        if (rowNode.previousElementSibling !== progressNode) {
-          parent.insertBefore(progressNode, rowNode)
-        }
-        return
-      }
-      progressNode = parent
-    }
   }
 
   const enhance = () => {
@@ -86,12 +76,7 @@
       }
     })
 
-    // Order first, then re-find the Row Generator in its final DOM position and
-    // apply its independent viewport. A second frame protects against React
-    // reconciliation immediately after the DOM move.
-    moveRecruiterProgressAboveRows(page)
-    keepRecruiterRowScroller(page)
-    window.requestAnimationFrame(() => keepRecruiterRowScroller(page))
+    stabilizeRecruiterDetails(page)
   }
 
   enhance()
