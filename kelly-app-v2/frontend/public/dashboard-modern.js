@@ -5,41 +5,45 @@
 
   const normalize = (value) => (value || '').replace(/\s+/g, ' ').trim().toLowerCase()
 
+  const findHeading = (page, label) =>
+    Array.from(page.querySelectorAll('h2,h3,h4')).find((el) => normalize(el.textContent) === label)
+
+  const getRowParts = (page) => {
+    const heading = findHeading(page, 'row generator')
+    if (!heading) return null
+    const block = heading.parentElement
+    if (!block) return null
+    const fields = Array.from(block.children).find((child) =>
+      child instanceof HTMLElement && child.tagName === 'DIV' && child !== heading
+    )
+    return fields instanceof HTMLElement ? { heading, block, fields } : null
+  }
+
   const keepRecruiterRowScroller = (page) => {
     if (!path.includes('/recruiter/')) return
-    Array.from(page.querySelectorAll('h2,h3,h4')).forEach((heading) => {
-      if (normalize(heading.textContent) !== 'row generator') return
-      const rowBlock = heading.parentElement
-      if (!rowBlock) return
-      const fields = Array.from(rowBlock.children).find((child) =>
-        child instanceof HTMLElement && child.tagName === 'DIV' && child !== heading
-      )
-      if (!(fields instanceof HTMLElement)) return
-      fields.classList.add('recruiter-row-scroll')
-      fields.style.setProperty('display', 'block', 'important')
-      fields.style.setProperty('height', '360px', 'important')
-      fields.style.setProperty('max-height', '46vh', 'important')
-      fields.style.setProperty('min-height', '260px', 'important')
-      fields.style.setProperty('overflow-y', 'scroll', 'important')
-      fields.style.setProperty('overflow-x', 'hidden', 'important')
-      fields.style.setProperty('padding-right', '10px', 'important')
-      fields.style.setProperty('overscroll-behavior', 'contain', 'important')
-      fields.style.setProperty('scrollbar-gutter', 'stable', 'important')
-    })
+    const row = getRowParts(page)
+    if (!row) return
+    const { fields } = row
+    fields.classList.add('recruiter-row-scroll')
+    fields.style.setProperty('display', 'block', 'important')
+    fields.style.setProperty('height', '360px', 'important')
+    fields.style.setProperty('max-height', '46vh', 'important')
+    fields.style.setProperty('min-height', '260px', 'important')
+    fields.style.setProperty('overflow-y', 'scroll', 'important')
+    fields.style.setProperty('overflow-x', 'hidden', 'important')
+    fields.style.setProperty('padding-right', '10px', 'important')
+    fields.style.setProperty('overscroll-behavior', 'contain', 'important')
+    fields.style.setProperty('scrollbar-gutter', 'stable', 'important')
   }
 
   const moveRecruiterProgressAboveRows = (page) => {
     if (!path.includes('/recruiter/')) return
-    const headings = Array.from(page.querySelectorAll('h2,h3,h4'))
-    const rowHeading = headings.find((el) => normalize(el.textContent) === 'row generator')
-    const progressHeading = headings.find((el) => normalize(el.textContent) === 'info session progress')
-    if (!rowHeading || !progressHeading) return
+    const row = getRowParts(page)
+    const progressHeading = findHeading(page, 'info session progress')
+    if (!row || !progressHeading) return
 
-    // Find the nearest common ancestor, then identify the two direct children
-    // under that ancestor. This works even when React wraps Row Generator and
-    // Info Session Progress at different DOM depths.
     const rowAncestors = []
-    let node = rowHeading
+    let node = row.heading
     while (node && node !== page) {
       rowAncestors.push(node)
       node = node.parentElement
@@ -82,8 +86,12 @@
       }
     })
 
+    // Order first, then re-find the Row Generator in its final DOM position and
+    // apply its independent viewport. A second frame protects against React
+    // reconciliation immediately after the DOM move.
     moveRecruiterProgressAboveRows(page)
     keepRecruiterRowScroller(page)
+    window.requestAnimationFrame(() => keepRecruiterRowScroller(page))
   }
 
   enhance()
