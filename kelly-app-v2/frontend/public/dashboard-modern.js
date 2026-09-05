@@ -3,43 +3,34 @@
   const isTarget = path.includes('/recruiter/') || path.includes('/management') || path.includes('/frontdesk')
   if (!isTarget) return
 
-  const closePanel = () => document.getElementById('info-progress-drawer')?.classList.remove('open')
-  const openPanel = () => document.getElementById('info-progress-drawer')?.classList.add('open')
+  const normalize = (value) => (value || '').replace(/\s+/g, ' ').trim().toLowerCase()
 
-  const addProgressPanel = () => {
-    if (document.getElementById('info-progress-panel-trigger')) return
-    const page = document.getElementById('root')?.firstElementChild
-    if (!(page instanceof HTMLElement)) return
+  const moveRecruiterProgressAboveRows = (page) => {
+    if (!path.includes('/recruiter/')) return
 
-    const trigger = document.createElement('button')
-    trigger.id = 'info-progress-panel-trigger'
-    trigger.type = 'button'
-    trigger.className = 'info-progress-panel-trigger'
-    trigger.innerHTML = '<span class="info-progress-trigger-dot"></span><span>Info Session Progress</span><span aria-hidden="true">›</span>'
-    trigger.addEventListener('click', openPanel)
+    const headings = Array.from(page.querySelectorAll('h2,h3,h4'))
+    const rowHeading = headings.find((el) => normalize(el.textContent) === 'row generator')
+    const progressHeading = headings.find((el) => {
+      const text = normalize(el.textContent)
+      return text.includes('info session') && (text.includes('in progress') || text.includes('in-progress'))
+    })
+    if (!rowHeading || !progressHeading) return
 
-    const header = page.querySelector('h1')?.parentElement
-    if (header) header.appendChild(trigger)
-    else page.prepend(trigger)
+    const rowAncestors = []
+    let rowNode = rowHeading
+    while (rowNode && rowNode !== page) { rowAncestors.push(rowNode); rowNode = rowNode.parentElement }
 
-    const drawer = document.createElement('div')
-    drawer.id = 'info-progress-drawer'
-    drawer.className = 'info-progress-drawer'
-    drawer.innerHTML = `
-      <button type="button" class="info-progress-backdrop" aria-label="Close Info Session Progress"></button>
-      <aside class="info-progress-sheet" role="dialog" aria-modal="true" aria-label="Info Session Progress">
-        <div class="info-progress-sheet-header">
-          <div><span class="info-progress-eyebrow">LIVE WORKFLOW</span><h2>Info Session Progress</h2><p>View and update progress without leaving your dashboard.</p></div>
-          <button type="button" class="info-progress-close" aria-label="Close">×</button>
-        </div>
-        <div class="info-progress-frame-wrap">
-          <iframe class="info-progress-frame" src="/info-session-progress" title="Info Session Progress"></iframe>
-        </div>
-      </aside>`
-    document.body.appendChild(drawer)
-    drawer.querySelector('.info-progress-backdrop')?.addEventListener('click', closePanel)
-    drawer.querySelector('.info-progress-close')?.addEventListener('click', closePanel)
-    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closePanel() })
+    let progressNode = progressHeading
+    while (progressNode && progressNode !== page) {
+      const commonParent = progressNode.parentElement
+      const rowBlock = rowAncestors.find((node) => node.parentElement === commonParent)
+      if (commonParent && rowBlock && progressNode !== rowBlock) {
+        if (rowBlock.previousElementSibling !== progressNode) commonParent.insertBefore(progressNode, rowBlock)
+        progressNode.dataset.movedAboveRowGenerator = 'true'
+        return
+      }
+      progressNode = progressNode.parentElement
+    }
   }
 
   const enhance = () => {
@@ -48,26 +39,30 @@
     if (!(page instanceof HTMLElement)) return
     page.classList.add('kelly-modern-dashboard')
 
-    const headings = Array.from(page.querySelectorAll('h1'))
-    headings.forEach((heading) => {
+    Array.from(page.querySelectorAll('h1')).forEach((heading) => {
       const card = heading.closest('.bg-white')
       if (card) card.classList.add('kelly-dashboard-hero')
     })
 
-    const candidates = Array.from(page.querySelectorAll('div'))
-    candidates.forEach((el) => {
+    Array.from(page.querySelectorAll('div')).forEach((el) => {
       if (!(el instanceof HTMLElement) || el.classList.contains('kelly-dashboard-nav')) return
       const buttons = Array.from(el.children).filter((child) => child.tagName === 'BUTTON')
       if (buttons.length >= 4 && buttons.length === el.children.length) {
-        const labels = buttons.map((b) => (b.textContent || '').toLowerCase()).join(' ')
+        const labels = buttons.map((b) => normalize(b.textContent)).join(' ')
         if (labels.includes('info') || labels.includes('session') || labels.includes('badge') || labels.includes('fingerprint')) el.classList.add('kelly-dashboard-nav')
       }
     })
-    addProgressPanel()
+
+    moveRecruiterProgressAboveRows(page)
   }
 
   enhance()
-  const observer = new MutationObserver(() => window.requestAnimationFrame(enhance))
+  let queued = false
+  const observer = new MutationObserver(() => {
+    if (queued) return
+    queued = true
+    window.requestAnimationFrame(() => { queued = false; enhance() })
+  })
   const root = document.getElementById('root')
   if (root) observer.observe(root, { childList: true, subtree: true })
 })()
