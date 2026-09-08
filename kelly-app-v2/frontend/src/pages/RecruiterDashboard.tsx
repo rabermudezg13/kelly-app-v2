@@ -1607,6 +1607,10 @@ function RecruiterDashboard() {
         else if (colNameLower === 'applicant name' || (colNameLower.includes('applicant') && colNameLower.includes('name'))) {
           initialData[col.name] = `${session.first_name} ${session.last_name}`
         } 
+        // Map Talent Type from the session type
+        else if (colNameLower === 'talent type') {
+          initialData[col.name] = session.session_type === 'reactivation' ? 'Reactivation' : session.session_type === 'new-hire' ? 'New' : (col.default_value || '')
+        }
         // Map Talent Phone
         else if (colNameLower === 'talent phone' || (colNameLower.includes('talent') && colNameLower.includes('phone'))) {
           initialData[col.name] = session.phone
@@ -1720,6 +1724,10 @@ function RecruiterDashboard() {
         else if (colNameLower === 'applicant name' || (colNameLower.includes('applicant') && colNameLower.includes('name'))) {
           initialData[col.name] = `${selectedSession.first_name} ${selectedSession.last_name}`
         } 
+        // Map Talent Type from the session type
+        else if (colNameLower === 'talent type') {
+          initialData[col.name] = selectedSession.session_type === 'reactivation' ? 'Reactivation' : selectedSession.session_type === 'new-hire' ? 'New' : (col.default_value || '')
+        }
         // Map Talent Phone
         else if (colNameLower === 'talent phone' || (colNameLower.includes('talent') && colNameLower.includes('phone'))) {
           initialData[col.name] = selectedSession.phone
@@ -1827,6 +1835,10 @@ function RecruiterDashboard() {
       if (colNameLower === 'applicant name' || (colNameLower.includes('applicant') && colNameLower.includes('name'))) {
         rowData[col.name] = `${session.first_name} ${session.last_name}`
       }
+      // Ensure Talent Type matches the session type
+      else if (colNameLower === 'talent type' && (session.session_type === 'reactivation' || session.session_type === 'new-hire')) {
+        rowData[col.name] = session.session_type === 'reactivation' ? 'Reactivation' : 'New'
+      }
       // Ensure Talent Phone is set
       else if (colNameLower === 'talent phone' || (colNameLower.includes('talent') && colNameLower.includes('phone'))) {
         rowData[col.name] = session.phone
@@ -1886,6 +1898,10 @@ function RecruiterDashboard() {
         // Ensure Applicant Name is always set
         else if (colNameLower === 'applicant name' || (colNameLower.includes('applicant') && colNameLower.includes('name'))) {
           dataToSend[col.name] = `${selectedSession.first_name} ${selectedSession.last_name}`
+        }
+        // Ensure Talent Type always matches the session type
+        else if (colNameLower === 'talent type' && (selectedSession.session_type === 'reactivation' || selectedSession.session_type === 'new-hire')) {
+          dataToSend[col.name] = selectedSession.session_type === 'reactivation' ? 'Reactivation' : 'New'
         }
         // Ensure Talent Phone is always set
         else if (colNameLower === 'talent phone' || (colNameLower.includes('talent') && colNameLower.includes('phone'))) {
