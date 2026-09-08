@@ -2842,7 +2842,9 @@ function RecruiterDashboard() {
                                 />
                               ) : column.column_type === 'number' ? (
                                 <input
-                                  type="number"
+                                  type={["ksn", "ksn id", "bullhorn id"].includes(column.name.trim().toLowerCase()) ? "text" : "number"}
+                                  inputMode={["ksn", "ksn id", "bullhorn id"].includes(column.name.trim().toLowerCase()) ? "numeric" : undefined}
+                                  pattern={["ksn", "ksn id", "bullhorn id"].includes(column.name.trim().toLowerCase()) ? "[0-9]*" : undefined}
                                   value={sessionRowData[column.name] || ''}
                                   onChange={(e) =>
                                     setSessionRowData({ ...sessionRowData, [column.name]: e.target.value })
