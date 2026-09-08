@@ -6,7 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
 from app.database import get_db
 from app.models.recruiter import Recruiter
 from app.models.info_session import InfoSession
@@ -213,35 +214,51 @@ async def get_assigned_sessions(
     # Debug: Log recruiter info
     print(f"🔍 Getting sessions for recruiter ID: {recruiter_id}, Name: {recruiter.name}, Email: {recruiter.email}")
     
-    query = db.query(InfoSession).filter(InfoSession.assigned_recruiter_id == recruiter_id)
+    miami_now = datetime.now(ZoneInfo("America/New_York"))
+    week_start_miami = (miami_now - timedelta(days=miami_now.weekday())).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+    next_week_start_miami = week_start_miami + timedelta(days=7)
+    week_start_utc = week_start_miami.astimezone(timezone.utc)
+    next_week_start_utc = next_week_start_miami.astimezone(timezone.utc)
+
+    query = db.query(InfoSession).filter(
+        InfoSession.assigned_recruiter_id == recruiter_id,
+        InfoSession.created_at >= week_start_utc,
+        InfoSession.created_at < next_week_start_utc,
+    )
     
     if status:
         query = query.filter(InfoSession.status == status)
     
     sessions = query.order_by(InfoSession.created_at.desc()).all()
     
-    # Debug: Log session count and details
-    print(f"📋 Found {len(sessions)} sessions for recruiter {recruiter_id}")
-    for session in sessions:
-        print(f"   - Session ID: {session.id}, Name: {session.first_name} {session.last_name}, Status: {session.status}, Created: {session.created_at}")
-    
     # Detect duplicates across ALL sessions (name + email)
-    all_sessions_for_dup = db.query(InfoSession).all()
+    all_sessions_for_dup = db.query(
+        InfoSession.first_name,
+        InfoSession.last_name,
+        InfoSession.email,
+    ).all()
     name_counts: dict = {}
     for s in all_sessions_for_dup:
         nk = f"{s.first_name.strip().lower()}_{s.last_name.strip().lower()}_{s.email.strip().lower()}"
         name_counts[nk] = name_counts.get(nk, 0) + 1
     duplicate_names = {k for k, v in name_counts.items() if v > 1}
 
+    recruiter_ids = {
+        session.assigned_recruiter_id
+        for session in sessions
+        if session.assigned_recruiter_id is not None
+    }
+    recruiter_names = {
+        recruiter.id: recruiter.name
+        for recruiter in db.query(Recruiter).filter(Recruiter.id.in_(recruiter_ids)).all()
+    } if recruiter_ids else {}
+
     result = []
     for session in sessions:
         name_key = f"{session.first_name.strip().lower()}_{session.last_name.strip().lower()}_{session.email.strip().lower()}"
-        # Get recruiter name if assigned
-        assigned_recruiter_name = None
-        if session.assigned_recruiter_id:
-            assigned_recruiter = db.query(Recruiter).filter(Recruiter.id == session.assigned_recruiter_id).first()
-            if assigned_recruiter:
-                assigned_recruiter_name = assigned_recruiter.name
+        assigned_recruiter_name = recruiter_names.get(session.assigned_recruiter_id)
 
         session_data = {
             "id": session.id,

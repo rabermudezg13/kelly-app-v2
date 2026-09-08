@@ -56,6 +56,7 @@ function RecruiterDashboard() {
   const [exportYear, setExportYear] = useState(new Date().getFullYear() - 1)
   const [selectedSession, setSelectedSession] = useState<AssignedSession | null>(null)
   const selectedSessionRef = useRef<AssignedSession | null>(null)
+  const backgroundRefreshInFlightRef = useRef(false)
   const [documentStatus, setDocumentStatus] = useState({
     ob365_sent: false,
     i9_sent: false,
@@ -274,7 +275,8 @@ function RecruiterDashboard() {
   }
 
   const refreshDataInBackground = async () => {
-    if (!recruiterId) return
+    if (!recruiterId || backgroundRefreshInFlightRef.current) return
+    backgroundRefreshInFlightRef.current = true
     try {
       // Only refresh recruiter status + assigned sessions (2 lightweight calls)
       const [recruiterResult, sessionsResult] = await Promise.allSettled([
@@ -307,6 +309,8 @@ function RecruiterDashboard() {
         localStorage.removeItem('token')
         window.location.href = '/staff/login'
       }
+    } finally {
+      backgroundRefreshInFlightRef.current = false
     }
   }
 
@@ -320,8 +324,10 @@ function RecruiterDashboard() {
   useEffect(() => {
     if (!recruiterId) return
     const intervalId = setInterval(() => {
-      if (activeTab === 'sessions') refreshDataInBackground()
-    }, 10000)
+      if (activeTab === 'sessions' && document.visibilityState === 'visible') {
+        refreshDataInBackground()
+      }
+    }, 30000)
     return () => clearInterval(intervalId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recruiterId, activeTab])
