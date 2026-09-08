@@ -201,8 +201,13 @@ export const getNewHireOrientationTimeSlots = async (): Promise<string[]> => {
   return response.data
 }
 
-export const getNewHireOrientations = async (daysBack: number = 7): Promise<NewHireOrientation[]> => {
-  const response = await api.get(`/new-hire-orientation/?limit=1000&days_back=${daysBack}`)
+export const getNewHireOrientations = async (
+  daysBack: number = 7,
+  currentWeek: boolean = false
+): Promise<NewHireOrientation[]> => {
+  const response = await api.get('/new-hire-orientation/', {
+    params: { limit: 1000, days_back: daysBack, current_week: currentWeek },
+  })
   return response.data
 }
 

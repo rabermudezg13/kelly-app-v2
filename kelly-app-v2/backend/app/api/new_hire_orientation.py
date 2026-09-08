@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import List, Optional
-from datetime import datetime, date
+from datetime import datetime, date, timezone, timedelta
+from zoneinfo import ZoneInfo
 
 from app.database import get_db
 from app.models.visit import NewHireOrientation, NewHireOrientationStep
@@ -299,10 +300,10 @@ async def list_new_hire_orientations(
     limit: int = 1000,
     status: Optional[str] = None,
     days_back: int = 7,
+    current_week: bool = False,
     db: Session = Depends(get_db)
 ):
     """List all new hire orientations (for staff dashboard)"""
-    from datetime import timedelta
     from app.models.recruiter import Recruiter
 
     query = db.query(NewHireOrientation)
@@ -310,7 +311,17 @@ async def list_new_hire_orientations(
     if status:
         query = query.filter(NewHireOrientation.status == status)
 
-    if days_back > 0:
+    if current_week:
+        miami_now = datetime.now(ZoneInfo("America/New_York"))
+        week_start_miami = (miami_now - timedelta(days=miami_now.weekday())).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        next_week_start_miami = week_start_miami + timedelta(days=7)
+        query = query.filter(
+            NewHireOrientation.created_at >= week_start_miami.astimezone(timezone.utc),
+            NewHireOrientation.created_at < next_week_start_miami.astimezone(timezone.utc),
+        )
+    elif days_back > 0:
         cutoff = date.today() - timedelta(days=days_back)
         query = query.filter(func.date(NewHireOrientation.created_at) >= cutoff)
 

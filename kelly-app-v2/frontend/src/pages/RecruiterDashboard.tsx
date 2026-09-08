@@ -94,7 +94,6 @@ function RecruiterDashboard() {
   const [allInfoSessions, setAllInfoSessions] = useState<any[]>([])
   const [allRecruiters, setAllRecruiters] = useState<Recruiter[]>([])
   const [sessionsDaysBack, setSessionsDaysBack] = useState<number>(7)
-  const [nhoDaysBack, setNhoDaysBack] = useState<number>(7)
   const [showReassignModal, setShowReassignModal] = useState(false)
   const [selectedNewRecruiter, setSelectedNewRecruiter] = useState<number | null>(null)
   const [canReassignTalents, setCanReassignTalents] = useState(false)
@@ -240,7 +239,7 @@ function RecruiterDashboard() {
     try {
       switch (tab) {
         case 'new-hire-orientation': {
-          const data = await getNewHireOrientations(nhoDaysBack)
+          const data = await getNewHireOrientations(7, true)
           setNewHireOrientations(data || [])
           break
         }
@@ -1285,7 +1284,7 @@ function RecruiterDashboard() {
       try {
         const result = await bulkDeleteNewHireOrientations(Array.from(selectedNhoIds))
         setSelectedNhoIds(new Set())
-        const orientations = await getNewHireOrientations()
+        const orientations = await getNewHireOrientations(7, true)
         setNewHireOrientations(orientations)
         alert(`${result.deleted} attendee(s) deleted.`)
       } catch (e) {
@@ -1298,7 +1297,7 @@ function RecruiterDashboard() {
       try {
         const result = await deleteNewHireOrientationDuplicates()
         setSelectedNhoIds(new Set())
-        const orientations = await getNewHireOrientations()
+        const orientations = await getNewHireOrientations(7, true)
         setNewHireOrientations(orientations)
         alert(`${result.deleted} duplicate(s) deleted.`)
       } catch (e) {
@@ -1345,30 +1344,9 @@ function RecruiterDashboard() {
         <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 flex flex-wrap justify-between items-center gap-3">
           <p className="text-blue-800 font-bold">🎓 New Hire Orientations</p>
           <div className="flex flex-wrap gap-2 items-center">
-            <select
-              value={nhoDaysBack}
-              onChange={async (e) => {
-                const val = parseInt(e.target.value)
-                setNhoDaysBack(val)
-                try {
-                  setLoading(true)
-                  const data = await getNewHireOrientations(val)
-                  setNewHireOrientations(data || [])
-                } catch (error) {
-                  console.error('Error loading NHO:', error)
-                } finally {
-                  setLoading(false)
-                }
-              }}
-              className="px-3 py-1.5 border border-blue-300 rounded text-sm bg-white"
-            >
-              <option value={7}>Last 7 days</option>
-              <option value={30}>Last 30 days</option>
-              <option value={90}>Last 90 days</option>
-              <option value={180}>Last 6 months</option>
-              <option value={365}>Last year</option>
-              <option value={0}>All time</option>
-            </select>
+            <span className="px-3 py-1.5 border border-blue-300 rounded text-sm bg-white text-blue-800">
+              Current week
+            </span>
             {selectedNhoIds.size > 0 && (
               <button
                 onClick={handleDeleteSelected}
@@ -1387,7 +1365,7 @@ function RecruiterDashboard() {
               onClick={async () => {
                 try {
                   setLoading(true)
-                  const data = await getNewHireOrientations(nhoDaysBack)
+                  const data = await getNewHireOrientations(7, true)
                   setNewHireOrientations(data || [])
                 } catch (error) {
                   alert('Error refreshing data')
