@@ -371,7 +371,7 @@ async def register_info_session(
     return response_data
 
 @router.get("/live")
-async def get_live_info_sessions(db: Session = Depends(get_db)):
+def get_live_info_sessions(db: Session = Depends(get_db)):
     """Get recent live info sessions for operational dashboards."""
     cutoff = date.today() - timedelta(days=7)
     sessions = db.query(InfoSession).options(joinedload(InfoSession.steps)).filter(
@@ -379,24 +379,37 @@ async def get_live_info_sessions(db: Session = Depends(get_db)):
         func.date(InfoSession.created_at) >= cutoff,
     ).order_by(InfoSession.created_at.desc()).all()
 
-    # Detect duplicates: find name+email combos that appear more than once (case-insensitive)
-    # Check against ALL sessions (not just live ones) to catch duplicates across sessions
-    all_sessions = db.query(InfoSession).all()
-    name_counts: dict = {}
-    for s in all_sessions:
-        name_key = f"{s.first_name.strip().lower()}_{s.last_name.strip().lower()}_{s.email.strip().lower()}"
-        name_counts[name_key] = name_counts.get(name_key, 0) + 1
+    # Detect duplicates across all sessions with one aggregate query instead of
+    # loading every historical record into application memory.
+    normalized_first_name = func.lower(func.trim(InfoSession.first_name))
+    normalized_last_name = func.lower(func.trim(InfoSession.last_name))
+    normalized_email = func.lower(func.trim(InfoSession.email))
+    duplicate_counts = db.query(
+        normalized_first_name,
+        normalized_last_name,
+        normalized_email,
+        func.count(InfoSession.id),
+    ).group_by(
+        normalized_first_name,
+        normalized_last_name,
+        normalized_email,
+    ).all()
+    name_counts = {
+        f"{first_name}_{last_name}_{email}": count
+        for first_name, last_name, email, count in duplicate_counts
+    }
+    duplicate_names = {key for key, count in name_counts.items() if count > 1}
 
-    duplicate_names = {k for k, v in name_counts.items() if v > 1}
+    # Load all recruiter names needed by this response in one query.
+    recruiter_ids = {session.assigned_recruiter_id for session in sessions if session.assigned_recruiter_id}
+    recruiter_names = dict(
+        db.query(Recruiter.id, Recruiter.name).filter(Recruiter.id.in_(recruiter_ids)).all()
+    ) if recruiter_ids else {}
 
     result = []
     for session in sessions:
         name_key = f"{session.first_name.strip().lower()}_{session.last_name.strip().lower()}_{session.email.strip().lower()}"
-        recruiter_name = None
-        if session.assigned_recruiter_id:
-            recruiter = db.query(Recruiter).filter(Recruiter.id == session.assigned_recruiter_id).first()
-            if recruiter:
-                recruiter_name = recruiter.name
+        recruiter_name = recruiter_names.get(session.assigned_recruiter_id)
 
         exclusion_match = None
         if session.is_in_exclusion_list:
