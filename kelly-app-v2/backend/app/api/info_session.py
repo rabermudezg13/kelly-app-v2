@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import List, Optional
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 from app.database import get_db
 from app.models.info_session import InfoSession, InfoSessionStep
@@ -18,7 +18,6 @@ from app.models.recruiter import Recruiter
 from app.services.exclusion_service import check_name_in_exclusion_list, is_in_exclusion_list
 from app.models.exclusion_list import ExclusionList
 from app.services.recruiter_service import get_next_recruiter, initialize_default_recruiters
-from datetime import date
 
 router = APIRouter()
 
@@ -373,9 +372,11 @@ async def register_info_session(
 
 @router.get("/live")
 async def get_live_info_sessions(db: Session = Depends(get_db)):
-    """Get live info sessions (registered, in-progress, initiated, and completed)"""
+    """Get recent live info sessions for operational dashboards."""
+    cutoff = date.today() - timedelta(days=7)
     sessions = db.query(InfoSession).options(joinedload(InfoSession.steps)).filter(
-        InfoSession.status.in_(["registered", "in-progress", "initiated", "completed"])
+        InfoSession.status.in_(["registered", "in-progress", "initiated", "completed"]),
+        func.date(InfoSession.created_at) >= cutoff,
     ).order_by(InfoSession.created_at.desc()).all()
 
     # Detect duplicates: find name+email combos that appear more than once (case-insensitive)
