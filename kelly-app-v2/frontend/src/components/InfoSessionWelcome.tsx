@@ -274,18 +274,6 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted, onStartNewRegistr
             </div>
           )}
 
-          {onStartNewRegistration && (
-            <div className="mb-6 flex justify-center">
-              <button
-                type="button"
-                onClick={onStartNewRegistration}
-                className="rounded-lg bg-blue-600 px-6 py-3 text-lg font-bold text-white shadow-md transition-colors hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200"
-              >
-                + Start New Registration
-              </button>
-            </div>
-          )}
-
           <div className="mb-8 p-6 bg-blue-50 rounded-lg border-l-4 border-blue-500">
             <p className="text-gray-700 mb-4">
               For our process you must be able to communicate in English, have your Education Proof. 
@@ -630,6 +618,26 @@ function InfoSessionWelcome({ sessionData, onSessionCompleted, onStartNewRegistr
               Return to Home
             </button>
           </div>
+
+          {onStartNewRegistration && (
+            <div className="mt-8 border-t border-gray-200 pt-6 text-center">
+              <p className="mb-3 text-sm text-gray-500">
+                Only use this option for a different person. Your current session will be closed on this device.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  const confirmed = window.confirm(
+                    'Start a new registration for a different person?\n\nThis will leave the current session on this device.'
+                  )
+                  if (confirmed) onStartNewRegistration()
+                }}
+                className="rounded-lg border border-gray-400 bg-white px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-200"
+              >
+                + Start New Registration
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
