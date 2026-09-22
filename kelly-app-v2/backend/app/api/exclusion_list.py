@@ -4,6 +4,7 @@ For managing the exclusion list (PC/RR list)
 """
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import datetime
@@ -39,6 +40,17 @@ class PCListSearchResult(BaseModel):
     found: bool
     matches: List[ExclusionListItem]
 
+class PCListBulkSearchRequest(BaseModel):
+    names: List[str]
+
+class PCListBulkSearchItem(BaseModel):
+    name: str
+    found: bool
+    matches: List[ExclusionListItem]
+
+class PCListBulkSearchResult(BaseModel):
+    results: List[PCListBulkSearchItem]
+
 @router.get("/search", response_model=PCListSearchResult)
 async def search_pc_list(
     first_name: str,
@@ -52,6 +64,42 @@ async def search_pc_list(
         ExclusionList.name == full_name
     ).all()
     return {"found": len(matches) > 0, "matches": matches}
+
+@router.post("/search-bulk", response_model=PCListBulkSearchResult)
+def search_pc_list_bulk(
+    request: PCListBulkSearchRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Search up to 500 full names in the PC list with one database query."""
+    normalized_names = list(dict.fromkeys(
+        " ".join(name.strip().upper().split())
+        for name in request.names
+        if name and name.strip()
+    ))
+    if not normalized_names:
+        raise HTTPException(status_code=400, detail="Provide at least one name")
+    if len(normalized_names) > 500:
+        raise HTTPException(status_code=400, detail="A maximum of 500 names can be checked at once")
+
+    matches = db.query(ExclusionList).filter(
+        func.upper(func.trim(ExclusionList.name)).in_(normalized_names)
+    ).all()
+    matches_by_name = {}
+    for match in matches:
+        key = " ".join(match.name.strip().upper().split())
+        matches_by_name.setdefault(key, []).append(match)
+
+    return {
+        "results": [
+            {
+                "name": name,
+                "found": name in matches_by_name,
+                "matches": matches_by_name.get(name, []),
+            }
+            for name in normalized_names
+        ]
+    }
 
 @router.post("/upload", status_code=status.HTTP_200_OK)
 async def upload_exclusion_list(
@@ -181,5 +229,4 @@ async def clear_exclusion_list(
     return {
         "message": f"Exclusion list cleared. {count} items removed."
     }
-
 

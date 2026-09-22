@@ -897,6 +897,17 @@ export const searchPCList = async (firstName: string, lastName: string): Promise
   return response.data
 }
 
+export interface PCListBulkSearchItem {
+  name: string
+  found: boolean
+  matches: PCListMatch[]
+}
+
+export const searchPCListBulk = async (names: string[]): Promise<PCListBulkSearchItem[]> => {
+  const response = await api.post('/exclusion-list/search-bulk', { names })
+  return response.data.results
+}
+
 // Row Template API
 export interface ColumnDefinition {
   id?: number
