@@ -566,7 +566,14 @@ function UserDashboard() {
                             {orientationIndex + 1}
                           </td>
                           <td className="px-4 py-2 font-semibold">
-                            {orientation.first_name} {orientation.last_name}
+                            <div className="flex items-center gap-2">
+                              <span>{orientation.first_name} {orientation.last_name}</span>
+                              {orientation.is_in_pc_list ? (
+                                <span className="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded" title="⚠️ IN PC/RR EXCLUSION LIST">
+                                  ⚠️ PC/RR
+                                </span>
+                              ) : null}
+                            </div>
                           </td>
                           <td className="px-4 py-2">{orientation.email}</td>
                           <td className="px-4 py-2">{orientation.phone}</td>

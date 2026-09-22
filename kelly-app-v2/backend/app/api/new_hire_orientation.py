@@ -4,7 +4,7 @@ New Hire Orientation API endpoints
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import func
+from sqlalchemy import and_, func, or_
 from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import List, Optional
 from datetime import datetime, date, timezone, timedelta
@@ -13,6 +13,7 @@ from zoneinfo import ZoneInfo
 from app.database import get_db
 from app.models.visit import NewHireOrientation, NewHireOrientationStep
 from app.models.new_hire_orientation_config import NewHireOrientationConfig
+from app.models.exclusion_list import ExclusionList
 from app.services.recruiter_service import get_next_recruiter, initialize_default_recruiters
 import json
 
@@ -41,6 +42,7 @@ class NewHireOrientationResponse(BaseModel):
     phone: str
     time_slot: str
     status: str
+    is_in_pc_list: bool = False
     assigned_recruiter_id: Optional[int] = None
     process_status: Optional[str] = None
     badge_status: Optional[str] = None
@@ -334,9 +336,37 @@ async def list_new_hire_orientations(
         recruiters = db.query(Recruiter).filter(Recruiter.id.in_(recruiter_ids)).all()
         recruiters_map = {r.id: r.name for r in recruiters}
 
+    # Load only possible PC List matches in one query (no per-orientation queries).
+    orientation_names = {
+        (orientation.first_name.strip().upper(), orientation.last_name.strip().upper())
+        for orientation in orientations
+        if orientation.first_name.strip() and orientation.last_name.strip()
+    }
+    pc_conditions = [
+        and_(
+            func.upper(ExclusionList.name).like(f"%{first_name}%"),
+            func.upper(ExclusionList.name).like(f"%{last_name}%"),
+        )
+        for first_name, last_name in orientation_names
+    ]
+    pc_list_names = {
+        name.upper()
+        for (name,) in (
+            db.query(ExclusionList.name).filter(or_(*pc_conditions)).all()
+            if pc_conditions else []
+        )
+        if name
+    }
+
     result = []
     for orientation in orientations:
         orientation_data = NewHireOrientationResponse.model_validate(orientation).model_dump()
+        first_name = orientation.first_name.strip().upper()
+        last_name = orientation.last_name.strip().upper()
+        orientation_data["is_in_pc_list"] = bool(first_name and last_name) and any(
+            first_name in pc_name and last_name in pc_name
+            for pc_name in pc_list_names
+        )
         if orientation.assigned_recruiter_id and orientation.assigned_recruiter_id in recruiters_map:
             orientation_data["assigned_recruiter_name"] = recruiters_map[orientation.assigned_recruiter_id]
         result.append(orientation_data)

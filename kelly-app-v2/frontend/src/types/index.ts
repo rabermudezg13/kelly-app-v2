@@ -82,6 +82,7 @@ export interface NewHireOrientation {
   phone: string
   time_slot: string
   status: string
+  is_in_pc_list?: boolean
   assigned_recruiter_id?: number | null
   assigned_recruiter_name?: string | null
   process_status?: string | null
