@@ -34,6 +34,7 @@ import {
 import type { AssignedSession, Recruiter, NewHireOrientation, NewHireOrientationWithSteps } from '../types'
 import type { RowTemplate } from '../services/api'
 import { formatMiamiTime, getMiamiDateKey, formatMiamiDateDisplay } from '../utils/dateUtils'
+import NhoHistorySearch from '../components/NhoHistorySearch'
 import CHRPage from './CHRPage'
 import StatisticsDashboard from './StatisticsDashboard'
 import EventManagement from '../components/EventManagement'
@@ -1347,6 +1348,7 @@ function RecruiterDashboard() {
             <span className="px-3 py-1.5 border border-blue-300 rounded text-sm bg-white text-blue-800">
               Current week
             </span>
+            <NhoHistorySearch />
             {selectedNhoIds.size > 0 && (
               <button
                 onClick={handleDeleteSelected}

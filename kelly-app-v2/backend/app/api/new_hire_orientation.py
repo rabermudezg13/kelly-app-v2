@@ -1,7 +1,7 @@
 """
 New Hire Orientation API endpoints
 """
-from fastapi import APIRouter, Depends, HTTPException, status, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Body, Query
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_, func, or_
@@ -11,6 +11,7 @@ from datetime import datetime, date, timezone, timedelta
 from zoneinfo import ZoneInfo
 
 from app.database import get_db
+from app.api.auth import get_current_user
 from app.models.visit import NewHireOrientation, NewHireOrientationStep
 from app.models.new_hire_orientation_config import NewHireOrientationConfig
 from app.models.exclusion_list import ExclusionList
@@ -204,6 +205,63 @@ async def register_new_hire_orientation(
             status_code=500,
             detail=f"Error registering new hire orientation: {str(e)}"
         )
+
+class NewHireOrientationHistoryResponse(BaseModel):
+    items: List[NewHireOrientationWithSteps]
+    total: int
+    offset: int
+    limit: int
+
+
+# Static route must precede /{orientation_id}.
+@router.get("/history", response_model=NewHireOrientationHistoryResponse)
+async def search_new_hire_orientation_history(
+    q: str = Query(default="", max_length=200),
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=25, ge=1, le=100),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Read-only history, independent of the dashboard's current-week filter.
+
+    Dates include the entire selected Miami calendar day, including DST changes.
+    Each name token must match either first or last name (case insensitive).
+    """
+    if current_user.role not in {"admin", "management", "recruiter", "frontdesk", "staff"}:
+        raise HTTPException(status_code=403, detail="Staff access required")
+    tokens = q.strip().split()
+    if not tokens and not date_from and not date_to:
+        raise HTTPException(status_code=422, detail="Enter a name or a date range")
+    if date_from and date_to and date_from > date_to:
+        raise HTTPException(status_code=422, detail="Start date must not be after end date")
+    if date_to == date.max:
+        raise HTTPException(status_code=422, detail="End date is out of range")
+
+    query = db.query(NewHireOrientation)
+    for token in tokens:
+        # Treat %, _ and the escape character as literal name characters.
+        literal = token.replace("!", "!!").replace("%", "!%").replace("_", "!_")
+        pattern = f"%{literal}%"
+        query = query.filter(or_(
+            NewHireOrientation.first_name.ilike(pattern, escape="!"),
+            NewHireOrientation.last_name.ilike(pattern, escape="!"),
+        ))
+    miami = ZoneInfo("America/New_York")
+    if date_from:
+        start = datetime.combine(date_from, datetime.min.time(), tzinfo=miami)
+        query = query.filter(NewHireOrientation.created_at >= start.astimezone(timezone.utc))
+    if date_to:
+        end = datetime.combine(date_to + timedelta(days=1), datetime.min.time(), tzinfo=miami)
+        query = query.filter(NewHireOrientation.created_at < end.astimezone(timezone.utc))
+
+    total = query.count()
+    items = (query.options(joinedload(NewHireOrientation.steps))
+             .order_by(NewHireOrientation.created_at.desc(), NewHireOrientation.id.desc())
+             .offset(offset).limit(limit).all())
+    return {"items": items, "total": total, "offset": offset, "limit": limit}
+
 
 @router.get("/{orientation_id}", response_model=NewHireOrientationWithSteps)
 async def get_new_hire_orientation(
