@@ -201,6 +201,31 @@ export const getNewHireOrientationTimeSlots = async (): Promise<string[]> => {
   return response.data
 }
 
+export interface NhoHistoryFilters {
+  q: string
+  date_from?: string
+  date_to?: string
+}
+
+export interface NhoHistoryPage {
+  items: NewHireOrientationWithSteps[]
+  total: number
+  offset: number
+  limit: number
+}
+
+export const searchNhoHistory = async (
+  filters: NhoHistoryFilters,
+  offset = 0,
+  signal?: AbortSignal,
+): Promise<NhoHistoryPage> => {
+  const response = await api.get('/new-hire-orientation/history', {
+    params: { ...filters, offset, limit: 25 },
+    signal,
+  })
+  return response.data
+}
+
 export const getNewHireOrientations = async (
   daysBack: number = 7,
   currentWeek: boolean = false
