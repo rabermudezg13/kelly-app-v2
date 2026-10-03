@@ -1,7 +1,21 @@
 # Reglas de trabajo — Kelly App
 
-Estas instrucciones aplican a todo el repositorio. Leer también `docs/ARCHITECTURE.md`,
+Estas instrucciones aplican a todo el repositorio. Leer primero `memory.md` y también `docs/ARCHITECTURE.md`,
 `docs/HARNESS.md` y las entradas recientes de `docs/CHANGELOG.md` antes de editar.
+
+## Memoria y mantenimiento (obligatorio)
+
+- Leer `memory.md` al iniciar cada tarea y contrastar su estado con Git y la
+  evidencia disponible antes de editar. Mantener el proyecto funcional; revisar
+  dependencias y flujos afectados y comprobar que no se introduzcan regresiones.
+- Al terminar **cada tarea**, actualizar `memory.md` antes de la respuesta final:
+  objetivo, cambios o hallazgos, pruebas y resultados, estado real y pendientes.
+  Esto incluye análisis, documentación y tareas incompletas.
+- Registrar allí cada versión o revisión con fecha y referencia PR/commit o tag
+  real. No inventar números de release ni declarar despliegues sin verificarlos.
+- Conservar las entradas anteriores y actualizar el resumen del estado actual.
+  Documentar cualquier cambio también en `docs/CHANGELOG.md`; mantener ambos
+  registros coherentes y enlazar los detalles para evitar duplicación innecesaria.
 
 ## Proteger los flujos existentes
 

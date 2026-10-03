@@ -15,6 +15,18 @@ estado cuando existan pruebas nuevas; conservar las limitaciones pendientes.
 - Referencia: commit o PR, cuando esté disponible.
 ```
 
+## 2026-10-03 — Memoria permanente del proyecto
+- Estado: verificado localmente; revisión destinada a PR #10.
+- Objetivo y motivo: conservar continuidad, proteger los flujos existentes y
+  registrar el estado de cada tarea y versión.
+- Cambios: `memory.md` con compromisos, estado, historial y plantilla; `AGENTS.md`
+  exige leerla al iniciar y actualizarla al terminar cada tarea. README la enlaza.
+- Verificación: harness completo correcto (11 pruebas NHO, drivers, arranque/health
+  y build); 26 diagnósticos TypeScript conocidos y cero nuevos. Control de
+  bitácora y `git diff --check` correctos. CI de esta revisión aún no comprobado.
+- Pendientes: comprobar CI de esta revisión e integrar PR #10.
+- Referencia: https://github.com/rabermudezg13/kelly-app-v2/pull/10
+
 ## 2026-10-03 — Reglas, documentación y harness
 - Estado: implementado, verificado localmente y publicado en PR #10.
 - Objetivo y motivo: hacer el trabajo reproducible y conservar una historia clara

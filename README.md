@@ -4,6 +4,7 @@ Aplicación interna de Kelly Education Miami Dade para recepción, reclutadores,
 Info Sessions y New Hire Orientation (NHO).
 
 - [Reglas para agentes y colaboradores](AGENTS.md)
+- [Memoria del proyecto y versiones](memory.md)
 - [Arquitectura y protección del flujo semanal](docs/ARCHITECTURE.md)
 - [Preparación y harness de verificación](docs/HARNESS.md)
 - [Bitácora de cambios y pendientes](docs/CHANGELOG.md)
