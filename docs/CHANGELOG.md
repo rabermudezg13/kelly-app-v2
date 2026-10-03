@@ -16,7 +16,7 @@ estado cuando existan pruebas nuevas; conservar las limitaciones pendientes.
 ```
 
 ## 2026-10-03 — Reglas, documentación y harness
-- Estado: implementado y verificado localmente.
+- Estado: implementado, verificado localmente y publicado en PR #10.
 - Objetivo y motivo: hacer el trabajo reproducible y conservar una historia clara
   de lo realizado sin afectar el flujo semanal.
 - Cambios: `AGENTS.md`, README, arquitectura, esta bitácora, guía y script de
@@ -27,9 +27,10 @@ estado cuando existan pruebas nuevas; conservar las limitaciones pendientes.
   ambos drivers, arranque/health y build. TypeScript: 26 diagnósticos anteriores
   (18 mensajes distintos), cero nuevos. Siete comprobaciones del control de
   documentación y normalización de diagnósticos pasaron; `git diff --check` limpio.
-  Ejecución local con Python 3.9; CI está configurado con Python 3.12.
-- Pendientes: ejecución de CI en GitHub y configuración opcional de protección
-  de rama. El harness no cubre navegador ni conexión real a PostgreSQL. El
+  Ejecución local con Python 3.9. CI con Python 3.12 y Node 22 completado
+  correctamente en el run `37124376590` para el commit `c90f33e`.
+- Referencia: https://github.com/rabermudezg13/kelly-app-v2/pull/10
+- Pendientes: integrar el PR y configuración opcional de protección de rama. El harness no cubre navegador ni conexión real a PostgreSQL. El
   arranque conserva una advertencia anterior de migración SQLite (`conn` no definido),
   sin impedir el health check; no se ha modificado esa migración.
 
