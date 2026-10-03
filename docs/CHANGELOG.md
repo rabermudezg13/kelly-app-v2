@@ -16,7 +16,8 @@ estado cuando existan pruebas nuevas; conservar las limitaciones pendientes.
 ```
 
 ## 2026-10-03 — Dashboards horizontales translúcidos
-- Estado: implementado y verificado localmente, sin despliegue.
+- Estado: implementado, verificado localmente y publicado en PR #11 (borrador),
+  dependiente de PR #10; sin despliegue.
 - Objetivo: modernizar los siete roles conservando el ancho y los flujos operativos.
 - Cambios: CSS acotado, atributos visuales/accesibles, estadísticas, fondos opacos
   para datos y protección frente al tema antiguo. Staff tenía `refreshing` y dos

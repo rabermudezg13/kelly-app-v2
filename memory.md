@@ -47,7 +47,8 @@ hash del propio commit: el PR o un identificador de revisión sirve como referen
 ## Estado actual
 
 - Modernización horizontal implementada en rama aislada; verificación local en
-  `docs/DASHBOARD_VERIFICATION.md`. Pendiente de CI, revisión e integración.
+  `docs/DASHBOARD_VERIFICATION.md`. Publicado en PR #11 (borrador), dependiente
+  de PR #10. Pendiente de CI, aceptación autenticada e integración.
   La elección horizontal sustituye la propuesta inicial de sidebar.
 
 - Frontend React/Vite en Vercel; backend FastAPI/SQLAlchemy en Railway.
@@ -70,7 +71,8 @@ hash del propio commit: el PR o un identificador de revisión sirve como referen
 - Verificación: harness correcto, 11 pruebas NHO, build y 21 errores TypeScript
   conocidos sin errores nuevos; navegador en siete rutas, NHO semanal/historial,
   guardado ficticio de Staff, estadísticas y tamaños 390/768/1440.
-- Estado: implementado y verificado localmente en `codex/horizontal-glass-dashboards`.
+- Estado: implementado y verificado localmente; publicado en PR #11 (borrador).
+- Referencia: https://github.com/rabermudezg13/kelly-app-v2/pull/11
 - Pendientes: CI, revisión e integración; aceptación con sesiones autorizadas.
   No desplegado. Límites específicos en `docs/DASHBOARD_VERIFICATION.md`.
 - Detalle en bitácora: `docs/CHANGELOG.md`.

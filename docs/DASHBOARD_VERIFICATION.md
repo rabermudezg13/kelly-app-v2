@@ -1,7 +1,9 @@
 # Verificación del diseño horizontal
 
 Fecha: 2026-10-03. Rama: `codex/horizontal-glass-dashboards`.
-Estado: comprobado localmente con datos ficticios; pendiente de CI e integración.
+Estado: comprobado localmente con datos ficticios; PR #11 en borrador sobre PR #10.
+CI del commit `81d5622` en curso al registrar esta actualización; falta aceptación
+con sesiones autorizadas antes de integrar y desplegar.
 
 ## Cambios
 
