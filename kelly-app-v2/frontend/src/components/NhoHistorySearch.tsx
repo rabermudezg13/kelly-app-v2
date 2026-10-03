@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { isAxiosError } from 'axios'
 import { searchNhoHistory } from '../services/api'
 import type { NhoHistoryFilters, NhoHistoryPage } from '../services/api'
 import type { NewHireOrientationWithSteps } from '../types'
@@ -27,6 +28,7 @@ function HistoryDialog({ onClose }: { onClose: () => void }) {
   const [selected, setSelected] = useState<NewHireOrientationWithSteps | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [needsSignIn, setNeedsSignIn] = useState(false)
 
   useEffect(() => {
     const previousFocus = document.activeElement as HTMLElement | null
@@ -44,6 +46,7 @@ function HistoryDialog({ onClose }: { onClose: () => void }) {
     const controller = new AbortController()
     request.current = controller
     setError('')
+    setNeedsSignIn(false)
     setLoading(true)
     setSelected(null)
     setPage(null)
@@ -51,9 +54,15 @@ function HistoryDialog({ onClose }: { onClose: () => void }) {
     try {
       const result = await searchNhoHistory(nextFilters, offset, controller.signal)
       if (!controller.signal.aborted) setPage(result)
-    } catch {
+    } catch (failure) {
       if (!controller.signal.aborted) {
-        setError('Could not search history. Check your connection and sign-in, then try again.')
+        const status = isAxiosError(failure) ? failure.response?.status : undefined
+        setNeedsSignIn(status === 401)
+        setError(status === 401
+          ? 'Sign in to your staff account to search NHO history.'
+          : status === 403
+            ? 'A staff account is required to search NHO history.'
+            : 'Could not search history. Please try again.')
       }
     } finally {
       if (!controller.signal.aborted) setLoading(false)
@@ -98,7 +107,9 @@ function HistoryDialog({ onClose }: { onClose: () => void }) {
           {loading ? 'Searching…' : 'Search'}
         </button>
       </form>
-      {error && <p role="alert" className="text-red-700 bg-red-50 p-3 rounded mb-4">{error}</p>}
+      {error && <p role="alert" className="text-red-700 bg-red-50 p-3 rounded mb-4">{error}
+        {needsSignIn && <a href="/staff/login" className="ml-2 underline font-semibold">Sign in</a>}
+      </p>}
       <div aria-live="polite" aria-busy={loading}>
         {!page && !loading && !error && <p className="text-gray-500 py-6 text-center">Enter a name, a date range, or both to search the history.</p>}
         {loading && <p className="py-6 text-center text-gray-600">Searching history…</p>}
