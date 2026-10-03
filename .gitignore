@@ -117,3 +117,6 @@ ssl/
 certs/
 
 
+# Verification reports and test caches
+.harness/
+.pytest_cache/
