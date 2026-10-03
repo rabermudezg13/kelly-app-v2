@@ -58,6 +58,12 @@
     const root = document.getElementById('root')
     const page = root?.firstElementChild
     if (!(page instanceof HTMLElement)) return
+    // React-owned dashboard presentation replaces the legacy theme only.
+    // Keep the existing Row Generator layout stabilization below.
+    if (page.classList.contains('dashboard-glass')) {
+      stabilizeRecruiterDetails(page)
+      return
+    }
     page.classList.add('kelly-modern-dashboard')
 
     Array.from(page.querySelectorAll('h1')).forEach((heading) => {

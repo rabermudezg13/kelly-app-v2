@@ -4,6 +4,19 @@
 
 ## Compromisos permanentes
 
+- Toda función nueva debe comenzar en **modo plan**: definir objetivo, alcance,
+  dependencias, riesgos, criterios de aceptación y pruebas antes de implementarla.
+  Si el modo Plan de la herramienta no está disponible, elaborar y registrar el
+  plan explícitamente antes de editar; no afirmar que se activó ese modo.
+- Implementar y probar primero en una rama o entorno aislado. Comprobar que la
+  función cumple los criterios de aceptación y que los flujos existentes siguen
+  funcionando mediante pruebas de regresión relevantes.
+- Solo integrar al flujo principal o desplegar cuando la función opere como se
+  espera y las comprobaciones pasen. Si falla algo o falta una validación necesaria,
+  corregir y repetir las pruebas; mantener el cambio aislado hasta resolverlo.
+  Registrar el plan, resultados, límites y estado en esta memoria y la bitácora.
+  Las pruebas reducen el riesgo; no garantizan ausencia absoluta de errores.
+
 - Mantener el proyecto funcional y consistente. Antes de cambiar algo, revisar
   el estado de Git, las instrucciones, esta memoria y los flujos afectados.
 - Evaluar el impacto y verificar que el cambio no rompa funciones existentes,
@@ -33,17 +46,69 @@ hash del propio commit: el PR o un identificador de revisión sirve como referen
 
 ## Estado actual
 
+- Modernización horizontal implementada en rama aislada; verificación local en
+  `docs/DASHBOARD_VERIFICATION.md`. Pendiente de CI, revisión e integración.
+  La elección horizontal sustituye la propuesta inicial de sidebar.
+
 - Frontend React/Vite en Vercel; backend FastAPI/SQLAlchemy en Railway.
 - El historial NHO está publicado mediante PR #9 y correcciones posteriores.
   Falta verificar la búsqueda en producción con una sesión válida de staff.
 - Las reglas, documentación y harness están en PR #10, pendientes de integración.
   Su primera ejecución CI pasó; no confundir una verificación anterior con la
   verificación de revisiones posteriores.
-- Deuda conocida: 26 diagnósticos TypeScript (18 mensajes distintos); advertencia
+- Deuda conocida: 21 diagnósticos TypeScript tras corregir cinco referencias
+  indefinidas de Staff; advertencia
   de migración SQLite sobre `conn` no definido. El harness no cubre navegador ni
   una conexión real a PostgreSQL. Consultar `docs/HARNESS.md`.
 
 ## Historial de versiones y revisiones
+
+### 2026-10-03 — Revisión horizontal de dashboards
+- Objetivo: aplicar el estilo translúcido conservando navegación horizontal y datos.
+- Cambios: presentación compartida de siete roles y estadísticas; aislamiento del
+  tema antiguo; superficies legibles. Corrección del fallo previo de Staff.
+- Verificación: harness correcto, 11 pruebas NHO, build y 21 errores TypeScript
+  conocidos sin errores nuevos; navegador en siete rutas, NHO semanal/historial,
+  guardado ficticio de Staff, estadísticas y tamaños 390/768/1440.
+- Estado: implementado y verificado localmente en `codex/horizontal-glass-dashboards`.
+- Pendientes: CI, revisión e integración; aceptación con sesiones autorizadas.
+  No desplegado. Límites específicos en `docs/DASHBOARD_VERIFICATION.md`.
+- Detalle en bitácora: `docs/CHANGELOG.md`.
+
+### 2026-10-03 — Análisis de dashboards translúcidos
+- Objetivo: estudiar el rediseño según la imagen del usuario sin alterar funciones.
+- Hallazgos: siete dashboards de roles, navegación propia, estilos repetidos y
+  diferencia entre filtro semanal explícito del reclutador y llamadas de otros roles.
+- Cambios: plan en `docs/DASHBOARD_REDESIGN_PLAN.md`; sin modificaciones de app.
+- Verificación: lectura de rutas, navegación, estilos y consultas; revisión documental.
+- Estado: análisis terminado; diseño aún no implementado ni probado en navegador.
+- Pendientes: inventario detallado, preview aislada, implementación progresiva y
+  verificación por rol antes de integrar.
+- Detalle en bitácora: `docs/CHANGELOG.md`.
+
+### 2026-10-03 — Revisión local: plan y validación de nuevas funciones
+- Objetivo: planificar, probar y verificar regresiones antes de aplicar funciones.
+- Cambios: regla permanente en esta memoria y referencia explícita en `AGENTS.md`.
+- Verificación: revisión de coherencia de las instrucciones y `git diff --check`.
+- Estado: documentado localmente; sin cambios funcionales.
+- Pendientes: aplicar esta regla en las siguientes tareas de desarrollo.
+- Detalle en bitácora: `docs/CHANGELOG.md`.
+
+### 2026-10-03 — Revisión local: carpeta `.codex/commands`
+- Objetivo: crear `commands` dentro de `.codex` por solicitud del usuario.
+- Cambios: directorio `.codex/commands`; sin cambios funcionales.
+- Verificación: existencia del directorio comprobada.
+- Estado: creado localmente; una carpeta vacía no se versiona en Git.
+- Pendientes: ninguno para esta tarea.
+- Detalle en bitácora: `docs/CHANGELOG.md`.
+
+### 2026-10-03 — Revisión local: carpeta `.codex`
+- Objetivo: crear la carpeta solicitada en la raíz del proyecto.
+- Cambios: directorio `.codex`, sin mover archivos ni modificar la aplicación.
+- Verificación: existencia del directorio comprobada.
+- Estado: creado localmente; una carpeta vacía no se versiona en Git.
+- Pendientes: ninguno para esta tarea.
+- Detalle en bitácora: `docs/CHANGELOG.md`.
 
 ### 2026-10-03 — PR #10, revisión de memoria del proyecto
 - Objetivo: mantener continuidad, registrar cada versión y documentar cada tarea.

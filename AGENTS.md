@@ -50,6 +50,13 @@ Estas instrucciones aplican a todo el repositorio. Leer primero `memory.md` y ta
 
 ## Verificación y entrega
 
+- Toda función nueva comienza con modo plan, conforme a `memory.md`: definir
+  criterios de aceptación y pruebas antes de editar. Si el modo de la herramienta
+  no está disponible, registrar un plan explícito sin afirmar que se activó.
+- Implementar y validar en una rama o entorno aislado; comprobar el comportamiento
+  esperado y regresiones antes de integrar al flujo principal o desplegar.
+  Si falta una validación necesaria o falla una prueba, resolverlo antes de aplicar.
+
 - Ejecutar `python scripts/verify.py` con el entorno de desarrollo preparado.
   Consultar `docs/HARNESS.md`. Documentar cualquier comprobación que no pudo correr.
 - Para cambios funcionales añadir pruebas de comportamiento y regresiones relevantes;

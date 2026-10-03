@@ -872,10 +872,10 @@ function TalentDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
+    <div className="dashboard-glass min-h-screen bg-gray-100 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="dashboard-header bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
               <div>
@@ -905,9 +905,10 @@ function TalentDashboard() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-lg mb-6">
-          <div className="flex flex-wrap border-b">
+        <div className="dashboard-panel bg-white rounded-lg shadow-lg mb-6">
+          <div className="dashboard-tabs flex flex-wrap border-b" role="group" aria-label="Dashboard sections">
             <button
+              aria-pressed={activeTab === 'info-session'}
               onClick={() => setActiveTab('info-session')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'info-session'
@@ -918,6 +919,7 @@ function TalentDashboard() {
               📋 Info Session (Live)
             </button>
             <button
+              aria-pressed={activeTab === 'new-hire-orientation'}
               onClick={() => setActiveTab('new-hire-orientation')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'new-hire-orientation'
@@ -928,6 +930,7 @@ function TalentDashboard() {
               👔 New Hire Orientation
             </button>
             <button
+              aria-pressed={activeTab === 'badges'}
               onClick={() => setActiveTab('badges')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'badges'
@@ -938,6 +941,7 @@ function TalentDashboard() {
               🪪 Badges
             </button>
             <button
+              aria-pressed={activeTab === 'fingerprints'}
               onClick={() => setActiveTab('fingerprints')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'fingerprints'
@@ -948,6 +952,7 @@ function TalentDashboard() {
               👆 Fingerprints
             </button>
             <button
+              aria-pressed={activeTab === 'my-visits'}
               onClick={() => setActiveTab('my-visits')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'my-visits'
@@ -958,6 +963,7 @@ function TalentDashboard() {
               👥 My Visits
             </button>
             <button
+              aria-pressed={activeTab === 'statistics'}
               onClick={() => setActiveTab('statistics')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'statistics'
@@ -968,6 +974,7 @@ function TalentDashboard() {
               📊 Statistics
             </button>
             <button
+              aria-pressed={activeTab === 'chr'}
               onClick={() => setActiveTab('chr')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'chr'
@@ -978,6 +985,7 @@ function TalentDashboard() {
               📝 CHR
             </button>
             <button
+              aria-pressed={activeTab === 'event'}
               onClick={() => setActiveTab('event')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'event'
@@ -988,6 +996,7 @@ function TalentDashboard() {
               🎟️ Event
             </button>
             <button
+              aria-pressed={activeTab === 'storage'}
               onClick={() => setActiveTab('storage')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'storage'
@@ -998,6 +1007,7 @@ function TalentDashboard() {
               📦 Storage
             </button>
             <button
+              aria-pressed={activeTab === 'pc-check'}
               onClick={() => setActiveTab('pc-check')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'pc-check'
@@ -1012,7 +1022,8 @@ function TalentDashboard() {
 
         <div className="mb-4 flex flex-wrap justify-end gap-2">
           <button
-            onClick={() => setActiveTab('tv-kiosk')}
+            aria-pressed={activeTab === 'tv-kiosk'}
+              onClick={() => setActiveTab('tv-kiosk')}
             className={`px-5 py-3 rounded-lg font-semibold transition-colors ${
               activeTab === 'tv-kiosk'
                 ? 'bg-gray-950 text-white'
@@ -1022,7 +1033,8 @@ function TalentDashboard() {
             📺 TV Kiosk
           </button>
           <button
-            onClick={() => setActiveTab('info-session-progress')}
+            aria-pressed={activeTab === 'info-session-progress'}
+              onClick={() => setActiveTab('info-session-progress')}
             className={`px-5 py-3 rounded-lg font-semibold transition-colors ${
               activeTab === 'info-session-progress'
                 ? 'bg-emerald-700 text-white'

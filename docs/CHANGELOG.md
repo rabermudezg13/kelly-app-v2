@@ -15,6 +15,52 @@ estado cuando existan pruebas nuevas; conservar las limitaciones pendientes.
 - Referencia: commit o PR, cuando esté disponible.
 ```
 
+## 2026-10-03 — Dashboards horizontales translúcidos
+- Estado: implementado y verificado localmente, sin despliegue.
+- Objetivo: modernizar los siete roles conservando el ancho y los flujos operativos.
+- Cambios: CSS acotado, atributos visuales/accesibles, estadísticas, fondos opacos
+  para datos y protección frente al tema antiguo. Staff tenía `refreshing` y dos
+  handlers indefinidos: se restauran siguiendo el patrón existente. Se retiran
+  cinco diagnósticos resueltos de la referencia TypeScript.
+- Verificación: harness correcto (11 pruebas, drivers, startup/health, build);
+  21 diagnósticos conocidos, cero nuevos. Navegador en siete roles; NHO e historial,
+  guardado ficticio Staff, estadísticas, teclado y anchos 390/768/1440. Comparación
+  AST confirma lógica intacta en los otros siete componentes.
+- Pendientes: CI y revisión antes de integrar; aceptación autenticada en preview.
+- Referencia: rama `codex/horizontal-glass-dashboards`; evidencia y límites en
+  `docs/DASHBOARD_VERIFICATION.md`.
+
+## 2026-10-03 — Análisis de modernización visual
+- Estado: plan documentado; sin implementación.
+- Objetivo: dashboards con estilo translúcido inspirado en la imagen del usuario.
+- Cambios: `docs/DASHBOARD_REDESIGN_PLAN.md` y memoria actualizada.
+- Verificación: inspección de rutas, siete dashboards, estilos y consultas NHO;
+  `git diff --check`. Sin cambios ejecutables; no se repitió el harness.
+- Pendientes: preview, inventario detallado por rol y pruebas de interacción.
+
+## 2026-10-03 — Plan y validación antes de aplicar funciones
+- Estado: documentado localmente.
+- Objetivo y motivo: exigir planificación y comprobación de nuevas funciones
+  antes de integrarlas al flujo principal.
+- Cambios: reglas en `memory.md` y `AGENTS.md` para planificar, trabajar aislado,
+  validar criterios y regresiones, y corregir fallos antes de aplicar.
+- Verificación: coherencia de instrucciones y `git diff --check`; solo documentación.
+- Pendientes: cumplir el proceso en las próximas funciones.
+
+## 2026-10-03 — Carpeta `.codex/commands`
+- Estado: creada localmente.
+- Objetivo y motivo: crear el subdirectorio solicitado por el usuario.
+- Cambios: `.codex/commands` y actualización de la memoria.
+- Verificación: existencia del directorio comprobada; sin cambios funcionales.
+- Pendientes: ninguno. La carpeta vacía no se versiona en Git.
+
+## 2026-10-03 — Carpeta `.codex`
+- Estado: creada localmente.
+- Objetivo y motivo: añadir el directorio solicitado por el usuario.
+- Cambios: carpeta `.codex` en la raíz; memoria actualizada.
+- Verificación: directorio existente; sin cambios funcionales ni pruebas nuevas.
+- Pendientes: ninguno. La carpeta vacía no se versiona en Git.
+
 ## 2026-10-03 — Memoria permanente del proyecto
 - Estado: verificado localmente; revisión destinada a PR #10.
 - Objetivo y motivo: conservar continuidad, proteger los flujos existentes y

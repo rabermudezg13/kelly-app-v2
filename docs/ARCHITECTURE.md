@@ -44,3 +44,11 @@ El servicio frontend antiguo de Railway no representa el frontend activo de Verc
 El arranque importa modelos, crea tablas y puede inicializar el administrador.
 No usarlo como prueba contra una base real. Los drivers PostgreSQL `psycopg` y
 `psycopg2` están declarados: su disponibilidad se comprueba sin conectar a una base.
+
+## Presentación horizontal de dashboards (en rama de revisión)
+
+`frontend/src/dashboard.css` contiene el tema acotado a `.dashboard-glass`.
+Los dashboards conservan handlers, estados y consultas; los botones existentes
+usan `aria-pressed`. `public/dashboard-modern.js` omite el tema antiguo cuando
+React aplica esta clase, pero mantiene la estabilización de Row Generator.
+Ver `DASHBOARD_REDESIGN_PLAN.md` y `DASHBOARD_VERIFICATION.md`.

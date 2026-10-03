@@ -194,7 +194,7 @@ function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 py-8 flex items-center justify-center">
+      <div className="dashboard-glass min-h-screen bg-gray-100 py-8 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow-lg p-8 max-w-md">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -207,10 +207,10 @@ function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
+    <div className="dashboard-glass min-h-screen bg-gray-100 py-8">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="dashboard-header bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold">Admin Dashboard</h1>

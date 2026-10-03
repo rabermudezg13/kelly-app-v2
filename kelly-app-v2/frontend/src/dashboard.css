@@ -1,0 +1,120 @@
+/* Scoped presentation only: dashboard data, handlers and content stay in place. */
+.dashboard-glass {
+  background-color: #182323;
+  background-image:
+    radial-gradient(ellipse at 6% 0%, rgba(112, 151, 134, .26), transparent 48%),
+    radial-gradient(ellipse at 94% 18%, rgba(154, 165, 184, .16), transparent 42%),
+    linear-gradient(135deg, #263332, #151c20 72%);
+  padding-top: 1.5rem;
+  padding-bottom: 2.5rem;
+}
+
+.dashboard-glass > .container { min-width: 0; }
+/* Preserve the width previously applied by dashboard-modern.css to these roles. */
+.dashboard-glass-wide > .container { max-width: 1500px; }
+
+.dashboard-glass .dashboard-header {
+  color: #f7faf9;
+  background: #303d3d;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 1.5rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .18), inset 0 1px rgba(255, 255, 255, .08);
+}
+
+.dashboard-header > .flex { gap: 1.25rem; flex-wrap: wrap; }
+.dashboard-header > .flex > .flex { flex-wrap: wrap; }
+.dashboard-header h1 { font-size: clamp(1.5rem, 3vw, 1.875rem); letter-spacing: -.035em; overflow-wrap: anywhere; }
+.dashboard-header h1::before {
+  content: 'KELLY EDUCATION';
+  display: block;
+  margin-bottom: .65rem;
+  color: #b9decb;
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .2em;
+}
+.dashboard-header p { overflow-wrap: anywhere; }
+.dashboard-header .text-gray-600,
+.dashboard-header .text-gray-500 { color: #d1ddd8; }
+.dashboard-header select { background: #fff; color: #1f2937; }
+.dashboard-header button { border-radius: .8rem; min-height: 44px; }
+
+.dashboard-glass .dashboard-panel {
+  border-radius: 1.5rem;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .2);
+  /* Keep content opaque and preserve existing tables and modal overflow. */
+  background: #fff;
+}
+
+.dashboard-glass .dashboard-tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: .4rem;
+  padding: .75rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #93b8a6 #303d3d;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-bottom: 0;
+  border-radius: 1.5rem;
+  background: #303d3d;
+  color: #e8f0eb;
+}
+.dashboard-tabs > button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  min-height: 44px;
+  padding: .75rem 1rem;
+  border: 1px solid transparent;
+  border-radius: .85rem;
+  font-size: .875rem;
+  color: #e8f0eb;
+  background: transparent;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+.dashboard-tabs > button:hover { background: #465853; color: #fff; }
+.dashboard-tabs > button[aria-pressed='true'] {
+  background: #c4efd5;
+  color: #163e29;
+  border-color: #d9f7e4;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+}
+.dashboard-tabs > button:focus-visible,
+.dashboard-header button:focus-visible,
+.dashboard-header select:focus-visible {
+  outline: 3px solid #f5d879;
+  outline-offset: 2px;
+}
+
+@supports ((backdrop-filter: blur(16px)) or (-webkit-backdrop-filter: blur(16px))) {
+  .dashboard-glass .dashboard-header {
+    background: rgba(49, 62, 62, .78);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+}
+
+/* Statistics is also embedded inside role dashboards; avoid another full viewport. */
+.dashboard-glass .dashboard-glass {
+  min-height: auto;
+  background: transparent;
+  padding: 0;
+}
+.dashboard-glass .dashboard-glass > .container { padding: 0; }
+
+@media (max-width: 640px) {
+  .dashboard-glass { padding-top: 1rem; }
+  .dashboard-glass .dashboard-header { padding: 1.25rem; border-radius: 1.25rem; }
+  .dashboard-header > .flex > .flex { gap: .75rem; }
+  .dashboard-tabs > button { padding: .65rem .85rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-tabs > button { transition: none; }
+}
+@media print {
+  .dashboard-glass { background: white; }
+  .dashboard-glass .dashboard-header { background: white; color: black; box-shadow: none; backdrop-filter: none; }
+  .dashboard-header .text-gray-600, .dashboard-header .text-gray-500 { color: #374151; }
+  .dashboard-tabs { display: none !important; }
+}

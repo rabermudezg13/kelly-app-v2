@@ -10,14 +10,11 @@
     "src/pages/RecruiterDashboard.tsx: error TS2339: Property 'id' does not exist on type 'NewHireOrientationStep'.": 1,
     "src/pages/RecruiterDashboard.tsx: error TS2339: Property 'is_in_exclusion_list' does not exist on type 'AssignedSession'.": 3,
     "src/pages/RecruiterDashboard.tsx: error TS2345: Argument of type '{ id: number; name: string; email: string; is_active: boolean; status: string; }[]' is not assignable to parameter of type 'SetStateAction<Recruiter[]>'.": 2,
-    "src/pages/StaffDashboard.tsx: error TS2304: Cannot find name 'handleOpenOrientationDetails'.": 1,
-    "src/pages/StaffDashboard.tsx: error TS2304: Cannot find name 'handleSaveOrientationDetails'.": 1,
-    "src/pages/StaffDashboard.tsx: error TS2304: Cannot find name 'refreshing'.": 1,
-    "src/pages/StaffDashboard.tsx: error TS2304: Cannot find name 'setRefreshing'.": 2,
     "src/pages/StaffDashboard.tsx: error TS2339: Property 'id' does not exist on type 'NewHireOrientationStep'.": 1,
     "src/pages/TalentDashboard.tsx: error TS2339: Property 'id' does not exist on type 'NewHireOrientationStep'.": 1,
     "src/pages/UserDashboard.tsx: error TS2339: Property 'id' does not exist on type 'NewHireOrientationStep'.": 1,
     "src/services/api.ts: error TS2304: Cannot find name 'NewHireOrientation'.": 2,
     "src/services/api.ts: error TS2339: Property 'env' does not exist on type 'ImportMeta'.": 4
-  }
+  },
+  "notes": "Five StaffDashboard undefined-symbol diagnostics resolved by horizontal dashboard revision; remaining baseline unchanged."
 }

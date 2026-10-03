@@ -603,7 +603,7 @@ function RecruiterDashboard() {
     })
     
     return (
-      <div className="space-y-4">
+      <div className="dashboard-data-surface bg-white rounded-lg shadow-lg p-6 space-y-4">
         <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 flex flex-wrap justify-between items-center gap-3">
           <p className="text-blue-800 font-bold">📋 All Info Sessions</p>
           <div className="flex items-center gap-2">
@@ -883,7 +883,7 @@ function RecruiterDashboard() {
     const unreadVisits = myVisits.filter(v => v.status === 'pending')
     
     return (
-      <div className="space-y-4">
+      <div className="dashboard-data-surface bg-white rounded-lg shadow-lg p-6 space-y-4">
         <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <p className="text-blue-800 font-bold">👥 My Visits</p>
@@ -1055,7 +1055,7 @@ function RecruiterDashboard() {
     const sortedDateKeys = Object.keys(groupedBadges).sort().reverse()
     
     return (
-      <div className="space-y-4">
+      <div className="dashboard-data-surface bg-white rounded-lg shadow-lg p-6 space-y-4">
         <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
           <p className="text-blue-800 font-bold">🪪 Badges</p>
         </div>
@@ -1157,7 +1157,7 @@ function RecruiterDashboard() {
     const sortedDateKeys = Object.keys(groupedFingerprints).sort().reverse()
     
     return (
-      <div className="space-y-4">
+      <div className="dashboard-data-surface bg-white rounded-lg shadow-lg p-6 space-y-4">
         <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
           <p className="text-blue-800 font-bold">👆 Fingerprints</p>
         </div>
@@ -1341,7 +1341,7 @@ function RecruiterDashboard() {
     }
 
     return (
-      <div className="space-y-4">
+      <div className="dashboard-data-surface bg-white rounded-lg shadow-lg p-6 space-y-4">
         <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 flex flex-wrap justify-between items-center gap-3">
           <p className="text-blue-800 font-bold">🎓 New Hire Orientations</p>
           <div className="flex flex-wrap gap-2 items-center">
@@ -1988,7 +1988,7 @@ function RecruiterDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 py-8">
+      <div className="dashboard-glass dashboard-glass-wide min-h-screen bg-gray-100 py-8">
         <div className="container mx-auto px-4">
           <div className="bg-white rounded-lg shadow-lg p-8">
             <p>Loading...</p>
@@ -2000,7 +2000,7 @@ function RecruiterDashboard() {
 
   if (!recruiter) {
     return (
-      <div className="min-h-screen bg-gray-100 py-8">
+      <div className="dashboard-glass dashboard-glass-wide min-h-screen bg-gray-100 py-8">
         <div className="container mx-auto px-4">
           <div className="bg-white rounded-lg shadow-lg p-8">
             <p>Recruiter not found</p>
@@ -2011,10 +2011,10 @@ function RecruiterDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
+    <div className="dashboard-glass dashboard-glass-wide min-h-screen bg-gray-100 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Header with Status Toggle */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="dashboard-header bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
               <div>
@@ -2051,9 +2051,10 @@ function RecruiterDashboard() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-lg mb-6">
-          <div className="flex flex-wrap border-b">
+        <div className="dashboard-panel bg-white rounded-lg shadow-lg mb-6">
+          <div className="dashboard-tabs flex flex-wrap border-b" role="group" aria-label="Dashboard sections">
             <button
+              aria-pressed={activeTab === 'sessions'}
               onClick={() => setActiveTab('sessions')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'sessions'
@@ -2064,6 +2065,7 @@ function RecruiterDashboard() {
               📋 My Sessions
             </button>
             <button
+              aria-pressed={activeTab === 'all-info-sessions'}
               onClick={() => setActiveTab('all-info-sessions')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'all-info-sessions'
@@ -2074,6 +2076,7 @@ function RecruiterDashboard() {
               📝 All Info Sessions
             </button>
             <button
+              aria-pressed={activeTab === 'new-hire-orientation'}
               onClick={() => setActiveTab('new-hire-orientation')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'new-hire-orientation'
@@ -2084,6 +2087,7 @@ function RecruiterDashboard() {
               🎓 New Hire Orientation
             </button>
             <button
+              aria-pressed={activeTab === 'fingerprints'}
               onClick={() => setActiveTab('fingerprints')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'fingerprints'
@@ -2094,6 +2098,7 @@ function RecruiterDashboard() {
               👆 Fingerprints
             </button>
             <button
+              aria-pressed={activeTab === 'badges'}
               onClick={() => setActiveTab('badges')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'badges'
@@ -2104,6 +2109,7 @@ function RecruiterDashboard() {
               🪪 Badges
             </button>
             <button
+              aria-pressed={activeTab === 'my-visits'}
               onClick={() => setActiveTab('my-visits')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'my-visits'
@@ -2114,6 +2120,7 @@ function RecruiterDashboard() {
               👥 My Visits
             </button>
             <button
+              aria-pressed={activeTab === 'statistics'}
               onClick={() => setActiveTab('statistics')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'statistics'
@@ -2124,6 +2131,7 @@ function RecruiterDashboard() {
               📊 Statistics
             </button>
             <button
+              aria-pressed={activeTab === 'chr'}
               onClick={() => setActiveTab('chr')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'chr'
@@ -2134,6 +2142,7 @@ function RecruiterDashboard() {
               📝 CHR
             </button>
             <button
+              aria-pressed={activeTab === 'event'}
               onClick={() => setActiveTab('event')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'event'
@@ -2144,6 +2153,7 @@ function RecruiterDashboard() {
               🎟️ Event
             </button>
             <button
+              aria-pressed={activeTab === 'ksn-tool'}
               onClick={() => setActiveTab('ksn-tool')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'ksn-tool'
@@ -2154,6 +2164,7 @@ function RecruiterDashboard() {
               🔧 KSN Tool
             </button>
             <button
+              aria-pressed={activeTab === 'storage'}
               onClick={() => setActiveTab('storage')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'storage'
@@ -2164,6 +2175,7 @@ function RecruiterDashboard() {
               📦 Storage
             </button>
             <button
+              aria-pressed={activeTab === 'tv-kiosk'}
               onClick={() => setActiveTab('tv-kiosk')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'tv-kiosk'
@@ -2174,6 +2186,7 @@ function RecruiterDashboard() {
               📺 TV Kiosk
             </button>
             <button
+              aria-pressed={activeTab === 'pc-check'}
               onClick={() => setActiveTab('pc-check')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'pc-check'
