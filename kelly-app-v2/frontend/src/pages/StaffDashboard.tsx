@@ -23,6 +23,7 @@ function StaffDashboard() {
   const [fingerprints, setFingerprints] = useState<any[]>([])
   const [myVisits, setMyVisits] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
 
   useEffect(() => {
@@ -884,6 +885,33 @@ function StaffDashboard() {
     )
   }
 
+  const handleOpenOrientationDetails = async (orientation: NewHireOrientation) => {
+    try {
+      const fullOrientation = await getNewHireOrientation(orientation.id)
+      setSelectedOrientation(fullOrientation)
+    } catch (error) {
+      console.error('Error loading orientation details:', error)
+      alert('Error loading orientation details')
+    }
+  }
+
+  const handleSaveOrientationDetails = async () => {
+    if (!selectedOrientation) return
+    try {
+      await updateNewHireOrientation(selectedOrientation.id, {
+        process_status: selectedOrientation.process_status || null,
+        badge_status: selectedOrientation.badge_status || 'pending',
+        missing_steps: selectedOrientation.missing_steps || null
+      })
+      await loadData()
+      setSelectedOrientation(null)
+      alert('Orientation details updated!')
+    } catch (error) {
+      console.error('Error saving orientation details:', error)
+      alert('Error saving orientation details')
+    }
+  }
+
   const renderMyVisits = () => {
     if (loading) return <p className="text-center py-8">Loading...</p>
     
@@ -1011,10 +1039,10 @@ function StaffDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
+    <div className="dashboard-glass min-h-screen bg-gray-100 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="dashboard-header bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
               <div>
@@ -1044,9 +1072,10 @@ function StaffDashboard() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-lg mb-6">
-          <div className="flex flex-wrap border-b">
+        <div className="dashboard-panel bg-white rounded-lg shadow-lg mb-6">
+          <div className="dashboard-tabs flex flex-wrap border-b" role="group" aria-label="Dashboard sections">
             <button
+              aria-pressed={activeTab === 'info-session'}
               onClick={() => setActiveTab('info-session')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'info-session'
@@ -1057,6 +1086,7 @@ function StaffDashboard() {
               📋 Info Session (Live)
             </button>
             <button
+              aria-pressed={activeTab === 'info-session-completed'}
               onClick={() => setActiveTab('info-session-completed')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'info-session-completed'
@@ -1067,6 +1097,7 @@ function StaffDashboard() {
               ✅ Info Session Completed
             </button>
             <button
+              aria-pressed={activeTab === 'new-hire-orientation'}
               onClick={() => setActiveTab('new-hire-orientation')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'new-hire-orientation'
@@ -1077,6 +1108,7 @@ function StaffDashboard() {
               👔 New Hire Orientation
             </button>
             <button
+              aria-pressed={activeTab === 'badges'}
               onClick={() => setActiveTab('badges')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'badges'
@@ -1087,6 +1119,7 @@ function StaffDashboard() {
               🪪 Badges
             </button>
             <button
+              aria-pressed={activeTab === 'fingerprints'}
               onClick={() => setActiveTab('fingerprints')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'fingerprints'
@@ -1097,6 +1130,7 @@ function StaffDashboard() {
               👆 Fingerprints
             </button>
             <button
+              aria-pressed={activeTab === 'my-visits'}
               onClick={() => setActiveTab('my-visits')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'my-visits'
@@ -1107,6 +1141,7 @@ function StaffDashboard() {
               👥 My Visits
             </button>
             <button
+              aria-pressed={activeTab === 'statistics'}
               onClick={() => setActiveTab('statistics')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'statistics'
@@ -1117,6 +1152,7 @@ function StaffDashboard() {
               📊 Statistics
             </button>
             <button
+              aria-pressed={activeTab === 'chr'}
               onClick={() => setActiveTab('chr')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'chr'
@@ -1127,6 +1163,7 @@ function StaffDashboard() {
               📝 CHR
             </button>
             <button
+              aria-pressed={activeTab === 'event'}
               onClick={() => setActiveTab('event')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'event'
@@ -1137,6 +1174,7 @@ function StaffDashboard() {
               🎟️ Event
             </button>
             <button
+              aria-pressed={activeTab === 'storage'}
               onClick={() => setActiveTab('storage')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'storage'
@@ -1147,6 +1185,7 @@ function StaffDashboard() {
               📦 Storage
             </button>
             <button
+              aria-pressed={activeTab === 'pc-check'}
               onClick={() => setActiveTab('pc-check')}
               className={`px-6 py-3 font-semibold transition-colors ${
                 activeTab === 'pc-check'
@@ -1161,7 +1200,8 @@ function StaffDashboard() {
 
         <div className="mb-4 flex flex-wrap justify-end gap-2">
           <button
-            onClick={() => setActiveTab('tv-kiosk')}
+            aria-pressed={activeTab === 'tv-kiosk'}
+              onClick={() => setActiveTab('tv-kiosk')}
             className={`px-5 py-3 rounded-lg font-semibold transition-colors ${
               activeTab === 'tv-kiosk'
                 ? 'bg-gray-950 text-white'
@@ -1171,7 +1211,8 @@ function StaffDashboard() {
             📺 TV Kiosk
           </button>
           <button
-            onClick={() => setActiveTab('info-session-progress')}
+            aria-pressed={activeTab === 'info-session-progress'}
+              onClick={() => setActiveTab('info-session-progress')}
             className={`px-5 py-3 rounded-lg font-semibold transition-colors ${
               activeTab === 'info-session-progress'
                 ? 'bg-emerald-700 text-white'

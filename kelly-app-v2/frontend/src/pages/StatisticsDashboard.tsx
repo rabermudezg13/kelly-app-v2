@@ -81,9 +81,9 @@ function StatisticsDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 py-8">
+      <div className="dashboard-glass min-h-screen bg-gray-100 py-8">
         <div className="container mx-auto px-4">
-          <div className="text-center py-12">
+          <div className="bg-white rounded-lg text-center py-12">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             <p className="mt-4 text-gray-600">Loading statistics...</p>
           </div>
@@ -94,7 +94,7 @@ function StatisticsDashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-100 py-8">
+      <div className="dashboard-glass min-h-screen bg-gray-100 py-8">
         <div className="container mx-auto px-4">
           <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
             <p className="text-red-800">{error}</p>
@@ -111,10 +111,10 @@ function StatisticsDashboard() {
   const maxHeatmapValue = Math.max(...statistics.heatmap_data.map(d => d.value), 1)
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
+    <div className="dashboard-glass min-h-screen bg-gray-100 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="dashboard-header bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold">📊 Statistics Dashboard</h1>
