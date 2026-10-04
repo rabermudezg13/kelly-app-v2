@@ -45,7 +45,7 @@ El arranque importa modelos, crea tablas y puede inicializar el administrador.
 No usarlo como prueba contra una base real. Los drivers PostgreSQL `psycopg` y
 `psycopg2` están declarados: su disponibilidad se comprueba sin conectar a una base.
 
-## Presentación horizontal de dashboards (en rama de revisión)
+## Presentación horizontal de dashboards (en producción)
 
 `frontend/src/dashboard.css` contiene el tema acotado a `.dashboard-glass`.
 Los dashboards conservan handlers, estados y consultas; los botones existentes

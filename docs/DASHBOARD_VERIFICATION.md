@@ -1,9 +1,8 @@
 # Verificación del diseño horizontal
 
 Fecha: 2026-10-03. Rama: `codex/horizontal-glass-dashboards`.
-Estado: comprobado localmente con datos ficticios; PR #11 en borrador sobre PR #10.
-CI del commit `81d5622` en curso al registrar esta actualización; falta aceptación
-con sesiones autorizadas antes de integrar y desplegar.
+Estado: desplegado el 2026-10-03 por autorización expresa del usuario. PR #10 y
+#11 integrados; CI de sus heads finales aprobado. Versión funcional `b9d274a`.
 
 ## Cambios
 
@@ -46,6 +45,8 @@ instrumentado, rendimiento móvil o navegador sin soporte de blur. El fallback e
 implementado en CSS. Row Generator conserva su código y estabilización; no se
 comprobó con una sesión real asignada en esta revisión.
 
-No se ha desplegado. Revisar el PR y CI, completar los flujos de aceptación con
-sesiones autorizadas en preview antes de integrar. Revertir el commit de esta
-revisión restaura el diseño anterior; no hay migraciones de base de datos.
+Despliegue comprobado: Vercel READY, dominio HTTP 200, CSS nuevo servido y
+navegador con 13 opciones horizontales del reclutador; Railway success y
+`/health` HTTP 200/healthy. No se ejercieron acciones autenticadas ni se escanearon
+logs de runtime. Conservar estos límites al describir la verificación. Para volver
+al diseño anterior, revertir el merge de PR #11; no hay migraciones de base de datos.

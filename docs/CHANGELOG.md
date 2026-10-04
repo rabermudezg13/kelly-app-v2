@@ -15,6 +15,24 @@ estado cuando existan pruebas nuevas; conservar las limitaciones pendientes.
 - Referencia: commit o PR, cuando esté disponible.
 ```
 
+## 2026-10-03 — Despliegue de dashboards horizontales
+- Estado: desplegado en producción, autorizado expresamente por el usuario.
+- Cambios: integración de PR #10 y PR #11; versión funcional `b9d274a` en main.
+- Verificación: CI heads `cdc1c43` y `1a120c5` aprobado; Vercel READY,
+  deployment `dpl_Ew75QMtAMpTK6GjCj9k8aKN8DTzq`, dominio HTTP 200 y CSS nuevo.
+  Railway backend/frontend success; `/health` HTTP 200 con status healthy.
+  Navegador confirma diseño horizontal en producción (13 opciones de reclutador).
+- Pendientes: comprobación de acciones autenticadas con sesiones reales; no se
+  ejecutaron operaciones sobre registros de producción ni escaneo de logs runtime.
+- Referencia: https://kelly-app-v2.vercel.app; PR #10 y #11 integrados.
+
+## 2026-10-03 — Carpeta `.Agents`
+- Estado: creada localmente.
+- Objetivo y motivo: añadir la carpeta solicitada por el usuario.
+- Cambios: `.Agents` en la raíz y actualización de la memoria.
+- Verificación: directorio existente; sin cambios funcionales.
+- Pendientes: ninguno. La carpeta vacía no se versiona en Git.
+
 ## 2026-10-03 — Dashboards horizontales translúcidos
 - Estado: implementado, verificado localmente y publicado en PR #11 (borrador),
   dependiente de PR #10; sin despliegue.

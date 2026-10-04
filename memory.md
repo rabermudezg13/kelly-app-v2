@@ -46,23 +46,42 @@ hash del propio commit: el PR o un identificador de revisión sirve como referen
 
 ## Estado actual
 
-- Modernización horizontal implementada en rama aislada; verificación local en
-  `docs/DASHBOARD_VERIFICATION.md`. Publicado en PR #11 (borrador), dependiente
-  de PR #10. Pendiente de CI, aceptación autenticada e integración.
+- Modernización horizontal desplegada en producción: PR #10 y #11 integrados.
+  Versión funcional `b9d274a`, Vercel READY y backend healthy.
+  Evidencia en `docs/DASHBOARD_VERIFICATION.md`.
   La elección horizontal sustituye la propuesta inicial de sidebar.
 
 - Frontend React/Vite en Vercel; backend FastAPI/SQLAlchemy en Railway.
 - El historial NHO está publicado mediante PR #9 y correcciones posteriores.
   Falta verificar la búsqueda en producción con una sesión válida de staff.
-- Las reglas, documentación y harness están en PR #10, pendientes de integración.
-  Su primera ejecución CI pasó; no confundir una verificación anterior con la
-  verificación de revisiones posteriores.
+- Reglas, documentación y harness integrados mediante PR #10. CI del head final
+  de PR #10 y PR #11 pasó antes del despliegue.
 - Deuda conocida: 21 diagnósticos TypeScript tras corregir cinco referencias
   indefinidas de Staff; advertencia
   de migración SQLite sobre `conn` no definido. El harness no cubre navegador ni
   una conexión real a PostgreSQL. Consultar `docs/HARNESS.md`.
 
 ## Historial de versiones y revisiones
+
+### 2026-10-03 — Despliegue a producción (`b9d274a`)
+- Objetivo: publicar los cambios pendientes, por instrucción expresa del usuario.
+- Cambios: PR #10 integrado con merge `7c7030c`; PR #11 integrado con `b9d274a`.
+- Verificación: CI de los heads finales aprobado. Vercel READY para `b9d274a`,
+  dominio principal HTTP 200, CSS horizontal servido; backend HTTP 200/healthy.
+  Checks Railway backend y frontend correctos. Navegador confirma encabezado,
+  13 botones horizontales y ausencia del tema antiguo en dashboard de reclutador.
+- Estado: desplegado en https://kelly-app-v2.vercel.app.
+- Pendientes: validación de operaciones autenticadas con sesiones reales; no se
+  modificaron registros de producción. No se realizó escaneo de logs de runtime.
+- Detalle: `docs/CHANGELOG.md` y `docs/DASHBOARD_VERIFICATION.md`.
+
+### 2026-10-03 — Revisión local: carpeta `.Agents`
+- Objetivo: crear la carpeta solicitada, respetando la A mayúscula.
+- Cambios: directorio `.Agents` en la raíz del proyecto.
+- Verificación: existencia del directorio comprobada; sin cambios funcionales.
+- Estado: creado localmente; una carpeta vacía no se versiona en Git.
+- Pendientes: ninguno para esta tarea.
+- Detalle en bitácora: `docs/CHANGELOG.md`.
 
 ### 2026-10-03 — Revisión horizontal de dashboards
 - Objetivo: aplicar el estilo translúcido conservando navegación horizontal y datos.
