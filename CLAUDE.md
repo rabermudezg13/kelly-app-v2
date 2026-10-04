@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Canonical instructions
+
+Read and follow [AGENTS.md](AGENTS.md), including the mandatory change log rule.
+Current verification commands: [docs/HARNESS.md](docs/HARNESS.md).
+Current deployment and NHO invariants: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+These documents take precedence over the historical notes below.
+
 ## Project Overview
 
 **Kelly Education Front Desk App** — internal tool for managing info sessions, new hire orientations, recruiters, and applicant tracking for Kelly Education Miami Dade. Built as a monorepo with a FastAPI backend and React frontend, deployed on Railway via GitHub push.

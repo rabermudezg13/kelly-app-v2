@@ -16,7 +16,17 @@ from app.models.visit import NewHireOrientation
 
 
 @pytest.fixture
-def client():
+def client(monkeypatch):
+    # Freeze the API clock: weekly regressions must not depend on today.
+    import app.api.new_hire_orientation as nho_api
+
+    class FrozenDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            instant = datetime(2026, 10, 2, 16, tzinfo=timezone.utc)
+            return instant.astimezone(tz) if tz else instant.replace(tzinfo=None)
+
+    monkeypatch.setattr(nho_api, "datetime", FrozenDatetime)
     engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
     Base.metadata.create_all(engine)
     session = sessionmaker(bind=engine)()
@@ -28,7 +38,7 @@ def client():
         (1784, "Other", "Person", "2026-09-23T18:00:00"),
         (1785, "DST", "Boundary", "2026-11-02T04:59:59"),
         (1786, "DST", "Boundary", "2026-11-02T05:00:00"),
-        (1787, "Weekly", "Attendee", datetime.now(timezone.utc).replace(tzinfo=None).isoformat()),
+        (1787, "Weekly", "Attendee", "2026-10-02T16:00:00"),
     ]
     for ident, first, last, created in rows:
         session.add(NewHireOrientation(id=ident, first_name=first, last_name=last,

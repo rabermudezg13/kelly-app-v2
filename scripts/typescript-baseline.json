@@ -1,0 +1,23 @@
+{
+  "source_commit": "56e74266de444df225caed1aef0f242e55d749e8",
+  "diagnostics": {
+    "src/components/InfoSessionWelcome.tsx: error TS2345: Argument of type '{ q1: string; q2: string; q3: string; q4: string; }' is not assignable to parameter of type 'SetStateAction<{ q1: string; q2: string; q3: string; q4: string; q5: string; q6: string; q7: string; q8: string; }>'.": 1,
+    "src/pages/FrontdeskDashboard.tsx: error TS2339: Property 'id' does not exist on type 'NewHireOrientationStep'.": 1,
+    "src/pages/ManagementDashboard.tsx: error TS2339: Property 'id' does not exist on type 'NewHireOrientationStep'.": 1,
+    "src/pages/MeetGreetPage.tsx: error TS2305: Module '\"../types\"' has no exported member 'MeetGreetRegistration'.": 1,
+    "src/pages/MeetGreetPage.tsx: error TS2614: Module '\"../services/api\"' has no exported member 'registerMeetGreet'. Did you mean to use 'import registerMeetGreet from \"../services/api\"' instead?": 1,
+    "src/pages/ParaprofessionalPage.tsx: error TS2322: Type '\"paraprofessional\"' is not assignable to type '\"new-hire\" | \"reactivation\"'.": 1,
+    "src/pages/RecruiterDashboard.tsx: error TS2339: Property 'id' does not exist on type 'NewHireOrientationStep'.": 1,
+    "src/pages/RecruiterDashboard.tsx: error TS2339: Property 'is_in_exclusion_list' does not exist on type 'AssignedSession'.": 3,
+    "src/pages/RecruiterDashboard.tsx: error TS2345: Argument of type '{ id: number; name: string; email: string; is_active: boolean; status: string; }[]' is not assignable to parameter of type 'SetStateAction<Recruiter[]>'.": 2,
+    "src/pages/StaffDashboard.tsx: error TS2304: Cannot find name 'handleOpenOrientationDetails'.": 1,
+    "src/pages/StaffDashboard.tsx: error TS2304: Cannot find name 'handleSaveOrientationDetails'.": 1,
+    "src/pages/StaffDashboard.tsx: error TS2304: Cannot find name 'refreshing'.": 1,
+    "src/pages/StaffDashboard.tsx: error TS2304: Cannot find name 'setRefreshing'.": 2,
+    "src/pages/StaffDashboard.tsx: error TS2339: Property 'id' does not exist on type 'NewHireOrientationStep'.": 1,
+    "src/pages/TalentDashboard.tsx: error TS2339: Property 'id' does not exist on type 'NewHireOrientationStep'.": 1,
+    "src/pages/UserDashboard.tsx: error TS2339: Property 'id' does not exist on type 'NewHireOrientationStep'.": 1,
+    "src/services/api.ts: error TS2304: Cannot find name 'NewHireOrientation'.": 2,
+    "src/services/api.ts: error TS2339: Property 'env' does not exist on type 'ImportMeta'.": 4
+  }
+}
