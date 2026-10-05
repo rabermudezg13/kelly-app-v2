@@ -1,6 +1,19 @@
 # Memoria del proyecto — Kelly App v2
 
-Última actualización: 2026-10-03 (America/New_York).
+Última actualización: 2026-10-05 (America/New_York).
+
+## 2026-10-05 — Corrección Session Configurations
+- Estado: verificado localmente; pendiente de integración y despliegue.
+- Causa: horarios antiguos codificados como texto JSON fallaban antes de normalizarse.
+- Cambios: lectura compatible con texto y arrays; guardado de arrays nativos,
+  validación antes del commit y rollback ante fallo. Formularios bloqueados si
+  falla la carga, con reintento para evitar sobrescribir datos con valores iniciales.
+- Verificación: harness completo correcto, 16 pruebas backend, build y health;
+  21 diagnósticos TypeScript conocidos y cero nuevos. Navegador con SQLite ficticio:
+  carga de formato antiguo, edición, guardado, persistencia al recargar y reintento
+  tras error correctos. No se modificaron configuraciones reales ni lista semanal NHO.
+- Referencia: rama `codex/fix-session-configurations`; plan `docs/SESSION_CONFIG_FIX.md`.
+- Pendientes: CI e integración; verificar GET de producción tras despliegue.
 
 ## Compromisos permanentes
 
@@ -62,6 +75,14 @@ hash del propio commit: el PR o un identificador de revisión sirve como referen
   una conexión real a PostgreSQL. Consultar `docs/HARNESS.md`.
 
 ## Historial de versiones y revisiones
+
+### 2026-10-03 — Revisión local: carpeta `.Agents/Skills`
+- Objetivo: crear Skills dentro de la carpeta de agentes existente.
+- Cambios: directorio `.Agents/Skills`, conservando la carpeta padre existente.
+- Verificación: existencia del directorio comprobada; sin cambios funcionales.
+- Estado: creado localmente; una carpeta vacía no se versiona en Git.
+- Pendientes: ninguno para esta tarea.
+- Detalle en bitácora: `docs/CHANGELOG.md`.
 
 ### 2026-10-03 — Despliegue a producción (`b9d274a`)
 - Objetivo: publicar los cambios pendientes, por instrucción expresa del usuario.

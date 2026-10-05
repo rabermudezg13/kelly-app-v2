@@ -9,6 +9,7 @@ function AdminInfoSessionConfig() {
   })
   const [newTimeSlot, setNewTimeSlot] = useState('')
   const [loading, setLoading] = useState(true)
+  const [configLoaded, setConfigLoaded] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
@@ -19,12 +20,15 @@ function AdminInfoSessionConfig() {
   const loadConfig = async () => {
     try {
       setLoading(true)
+      setConfigLoaded(false)
+      setMessage(null)
       const data = await getInfoSessionConfig()
       setConfig({
         max_sessions_per_day: data.max_sessions_per_day,
         time_slots: data.time_slots,
         is_active: data.is_active,
       })
+      setConfigLoaded(true)
     } catch (error) {
       console.error('Error loading config:', error)
       setMessage({ type: 'error', text: 'Error loading configuration' })
@@ -34,6 +38,7 @@ function AdminInfoSessionConfig() {
   }
 
   const handleSave = async () => {
+    if (!configLoaded) return
     try {
       setSaving(true)
       setMessage(null)
@@ -70,6 +75,26 @@ function AdminInfoSessionConfig() {
         <div className="container mx-auto px-4">
           <div className="bg-white rounded-lg shadow-lg p-8">
             <p>Loading...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+
+  if (!configLoaded) {
+    return (
+      <div className="min-h-screen bg-gray-100 py-8">
+        <div className="container mx-auto px-4 max-w-3xl">
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <h1 className="text-2xl font-bold mb-4">Session Configurations</h1>
+            <p role="alert" className="text-red-700 mb-4">
+              Unable to load configurations. Editing is unavailable until the saved settings can be loaded.
+            </p>
+            <button onClick={loadConfig} className="px-4 py-2 bg-green-600 text-white rounded mr-3">
+              Retry loading
+            </button>
+            <a href="/admin/dashboard" className="text-blue-700 underline">Back to Dashboard</a>
           </div>
         </div>
       </div>
