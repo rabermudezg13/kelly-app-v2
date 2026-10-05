@@ -35,6 +35,7 @@ function AdminConfigurations() {
   const [newHireTimeSlot, setNewHireTimeSlot] = useState('')
   const [newParaTimeSlot, setNewParaTimeSlot] = useState('')
   const [loading, setLoading] = useState(true)
+  const [configsLoaded, setConfigsLoaded] = useState(false)
   const [saving, setSaving] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
@@ -45,6 +46,8 @@ function AdminConfigurations() {
   const loadConfigs = async () => {
     try {
       setLoading(true)
+      setConfigsLoaded(false)
+      setMessage(null)
       const [infoData, newHireData, paraData] = await Promise.all([
         getInfoSessionConfig(),
         getNewHireOrientationConfig(),
@@ -65,6 +68,7 @@ function AdminConfigurations() {
         time_slots: newHireData.time_slots,
         is_active: newHireData.is_active,
       })
+      setConfigsLoaded(true)
     } catch (error) {
       console.error('Error loading configs:', error)
       setMessage({ type: 'error', text: 'Error loading configurations' })
@@ -74,6 +78,7 @@ function AdminConfigurations() {
   }
 
   const handleSaveInfoSession = async () => {
+    if (!configsLoaded) return
     try {
       setSaving('info-session')
       setMessage(null)
@@ -88,6 +93,7 @@ function AdminConfigurations() {
   }
 
   const handleSaveNewHire = async () => {
+    if (!configsLoaded) return
     try {
       setSaving('new-hire')
       setMessage(null)
@@ -102,6 +108,7 @@ function AdminConfigurations() {
   }
 
   const handleSavePara = async () => {
+    if (!configsLoaded) return
     try {
       setSaving('para')
       setMessage(null)
@@ -165,6 +172,26 @@ function AdminConfigurations() {
         <div className="container mx-auto px-4">
           <div className="bg-white rounded-lg shadow-lg p-8">
             <p>Loading...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+
+  if (!configsLoaded) {
+    return (
+      <div className="min-h-screen bg-gray-100 py-8">
+        <div className="container mx-auto px-4 max-w-3xl">
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <h1 className="text-2xl font-bold mb-4">Session Configurations</h1>
+            <p role="alert" className="text-red-700 mb-4">
+              Unable to load configurations. Editing is unavailable until the saved settings can be loaded.
+            </p>
+            <button onClick={loadConfigs} className="px-4 py-2 bg-green-600 text-white rounded mr-3">
+              Retry loading
+            </button>
+            <a href="/admin/dashboard" className="text-blue-700 underline">Back to Dashboard</a>
           </div>
         </div>
       </div>

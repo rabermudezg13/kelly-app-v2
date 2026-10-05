@@ -4,7 +4,7 @@ Admin endpoints for managing info session settings
 """
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 from typing import List
 from app.database import get_db
 from app.models.info_session_config import InfoSessionConfig, InfoSessionInterest, apply_interests_to_generated_row
@@ -26,6 +26,13 @@ class InfoSessionConfigResponse(BaseModel):
     time_slots: List[str]
     is_active: bool
 
+    @field_validator("time_slots", mode="before")
+    @classmethod
+    def decode_legacy_time_slots(cls, value):
+        # Older updates stored a JSON string inside the JSON column.
+        # Decode before validating List[str], without rewriting existing records.
+        return json.loads(value) if isinstance(value, str) else value
+
 class CandidateInterestUpdate(BaseModel):
     special_ed_head_start_interest: bool = False
     paraprofessional_interest: bool = False
@@ -46,10 +53,7 @@ async def get_info_session_config(db: Session = Depends(get_db)):
         db.refresh(default_config)
         return InfoSessionConfigResponse.model_validate(default_config).model_dump()
     
-    config_data = InfoSessionConfigResponse.model_validate(config).model_dump()
-    if isinstance(config_data.get('time_slots'), str):
-        config_data['time_slots'] = json.loads(config_data['time_slots'])
-    return config_data
+    return InfoSessionConfigResponse.model_validate(config).model_dump()
 
 @router.put("/", response_model=InfoSessionConfigResponse)
 async def update_info_session_config(
@@ -57,17 +61,22 @@ async def update_info_session_config(
     db: Session = Depends(get_db)
 ):
     """Update info session configuration (admin only)"""
-    db.query(InfoSessionConfig).update({InfoSessionConfig.is_active: False})
-    time_slots_json = json.dumps(config_data.time_slots) if isinstance(config_data.time_slots, list) else config_data.time_slots
-    new_config = InfoSessionConfig(
-        max_sessions_per_day=config_data.max_sessions_per_day,
-        time_slots=time_slots_json,
-        is_active=True
-    )
-    db.add(new_config)
-    db.commit()
-    db.refresh(new_config)
-    return InfoSessionConfigResponse.model_validate(new_config).model_dump()
+    try:
+        db.query(InfoSessionConfig).update({InfoSessionConfig.is_active: False})
+        new_config = InfoSessionConfig(
+            max_sessions_per_day=config_data.max_sessions_per_day,
+            time_slots=config_data.time_slots,
+            is_active=True
+        )
+        db.add(new_config)
+        db.flush()
+        # Validate before committing, so a response failure cannot publish a change.
+        response = InfoSessionConfigResponse.model_validate(new_config).model_dump()
+        db.commit()
+        return response
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Unable to save Info Session configuration")
 
 @router.get("/time-slots", response_model=List[str])
 async def get_available_time_slots(db: Session = Depends(get_db)):

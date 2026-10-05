@@ -15,6 +15,26 @@ estado cuando existan pruebas nuevas; conservar las limitaciones pendientes.
 - Referencia: commit o PR, cuando esté disponible.
 ```
 
+## 2026-10-05 — Corrección Session Configurations
+- Estado: verificado localmente; pendiente de integración y despliegue.
+- Causa: horarios antiguos codificados como texto JSON fallaban antes de normalizarse.
+- Cambios: lectura compatible con texto y arrays; guardado de arrays nativos,
+  validación antes del commit y rollback ante fallo. Formularios bloqueados si
+  falla la carga, con reintento para evitar sobrescribir datos con valores iniciales.
+- Verificación: harness completo correcto, 16 pruebas backend, build y health;
+  21 diagnósticos TypeScript conocidos y cero nuevos. Navegador con SQLite ficticio:
+  carga de formato antiguo, edición, guardado, persistencia al recargar y reintento
+  tras error correctos. No se modificaron configuraciones reales ni lista semanal NHO.
+- Referencia: rama `codex/fix-session-configurations`; plan `docs/SESSION_CONFIG_FIX.md`.
+- Pendientes: CI e integración; verificar GET de producción tras despliegue.
+
+## 2026-10-03 — Carpeta `.Agents/Skills`
+- Estado: creada localmente.
+- Objetivo y motivo: añadir Skills dentro de la carpeta de agentes existente.
+- Cambios: `.Agents/Skills` y memoria actualizada.
+- Verificación: directorio existente; sin cambios funcionales.
+- Pendientes: ninguno. La carpeta vacía no se versiona en Git.
+
 ## 2026-10-03 — Despliegue de dashboards horizontales
 - Estado: desplegado en producción, autorizado expresamente por el usuario.
 - Cambios: integración de PR #10 y PR #11; versión funcional `b9d274a` en main.
