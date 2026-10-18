@@ -71,3 +71,6 @@ confirmación invalidada tras cambiar cobertura, PNG opaco sin X y limpieza.
 Smart Capture admite pegar y abrir imágenes; ya no solicita compartir pantalla.
 El build obtiene un modelo público versionado; debe tener red al prepararse por
 primera vez. Las imágenes del usuario nunca intervienen en ese proceso.
+
+## Onboarding Tracker
+`npm run test:tracker` prueba reglas originales de pendientes, escape HTML/CSV y recursos PDF/Help. Para navegador usar Excel ficticio, verificar selección de hojas, filtros/plantillas, descargas Drug Screen/Scanner/Checklist, Help y conservación al cambiar pestañas. No usar datos reales.

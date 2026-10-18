@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
+<script src="integration.js"></script>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kelly Education — Onboarding Tracker</title>
+<script src="vendor/xlsx.full.min.js"></script>
+<style>
+
+  :root {
+    --red: #C8102E;
+    --dark: #080810;
+    --surface: #0F0F18;
+    --card: #14141E;
+    --border: rgba(200,16,46,0.18);
+    --border2: rgba(255,255,255,0.06);
+    --text: #EEEAF8;
+    --muted: #72708A;
+    --success: #00D49A;
+    --warn: #FFB830;
+    --danger: #FF3B5C;
+    --info: #4D9FFF;
+    --purple: #BF5AF2;
+  }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--dark); color:var(--text); min-height:100vh; overflow-x:hidden; }
+  button { color:#EEEAF8; }
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background:
+      radial-gradient(ellipse 55% 35% at 85% 5%, rgba(200,16,46,0.09) 0%, transparent 55%),
+      radial-gradient(ellipse 35% 50% at 5% 90%, rgba(77,159,255,0.05) 0%, transparent 50%);
+  }
+
+  header {
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:1rem 2.5rem; border-bottom:1px solid var(--border);
+    background:rgba(8,8,16,0.92); backdrop-filter:blur(24px);
+  }
+  .logo { display:flex; align-items:center; gap:.75rem; }
+  .logo-mark { width:34px; height:34px; border-radius:8px; background:var(--red); display:grid; place-items:center; font-family:'Syne',sans-serif; font-weight:800; font-size:.85rem; color:#fff; }
+  .logo-name { font-family:'Syne',sans-serif; font-weight:700; font-size:.95rem; }
+  .logo-sub { font-size:.68rem; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; }
+  #hdr-file { font-size:.75rem; color:var(--muted); }
+
+  /* UPLOAD */
+  #upload-zone { position:relative; z-index:5; max-width:500px; margin:4rem auto; padding:0 1.5rem; text-align:center; animation:rise .6s ease both; }
+  @keyframes rise { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:none} }
+  .drop-card { border:2px dashed rgba(200,16,46,0.35); border-radius:22px; padding:3rem 2rem; background:var(--card); cursor:pointer; transition:all .3s; position:relative; overflow:hidden; }
+  .drop-card::after { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at center, rgba(200,16,46,0.06), transparent 70%); opacity:0; transition:opacity .3s; }
+  .drop-card:hover, .drop-card.over { border-color:var(--red); }
+  .drop-card:hover::after, .drop-card.over::after { opacity:1; }
+  .drop-icon { font-size:2.4rem; margin-bottom:1rem; }
+  .drop-title { font-family:'Syne',sans-serif; font-size:1.25rem; font-weight:700; margin-bottom:.4rem; }
+  .drop-sub { font-size:.82rem; color:var(--muted); line-height:1.6; }
+  .up-btn { margin-top:1.5rem; padding:.7rem 2rem; background:var(--red); color:#fff; border:none; border-radius:10px; font-family:'Syne',sans-serif; font-weight:600; font-size:.88rem; cursor:pointer; transition:all .2s; }
+  .up-btn:hover { background:#a50d25; transform:translateY(-1px); }
+  #file-input { display:none; }
+  .cols-hint { margin-top:1.25rem; font-size:.73rem; color:var(--muted); display:flex; flex-wrap:wrap; gap:.35rem; justify-content:center; }
+  .cols-hint span { padding:.2rem .6rem; border-radius:99px; background:rgba(255,255,255,0.04); border:1px solid var(--border2); }
+
+  /* DASHBOARD */
+  #dashboard { display:none; position:relative; z-index:5; padding:1.75rem 2.5rem; max-width:1440px; margin:0 auto; animation:rise .45s ease both; }
+  .dash-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:1.75rem; flex-wrap:wrap; gap:1rem; }
+  .dash-title { font-family:'Syne',sans-serif; font-size:1.55rem; font-weight:800; }
+  .dash-sub { color:var(--muted); font-size:.82rem; margin-top:.25rem; }
+  .dash-actions { display:flex; gap:.6rem; flex-wrap:wrap; }
+
+  .btn { padding:.52rem 1.15rem; border-radius:9px; font-size:.8rem; font-weight:500; cursor:pointer; border:none; transition:all .18s; font-family:'DM Sans',sans-serif; color:var(--text); }
+  .btn-red { background:var(--red); color:#fff; }
+  .btn-red:hover { background:#a50d25; transform:translateY(-1px); }
+  .btn-ghost { background:rgba(255,255,255,0.08); color:var(--text) !important; border:1px solid var(--border2); }
+  .btn-ghost:hover { background:rgba(255,255,255,0.09); }
+  .btn-green { background:rgba(0,212,154,0.12); color:var(--success); border:1px solid rgba(0,212,154,0.25); }
+  .btn-green:hover { background:rgba(0,212,154,0.22); }
+  .btn-blue { background:rgba(77,159,255,0.12); color:var(--info); border:1px solid rgba(77,159,255,0.25); }
+  .btn-blue:hover { background:rgba(77,159,255,0.22); }
+  .btn-sm { padding:.38rem .85rem; font-size:.74rem; }
+
+  /* STATS */
+  .stats-row { display:grid; grid-template-columns:repeat(auto-fill, minmax(148px,1fr)); gap:.85rem; margin-bottom:1.75rem; }
+  .stat-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:1.1rem 1rem; cursor:pointer; transition:all .22s; position:relative; overflow:hidden; }
+  .stat-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; background:var(--c, var(--red)); border-radius:0 0 14px 14px; transform:scaleX(0); transition:transform .3s; }
+  .stat-card:hover { transform:translateY(-2px); border-color:var(--c, var(--red)); }
+  .stat-card:hover::after { transform:scaleX(1); }
+  .s-label { font-size:.68rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; margin-bottom:.5rem; }
+  .s-num { font-family:'Syne',sans-serif; font-size:2rem; font-weight:800; line-height:1; color:var(--c, var(--text)); }
+  .s-desc { font-size:.72rem; color:var(--muted); margin-top:.3rem; }
+
+  /* MODULES */
+  .section-hd { font-family:'Syne',sans-serif; font-size:.72rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:.85rem; }
+  .modules-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:.9rem; margin-bottom:1.75rem; }
+  .mod-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.25rem; cursor:pointer; transition:all .22s; color:#EEEAF8; }
+  .mod-card:hover { transform:translateY(-3px); border-color:var(--mc, rgba(200,16,46,0.5)); box-shadow:0 10px 32px rgba(0,0,0,0.35); }
+  .mod-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:.9rem; }
+  .mod-icon { width:40px; height:40px; border-radius:10px; display:grid; place-items:center; font-size:1.15rem; background:rgba(255,255,255,0.05); }
+  .mod-count { font-family:'Syne',sans-serif; font-size:1.75rem; font-weight:800; color:var(--mc, var(--red)); }
+  .mod-name { font-family:'Syne',sans-serif; font-weight:700; font-size:.9rem; margin-bottom:.25rem; color:#EEEAF8; }
+  .mod-desc { font-size:.73rem; color:var(--muted); }
+  .prog-bar { height:3px; background:rgba(255,255,255,0.05); border-radius:99px; margin-top:.9rem; overflow:hidden; }
+  .prog-fill { height:100%; border-radius:99px; background:var(--mc, var(--red)); transition:width .9s cubic-bezier(.4,0,.2,1); }
+
+  /* TABLE */
+  .tbl-section { display:none; background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+  .tbl-section.on { display:block; animation:rise .35s ease both; }
+  .tbl-head { padding:1.1rem 1.4rem; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); flex-wrap:wrap; gap:.75rem; background:rgba(255,255,255,0.01); }
+  .tbl-title { font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; color:#EEEAF8; }
+  .tbl-sub { font-size:.75rem; color:var(--muted); margin-top:.2rem; }
+  .tbl-acts { display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; }
+  .tbl-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; }
+  th { padding:.7rem 1rem; text-align:left; font-size:.68rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; background:rgba(255,255,255,0.015); border-bottom:1px solid var(--border); }
+  td { padding:.8rem 1rem; font-size:.82rem; border-bottom:1px solid rgba(255,255,255,0.035); vertical-align:top; color:var(--text); }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:rgba(255,255,255,0.018); }
+  .t-name { font-weight:500; color:var(--text); }
+  .t-email { color:var(--muted); font-size:.76rem; }
+  .t-stage { font-size:.74rem; color:var(--info); }
+  .pill { display:inline-block; padding:.22rem .65rem; border-radius:99px; font-size:.7rem; font-weight:500; margin:.15rem; }
+  .p-miss { background:rgba(255,59,92,0.13); color:var(--danger); border:1px solid rgba(255,59,92,0.2); }
+  .p-done { background:rgba(0,212,154,0.1); color:var(--success); }
+
+  /* MODAL */
+  .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.72); backdrop-filter:blur(8px); z-index:200; place-items:center; padding:1rem; }
+  .overlay.open { display:grid; }
+  .modal { background:var(--surface); border:1px solid var(--border); border-radius:20px; width:100%; max-width:700px; max-height:92vh; overflow-y:auto; animation:popIn .3s cubic-bezier(.34,1.56,.64,1) both; }
+  @keyframes popIn { from{opacity:0;transform:scale(.9) translateY(16px)} to{opacity:1;transform:none} }
+  .modal-hd { padding:1.4rem 1.6rem 1rem; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; position:sticky; top:0; background:var(--surface); z-index:5; }
+  .modal-title { font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:700; }
+  .modal-sub { color:var(--muted); font-size:.78rem; margin-top:.2rem; }
+  .x-btn { width:30px; height:30px; border-radius:7px; flex-shrink:0; background:rgba(255,255,255,0.06); border:none; color:var(--muted); cursor:pointer; font-size:1rem; display:grid; place-items:center; transition:all .18s; }
+  .x-btn:hover { background:rgba(200,16,46,0.2); color:var(--text); }
+  .modal-body { padding:1.25rem 1.6rem 1.75rem; }
+  .m-label { font-family:'Syne',sans-serif; font-size:.7rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin:1.1rem 0 .5rem; }
+  .talent-chips { display:flex; flex-wrap:wrap; gap:.3rem; margin-bottom:.25rem; }
+  .t-chip { display:inline-flex; flex-direction:column; gap:.1rem; padding:.35rem .75rem; font-size:.76rem; background:rgba(200,16,46,0.08); border:1px solid rgba(200,16,46,0.2); border-radius:12px; }
+  .t-chip-name { font-weight:500; }
+  .t-chip-phone { font-size:.68rem; color:var(--muted); letter-spacing:.02em; }
+  .tmpl-box { background:rgba(255,255,255,0.025); border:1px solid var(--border2); border-radius:12px; padding:1.1rem 1.15rem; font-size:.82rem; line-height:1.75; white-space:pre-wrap; color:var(--text); }
+  .tmpl-note { font-size:.73rem; color:var(--muted); padding:.75rem 1rem; background:rgba(77,159,255,0.05); border:1px solid rgba(77,159,255,0.12); border-radius:10px; line-height:1.6; margin-top:1rem; }
+
+  .tab-btn { padding:.42rem 1rem; border-radius:8px; font-size:.78rem; font-weight:500; cursor:pointer; transition:all .18s; background:rgba(255,255,255,0.04); border:1px solid var(--border2); color:var(--muted); font-family:'DM Sans',sans-serif; }
+  .tab-btn.active { background:var(--red); border-color:var(--red); color:#fff; }
+
+  .toast { position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(8px); background:var(--success); color:#fff; padding:.55rem 1.4rem; border-radius:99px; font-size:.82rem; font-weight:500; opacity:0; pointer-events:none; transition:all .28s; z-index:999; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  ::-webkit-scrollbar { width:5px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:rgba(200,16,46,0.3); border-radius:99px; }
+  .empty-msg { text-align:center; padding:2.5rem 1rem; color:var(--muted); font-size:.88rem; }
+  @media(max-width:640px) { header{padding:.9rem 1.1rem} #dashboard{padding:1.25rem 1rem} .stats-row{grid-template-columns:repeat(2,1fr)} .modules-grid{grid-template-columns:1fr} }
+
+  /* NAV TABS */
+  .nav-tabs { display:flex; gap:.25rem; align-items:center; }
+  .nav-tab {
+    padding:.45rem 1.1rem; border-radius:8px; font-size:.8rem; font-weight:500;
+    cursor:pointer; border:none; transition:all .2s; font-family:'DM Sans',sans-serif;
+    background:transparent; color:var(--muted); letter-spacing:.01em;
+  }
+  .nav-tab:hover { background:rgba(255,255,255,0.06); color:var(--text); }
+  .nav-tab.active { background:var(--red); color:#fff; }
+
+  /* DRUG FORM SECTION */
+  #drug-section {
+    display:none; position:relative; z-index:5;
+    padding:1.75rem 2.5rem; max-width:900px; margin:0 auto;
+    animation:rise .45s ease both;
+  }
+  .form-card {
+    background:var(--card); border:1px solid var(--border);
+    border-radius:16px; padding:1.5rem; margin-bottom:1.25rem;
+  }
+  .form-card-title {
+    font-family:'Syne',sans-serif; font-size:.95rem; font-weight:700;
+    margin-bottom:1.1rem; display:flex; align-items:center; gap:.5rem;
+  }
+  .form-row { display:grid; gap:.85rem; margin-bottom:.85rem; }
+  .form-row-2 { grid-template-columns:1fr 1fr; }
+  .form-row-3 { grid-template-columns:1fr 1fr 1fr; }
+  .form-row-1 { grid-template-columns:1fr; }
+  .field-group { display:flex; flex-direction:column; gap:.35rem; }
+  .field-label {
+    font-size:.7rem; font-weight:600; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.07em;
+  }
+  .field-input {
+    background:rgba(255,255,255,0.05); border:1px solid var(--border2);
+    border-radius:9px; padding:.62rem .9rem; color:var(--text);
+    font-size:.88rem; font-family:'DM Sans',sans-serif; outline:none;
+    transition:border .2s; width:100%;
+  }
+  .field-input:focus { border-color:var(--red); }
+  .field-input::placeholder { color:var(--muted); opacity:.6; }
+
+
+  /* Generate btn */
+  .gen-btn {
+    width:100%; padding:.9rem; background:var(--red); color:#fff;
+    border:none; border-radius:12px; font-family:'Syne',sans-serif;
+    font-size:1rem; font-weight:700; cursor:pointer; transition:all .2s;
+    letter-spacing:.02em; margin-top:.5rem;
+  }
+  .gen-btn:hover { background:#a50d25; transform:translateY(-1px); }
+  .gen-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+
+  @media(max-width:640px) {
+    #drug-section { padding:1.25rem 1rem; }
+    .form-row-2, .form-row-3 { grid-template-columns:1fr; }
+  }
+
+  /* SCANNER SECTION */
+  #scanner-section {
+    display:none; position:relative; z-index:5;
+    padding:1.75rem 2.5rem; max-width:900px; margin:0 auto;
+    animation:rise .45s ease both;
+  }
+  .doc-type-grid {
+    display:grid; grid-template-columns:repeat(2,1fr); gap:.65rem; margin-bottom:1.25rem;
+  }
+  .doc-type-btn {
+    padding:.7rem 1rem; border-radius:10px; font-size:.82rem; font-weight:500;
+    cursor:pointer; transition:all .2s; border:1px solid var(--border2);
+    background:rgba(255,255,255,0.04); color:var(--text); font-family:'DM Sans',sans-serif;
+    text-align:left;
+  }
+  .doc-type-btn:hover { border-color:var(--red); background:rgba(200,16,46,0.07); }
+  .doc-type-btn.selected { border-color:var(--red); background:rgba(200,16,46,0.13); color:#fff; }
+  .edu-subtypes { display:none; margin-top:.75rem; }
+  .edu-subtypes.show { display:grid; grid-template-columns:repeat(2,1fr); gap:.5rem; }
+  .edu-sub-btn {
+    padding:.55rem .85rem; border-radius:8px; font-size:.78rem; font-weight:400;
+    cursor:pointer; transition:all .18s; border:1px solid var(--border2);
+    background:rgba(255,255,255,0.03); color:var(--muted); font-family:'DM Sans',sans-serif;
+    text-align:left;
+  }
+  .edu-sub-btn:hover { border-color:var(--info); color:var(--text); }
+  .edu-sub-btn.selected { border-color:var(--info); background:rgba(77,159,255,0.13); color:var(--info); }
+
+  .img-preview-grid {
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+    gap:.65rem; margin-top:1rem;
+  }
+  .img-thumb {
+    position:relative; border-radius:10px; overflow:hidden;
+    border:1px solid var(--border2); aspect-ratio:3/4; background:rgba(255,255,255,0.03);
+  }
+  .img-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .img-thumb-del {
+    position:absolute; top:.3rem; right:.3rem; width:22px; height:22px;
+    border-radius:50%; background:rgba(200,16,46,0.85); border:none;
+    color:#fff; font-size:.7rem; cursor:pointer; display:grid; place-items:center;
+    line-height:1;
+  }
+  .img-thumb-num {
+    position:absolute; bottom:.3rem; left:.3rem;
+    background:rgba(0,0,0,0.65); color:#fff; font-size:.65rem;
+    padding:.1rem .4rem; border-radius:4px;
+  }
+  .scan-upload-area {
+    border:2px dashed rgba(200,16,46,0.3); border-radius:14px;
+    padding:2rem 1rem; text-align:center; cursor:pointer;
+    background:rgba(255,255,255,0.02); transition:all .25s; margin-top:.75rem;
+  }
+  .scan-upload-area:hover, .scan-upload-area.over {
+    border-color:var(--red); background:rgba(200,16,46,0.05);
+  }
+  @media(max-width:640px) {
+    #scanner-section { padding:1.25rem 1rem; }
+    .doc-type-grid { grid-template-columns:1fr; }
+    .edu-subtypes.show { grid-template-columns:1fr; }
+  }
+
+  /* RECRUITER PICKER */
+  #recruiter-picker {
+    display:none; position:relative; z-index:5;
+    max-width:500px; margin:4rem auto; padding:0 1.5rem;
+    text-align:center; animation:rise .5s ease both;
+  }
+  .picker-title { font-family:'Syne',sans-serif; font-size:1.3rem; font-weight:700; margin-bottom:.4rem; }
+  .picker-sub   { font-size:.82rem; color:var(--muted); margin-bottom:1.75rem; }
+  .picker-grid  { display:grid; grid-template-columns:1fr 1fr; gap:.65rem; }
+  .picker-btn {
+    padding:1rem 1.2rem; border-radius:14px; cursor:pointer;
+    border:1px solid var(--border2); background:var(--card);
+    font-family:'DM Sans',sans-serif; font-size:.9rem; font-weight:600;
+    color:var(--text); transition:all .22s; text-align:left;
+    display:flex; align-items:center; gap:.6rem;
+  }
+  .picker-btn:hover { transform:translateY(-2px); border-color:currentColor; }
+  .picker-btn .pb-initial {
+    width:32px; height:32px; border-radius:8px; display:grid; place-items:center;
+    font-size:.85rem; font-weight:800; flex-shrink:0;
+    background:rgba(255,255,255,0.08);
+  }
+  .picker-btn .pb-count { font-size:.72rem; color:var(--muted); font-weight:400; margin-top:.1rem; }
+  .picker-back {
+    margin-top:1rem; font-size:.78rem; color:var(--muted);
+    cursor:pointer; text-decoration:underline; background:none; border:none;
+    font-family:'DM Sans',sans-serif;
+  }
+  .picker-back:hover { color:var(--text); }
+
+  /* NUCLEAR COLOR OVERRIDE */
+  .btn, button { color: #EEEAF8 !important; }
+  .mod-name, .mod-count { color: #EEEAF8 !important; }
+  .tbl-title, td, .dash-title, .tmpl-box { color: #EEEAF8 !important; }
+  .drop-title, .form-card-title, .field-label { color: #EEEAF8 !important; }
+  .t-name { color: #EEEAF8 !important; font-weight:500; }
+  .t-stage { color: #4D9FFF !important; }
+  .btn-red, .btn-red * { color: #fff !important; }
+  .btn-green { color: #00D49A !important; }
+  .btn-blue  { color: #4D9FFF !important; }
+
+  /* PRINTABLE ONBOARDING CHECKLIST */
+  #checklist-section { display:none; position:relative; z-index:5; max-width:980px; margin:0 auto; padding:1.75rem 2.5rem 3rem; }
+  .checklist-editor { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.25rem; margin-bottom:1rem; }
+  .checklist-fields { display:grid; grid-template-columns:1fr 220px; gap:.85rem; }
+  .checklist-sheet { background:#fff; color:#2f2c2a; border-radius:14px; padding:42px 48px; min-height:760px; box-shadow:0 18px 50px rgba(0,0,0,.35); }
+  .checklist-logo { width:360px; max-width:80%; height:auto; display:block; margin-bottom:28px; }
+  .checklist-title { font-family:Arial,sans-serif; font-size:24px; font-weight:700; letter-spacing:.02em; margin-bottom:26px; color:#2f2c2a; }
+  .checklist-meta { display:grid; grid-template-columns:1fr 220px; gap:24px; margin-bottom:28px; font-family:Arial,sans-serif; font-size:14px; }
+  .checklist-meta-line { border-bottom:1.5px solid #444; min-height:24px; padding:2px 4px; font-weight:600; }
+  .checklist-group { border-top:1px solid #d8d8d8; padding:20px 0 8px; }
+  .checklist-group-title { font-family:Arial,sans-serif; font-size:13px; font-weight:700; color:#666; text-transform:uppercase; letter-spacing:.08em; margin-bottom:12px; }
+  .checklist-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 28px; }
+  .checklist-option { display:flex; align-items:center; gap:10px; font-family:Arial,sans-serif; font-size:16px; }
+  .checklist-option input { width:20px; height:20px; accent-color:#00a94f; }
+  .checklist-actions { display:flex; gap:.75rem; flex-wrap:wrap; margin-top:1rem; }
+  @media(max-width:700px) {
+    #checklist-section { padding:1rem; }
+    .checklist-fields,.checklist-meta,.checklist-options { grid-template-columns:1fr; }
+    .checklist-sheet { padding:28px 24px; min-height:auto; }
+    .checklist-logo { width:300px; }
+  }
+
+header{flex-wrap:wrap;gap:12px}.nav-tabs{flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">KE</div>
+    <div>
+      <div class="logo-name">Kelly Education</div>
+      <div class="logo-sub">Onboarding Tracker Dashboard</div>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tab-tracker" onclick="switchSection('tracker')">📊 Tracker</button>
+    <button class="nav-tab" id="tab-drug" onclick="switchSection('drug')">💊 Drug Screen</button>
+    <button class="nav-tab" id="tab-scanner" onclick="switchSection('scanner')">📷 Scanner</button>
+    <button class="nav-tab" id="tab-checklist" onclick="switchSection('checklist')">☑️ Checklist</button>
+    <button class="nav-tab" id="tab-help" onclick="switchSection('help')">❓ Help</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
+    <div id="sender-display" onclick="openSenderEditor()" title="Click to edit sender name"
+      style="display:flex;align-items:center;gap:.5rem;cursor:pointer;padding:.4rem .7rem;border:1px solid var(--border);border-radius:9px;transition:all .2s;"
+      onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--border)'">
+      <span style="font-size:.7rem;color:var(--muted);">Sender:</span>
+      <span id="sender-label" style="font-size:.82rem;font-weight:500;color:var(--text);"></span>
+      <span style="font-size:.68rem;color:var(--red);">✏️</span>
+    </div>
+    <span id="hdr-file" style="font-size:.75rem;color:var(--muted);"></span>
+  </div>
+</header>
+
+<!-- SENDER EDITOR MODAL -->
+<div class="overlay" id="sender-overlay" onclick="maybecloseSender(event)">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-title">✏️ Edit Sender Info</div>
+        <div class="modal-sub">Updates all email &amp; SMS templates · Saved in your browser</div>
+      </div>
+      <button class="x-btn" onclick="closeSenderEditor()">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="m-label">Your Name</div>
+      <input id="inp-sname" type="text" placeholder="e.g. Rodrigo Bermudez"
+        style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border2);border-radius:9px;padding:.65rem .9rem;color:var(--text);font-size:.88rem;font-family:'DM Sans',sans-serif;outline:none;transition:border .2s;margin-bottom:.9rem;"
+        onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--border2)'"
+      >
+      <div class="m-label">Your Email</div>
+      <input id="inp-semail" type="email" placeholder="e.g. name@kellyeducation.com"
+        style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border2);border-radius:9px;padding:.65rem .9rem;color:var(--text);font-size:.88rem;font-family:'DM Sans',sans-serif;outline:none;transition:border .2s;margin-bottom:.9rem;"
+        onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--border2)'"
+      >
+      <div class="m-label">Title / Office <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:.68rem;">(optional)</span></div>
+      <input id="inp-stitle" type="text" placeholder="e.g. Kelly Education - Miami Dade"
+        style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border2);border-radius:9px;padding:.65rem .9rem;color:var(--text);font-size:.88rem;font-family:'DM Sans',sans-serif;outline:none;transition:border .2s;margin-bottom:1.4rem;"
+        onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--border2)'"
+      >
+      <div class="m-label">Documents Submission Email <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:.68rem;">(where talents send docs)</span></div>
+      <input id="inp-sdocs" type="email" placeholder="e.g. docs@kellyeducation.com"
+        style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border2);border-radius:9px;padding:.65rem .9rem;color:var(--text);font-size:.88rem;font-family:'DM Sans',sans-serif;outline:none;transition:border .2s;margin-bottom:1.4rem;"
+        onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--border2)'"
+      >
+      <div style="display:flex;gap:.6rem;">
+        <button class="btn btn-red" style="flex:1" onclick="saveSenderInfo()">&#x1F4BE; Save &amp; Apply</button>
+        <button class="btn btn-ghost" onclick="closeSenderEditor()">Cancel</button>
+      </div>
+      <div class="tmpl-note" style="margin-top:1rem;">
+        &#x1F4A1; Saved in your browser cache &#x2014; stays until you clear cache or update it again.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="upload-zone">
+  <div class="drop-card" id="drop-area" onclick="document.getElementById('file-input').click()">
+    <div class="drop-icon">📊</div>
+    <div class="drop-title">Upload your Tracker</div>
+    <div class="drop-sub">Drop your Excel file here or click to browse<br><small style="opacity:.5">.xlsx · .xls · .csv</small></div>
+    <button class="up-btn" onclick="event.stopPropagation();document.getElementById('file-input').click()">Choose File</button>
+    <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
+  </div>
+  <div class="cols-hint">
+    <span>📄 Pre-hire Training</span><span>🦺 Safety &amp; Security</span>
+    <span>📅 MDPS Training</span><span>🎒 Education Requirement</span>
+    <span>📝 I-9</span><span>💊 Drug Screen</span>
+    <span>🔍 Background Check</span><span>🖐 FP Screening</span>
+  </div>
+  <p style="margin-top:1rem;font-size:.72rem;color:var(--muted)">Columns are auto-detected from your Excel headers</p>
+</div>
+
+<div id="dashboard">
+  <div class="dash-top">
+    <div>
+      <div class="dash-title">Onboarding Overview</div>
+      <div class="dash-sub" id="dash-sub"></div>
+    </div>
+    <div class="dash-actions">
+      <button class="btn btn-ghost" onclick="showAllPending()" style="color:#EEEAF8!important">📋 View all pending</button>
+      <button class="btn btn-ghost" onclick="resetDash()" style="color:#EEEAF8!important">↩ Upload new file</button>
+    </div>
+  </div>
+  <div class="stats-row" id="stats-row"></div>
+  <div class="section-hd">📦 Modules — click to see who's missing</div>
+  <div class="modules-grid" id="modules-grid"></div>
+  <div class="tbl-section" id="tbl-section">
+    <div class="tbl-head">
+      <div>
+        <div class="tbl-title" id="tbl-title"></div>
+        <div class="tbl-sub" id="tbl-sub"></div>
+      </div>
+      <div class="tbl-acts">
+        <button class="btn btn-green btn-sm" onclick="copyEmailsOutlook()">📧 Copy emails (Outlook)</button>
+        <button class="btn btn-blue btn-sm" onclick="downloadPhonesCSV()">📥 Download phones CSV</button>
+        <button class="btn" style="background:rgba(77,159,255,0.12);color:var(--info);border-color:rgba(77,159,255,0.25);" onclick="copyKSNs()">🪪 Copy KSN IDs</button>
+        <button class="btn btn-red btn-sm" id="tmpl-btn" onclick="openTemplateModal()" style="display:none">✉️ View template</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Applicant</th><th>KSN</th><th>Email</th><th>Phone</th><th>Stage</th><th>Pending Items</th>
+          </tr>
+        </thead>
+        <tbody id="tbl-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="maybeClose(event)">
+  <div class="modal">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-title" id="m-title"></div>
+        <div class="modal-sub" id="m-sub"></div>
+      </div>
+      <button class="x-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="m-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// MODULE CONFIG — mapped to your exact columns
+// ═══════════════════════════════════════
+const MODULES = {
+  'Pre-hire Training': {
+    icon:'📄', color:'#4D9FFF',
+    keys:['pre-hire training','pre hire training','prehire','pre-hiring'],
+    template:()=>`Subject: Action Required – Online Trainings Pending
+
+Hello,
+
+We have noticed that we have not yet received your online training completions. Please complete all required online training modules and send the certificates or completion confirmation to:
+
+📧 ${SENDER.docsEmail}
+
+These trainings are required before you can begin your assignment. Please complete them at your earliest convenience.`
+  },
+  'Safety & Security': {
+    icon:'🦺', color:'#FF6B35',
+    keys:['safety & security','safety and security','safety &amp; security','safety'],
+    template:()=>`Subject: Action Required – Safety & Security Training Pending
+
+Hello,
+
+We have noticed that we have not yet received confirmation of your Safety & Security training completion. Please complete the required safety modules and send your completion certificates to:
+
+📧 ${SENDER.docsEmail}
+
+Your safety certification is required before starting your placement.`
+  },
+  'MDPS Training': {
+    icon:'📅', color:'#BF5AF2',
+    keys:['mdps training','mdps','new hire orientation'],
+    template:()=>`Subject: Action Required – New Hire Orientation Not Scheduled
+
+Hello,
+
+We have noticed that you have not yet scheduled your New Hire Orientation. This is a required step in your onboarding process.
+
+Please schedule your session at your earliest convenience using the link below:
+
+🔗 https://calendly.com/miami-dade-onboarding-appointment/miami-dade-orientation-waterford?back=1&month=2026-03
+
+Once scheduled, no further action is needed — we look forward to seeing you there!`
+  },
+  'Education Requirement': {
+    icon:'🎒', color:'#00D49A',
+    keys:['education requirement','education req','education'],
+    template:()=>`Subject: Action Required – Proof of Education Required
+
+Hello,
+
+As part of your onboarding process, we require proof of your highest level of education. Please send ONE of the following documents:
+
+   • Copy of your Diploma or Degree
+   • Equivalency of the degree in the U.S. (if your degree is from another country)
+   • Unofficial Transcripts
+   • Official Transcripts
+
+Please send your proof of education to:
+📧 ${SENDER.docsEmail}
+
+If you have questions about accepted documents, please don't hesitate to reach out.`
+  },
+  'I-9': {
+    icon:'📝', color:'#FF2D55',
+    keys:['i-9','i9','i 9'],
+    template:()=>`Subject: Action Required – I-9 Form Incomplete
+
+Hello,
+
+We have noticed that your I-9 Employment Eligibility Verification form has not been completed. Please complete Section 1 (Employee Information and Attestation) and upload your supporting identity and work authorization documents.
+
+This is a federal requirement and must be completed before your first day of work.
+
+If you need assistance or have questions about which documents to provide, please contact us directly.`
+  },
+  'Drug Screen': {
+    icon:'💊', color:'#FFB830',
+    keys:['drug screen','drug screening','drug'],
+    template:()=>`Subject: Action Required – Drug Screen Pending
+
+Hello,
+
+We have noticed that your drug screening has not yet been completed or results have not been received. Please complete your drug screen as soon as possible.
+
+For information on the nearest screening location or any questions, please contact:
+📧 ${SENDER.email}`
+  },
+  'Background Check': {
+    icon:'🔍', color:'#A8D8EA',
+    keys:['background check','background','bg check'],
+    template:()=>`Subject: Action Required – Background Check Pending
+
+Hello,
+
+We have noticed that your background check has not been completed or is still pending. Please complete the required steps as soon as possible.
+
+If you have questions or need assistance, please reach out to:
+📧 ${SENDER.email}`
+  },
+  'FP Screening': {
+    icon:'🖐', color:'#FF9F0A',
+    keys:['fp screening','fp screen','fingerprint','fp (sch','fp expir'],
+    template:()=>`Subject: Action Required – Fingerprint Screening Pending
+
+Hello,
+
+We have noticed that your Fingerprint (FP) Screening has not yet been scheduled or completed. Please schedule your fingerprint appointment as soon as possible.
+
+For questions or to confirm your appointment details, contact:
+📧 ${SENDER.email}`
+  }
+};
+
+// ── SENDER INFO (localStorage) ──
+const SENDER_KEY = 'kelly_dashtracker_sender_' + trackerProfile.scope;
+let SENDER = { name: trackerProfile.name || 'Your name', email: trackerProfile.email || '', title: 'Kelly Education — Miami Dade', docsEmail: trackerProfile.email || '' };
+
+function loadSender() {
+  try {
+    const saved = localStorage.getItem(SENDER_KEY);
+    if (saved) SENDER = JSON.parse(saved);
+  } catch(e) {}
+  document.getElementById('sender-label').textContent = SENDER.name;
+}
+
+function openSenderEditor() {
+  document.getElementById('inp-sname').value  = SENDER.name;
+  document.getElementById('inp-semail').value = SENDER.email;
+  document.getElementById('inp-stitle').value = SENDER.title;
+  document.getElementById('inp-sdocs').value  = SENDER.docsEmail;
+  document.getElementById('sender-overlay').classList.add('open');
+}
+function closeSenderEditor() {
+  document.getElementById('sender-overlay').classList.remove('open');
+}
+function maybecloseSender(e) {
+  if (e.target === document.getElementById('sender-overlay')) closeSenderEditor();
+}
+function saveSenderInfo() {
+  const name  = document.getElementById('inp-sname').value.trim();
+  const email = document.getElementById('inp-semail').value.trim();
+  const title = document.getElementById('inp-stitle').value.trim();
+  if (!name) { document.getElementById('inp-sname').style.borderColor = 'var(--danger)'; return; }
+  const docs  = document.getElementById('inp-sdocs').value.trim();
+  SENDER = { name: name || SENDER.name, email: email || SENDER.email, title: title || SENDER.title, docsEmail: docs || SENDER.docsEmail };
+  try { localStorage.setItem(SENDER_KEY, JSON.stringify(SENDER)); } catch(e) {}
+  document.getElementById('sender-label').textContent = SENDER.name;
+  closeSenderEditor();
+  toast(`✓ Sender updated to ${SENDER.name}`);
+}
+
+// Call on page load
+// loadSender is called in initDrugSection
+
+// STATE
+let talents = [], colMap = {}, curMod = null, curList = [];
+
+// ── FILE UPLOAD ──
+const drop = document.getElementById('drop-area');
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+document.getElementById('file-input').addEventListener('change', e => { if (e.target.files[0]) loadFile(e.target.files[0]); });
+
+const KNOWN_RECRUITERS = ['Rodrigo','Miccael','Nicolette','Jorge','Demetrius'];
+const RECRUITER_COLORS  = { Rodrigo:'#ff4060', Miccael:'#c07fe8', Nicolette:'#2ecc71', Jorge:'#f39c12', Demetrius:'#5dade2' };
+const RECRUITER_HEADER_ROW = { Rodrigo:0, Miccael:1, Nicolette:1, Jorge:1, Demetrius:1 };
+let _cachedWb = null;
+
+function loadFile(file) {
+  document.getElementById('hdr-file').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const wb = XLSX.read(new Uint8Array(ev.target.result), { type:'array' });
+      _cachedWb = wb;
+
+      // Detect recruiter sheets
+      const recSheets = wb.SheetNames.filter(n => KNOWN_RECRUITERS.includes(n));
+
+      if (recSheets.length > 1) {
+        // Multi-recruiter workbook — show picker
+        showRecruiterPicker(recSheets, wb);
+      } else if (recSheets.length === 1) {
+        // Only one recruiter sheet — load directly
+        loadRecruiterSheet(recSheets[0], wb);
+      } else {
+        // No recruiter sheets — treat first sheet as before
+        const ws   = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { defval:'' });
+        if (!rows.length) { alert('The file appears to be empty or has an incorrect format.'); return; }
+        parseRows(rows);
+      }
+    } catch(e) { console.error(e); alert('Error reading the file. Make sure it is a valid Excel or CSV file.'); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function showRecruiterPicker(sheets, wb) {
+  document.getElementById('upload-zone').style.display = 'none';
+
+  // Count talents per sheet for display
+  const grid = document.getElementById('picker-grid');
+  grid.innerHTML = '';
+
+  sheets.forEach(name => {
+    const ws      = wb.Sheets[name];
+    const hRow    = RECRUITER_HEADER_ROW[name] !== undefined ? RECRUITER_HEADER_ROW[name] : 1;
+    const raw     = XLSX.utils.sheet_to_json(ws, { header:1, defval:null });
+    // Count non-empty data rows (skip header rows)
+    const count   = raw.slice(hRow + 1).filter(r => r && r[2]).length;
+    const color   = RECRUITER_COLORS[name] || 'var(--red)';
+    const initial = name[0].toUpperCase();
+
+    const btn = document.createElement('button');
+    btn.className = 'picker-btn';
+    btn.style.color = color;
+    btn.innerHTML =
+      '<span class="pb-initial" style="background:' + color + '22;color:' + color + '">' + initial + '</span>' +
+      '<div><div>' + name + '</div><div class="pb-count">' + count + ' talent' + (count !== 1 ? 's' : '') + '</div></div>';
+    btn.onclick = () => loadRecruiterSheet(name, wb);
+    grid.appendChild(btn);
+  });
+
+  document.getElementById('recruiter-picker').style.display = 'block';
+}
+
+function loadRecruiterSheet(name, wb) {
+  document.getElementById('recruiter-picker').style.display = 'none';
+  const ws   = wb.Sheets[name];
+  const hRow = RECRUITER_HEADER_ROW[name] !== undefined ? RECRUITER_HEADER_ROW[name] : 0;
+
+  // Read as 2D array, use hRow as header, skip legend rows above it
+  const raw2d = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
+  if (raw2d.length <= hRow) { alert('No data found in sheet: ' + name); return; }
+
+  const headers  = raw2d[hRow];
+  const dataRows = raw2d.slice(hRow + 1).filter(function(r) { return r && r[2]; });
+
+  // Convert to array-of-objects
+  const rows = dataRows.map(function(r) {
+    var obj = {};
+    headers.forEach(function(h, i) { if (h) obj[String(h).trim()] = r[i] !== undefined ? r[i] : ''; });
+    return obj;
+  });
+
+  if (!rows.length) { alert('No data found in sheet: ' + name); return; }
+
+  document.getElementById('hdr-file').textContent = name + "'s Tracker";
+  parseRows(rows);
+}
+
+function backToUpload() {
+  document.getElementById('recruiter-picker').style.display = 'none';
+  document.getElementById('upload-zone').style.display = 'block';
+  _cachedWb = null;
+}
+
+function parseRows(rows) {
+  const headers = Object.keys(rows[0]);
+  const find = (...terms) => headers.find(h => terms.some(t => h.toLowerCase().replace(/\s+/g,' ').trim().includes(t.toLowerCase())));
+
+  // Exact column names from your tracker
+  const nameCol  = find('applicant name','applicant','nombre','talent name') || headers[2] || headers[0];
+  const emailCol = find('talent email','email','correo');
+  const phoneCol = find('talent phone','phone','telefono');
+  const stageCol = find('current onboarding stage','onboarding stage','stage');
+  const ksnCol   = find('ksn id','ksn','talent id','talent#');
+
+  // Build module column map
+  colMap = {};
+  for (const [mod, cfg] of Object.entries(MODULES)) {
+    const col = headers.find(h => {
+      const hl = h.toLowerCase().replace(/\s+/g,' ').trim();
+      return cfg.keys.some(k => hl.includes(k.toLowerCase()));
+    });
+    if (col) colMap[mod] = col;
+  }
+
+  // Base values always considered incomplete
+  const INCOMPLETE_BASE = new Set(['','0','no','pending','n/a','false','-','not submitted','incomplete','tbd','not done','missing','need certificate','initiated','requested','will send']);
+
+  // Module-specific rules: function(val) → true = incomplete
+  const MODULE_RULES = {
+    'Pre-hire Training':  v => INCOMPLETE_BASE.has(v) || v === 'need certificate',
+    'Safety & Security':  v => INCOMPLETE_BASE.has(v) || v === 'need certificate',
+    'I-9':                v => INCOMPLETE_BASE.has(v) || v === 'initiated',
+    'Drug Screen':        v => INCOMPLETE_BASE.has(v) || v === 'initiated',
+    'Background Check':   v => INCOMPLETE_BASE.has(v) || v === 'initiated',
+    'FP Screening':       v => !v || v !== 'approved' || v === 'info requested',
+    'MDPS Training':      v => !v || v !== 'pass',
+  };
+
+  function isModIncomplete(mod, val) {
+    const v = String(val || '').trim().toLowerCase();
+    const rule = MODULE_RULES[mod];
+    if (rule) return rule(v);
+    return INCOMPLETE_BASE.has(v);
+  }
+
+  // Display label override — only FP Screening shows Info Requested detail
+  function getStatusLabel(mod, val) {
+    const v = String(val || '').trim().toLowerCase();
+    if (mod === 'FP Screening' && v === 'info requested') return mod + ' (Info Requested)';
+    return mod;
+  }
+
+  talents = rows.map(row => {
+    const name = String(row[nameCol] || '').trim();
+    if (!name || name.toLowerCase() === 'applicant name') return null;
+
+    const missing = [];
+    for (const [mod, col] of Object.entries(colMap)) {
+      const rawVal = row[col];
+      if (isModIncomplete(mod, rawVal)) {
+        missing.push(getStatusLabel(mod, rawVal));
+      }
+    }
+
+    return {
+      name,
+      email: emailCol ? String(row[emailCol] || '').trim() : '',
+      phone: phoneCol ? String(row[phoneCol] || '').trim() : '',
+      stage: stageCol ? String(row[stageCol] || '').trim() : '',
+      ksn:   ksnCol   ? String(row[ksnCol]   || '').replace(/\.0$/,'').trim() : '',
+      missing,
+      raw: row
+    };
+  }).filter(Boolean);
+
+  buildDash();
+}
+
+// ── DASHBOARD ──
+function buildDash() {
+  document.getElementById('upload-zone').style.display = 'none';
+  document.getElementById('dashboard').style.display  = 'block';
+
+  const total    = talents.length;
+  const complete = talents.filter(t => t.missing.length === 0).length;
+  const pending  = total - complete;
+
+  document.getElementById('dash-sub').textContent =
+    `${total} talents loaded · ${complete} complete · ${pending} with pending items`;
+
+  // Stats
+  const sr = document.getElementById('stats-row');
+  sr.innerHTML = '';
+  [
+    { label:'Total Talents', val:total,    desc:'In the tracker',    c:'var(--text)' },
+    { label:'Complete',      val:complete, desc:'No pending items',   c:'var(--success)', fn:showComplete },
+    { label:'Pending',       val:pending,  desc:'Action required',    c:'var(--danger)',  fn:showAllPending },
+  ].forEach(s => {
+    const d = document.createElement('div');
+    d.className = 'stat-card'; d.style.setProperty('--c', s.c);
+    d.innerHTML = `<div class="s-label">${s.label}</div><div class="s-num">${s.val}</div><div class="s-desc">${s.desc}</div>`;
+    if (s.fn) d.addEventListener('click', s.fn);
+    sr.appendChild(d);
+  });
+
+  // Module cards
+  const mg = document.getElementById('modules-grid');
+  mg.innerHTML = '';
+  for (const [mod, cfg] of Object.entries(MODULES)) {
+    if (!colMap[mod]) continue;
+    const miss = talents.filter(t => trackerHasMissing(t,mod));
+    const pct  = total ? Math.round(((total - miss.length) / total) * 100) : 100;
+    const el   = document.createElement('div');
+    el.className = 'mod-card'; el.style.setProperty('--mc', cfg.color);
+    el.innerHTML = `
+      <div class="mod-top">
+        <div class="mod-icon">${cfg.icon}</div>
+        <div class="mod-count">${miss.length}</div>
+      </div>
+      <div class="mod-name">${mod}</div>
+      <div class="mod-desc">${miss.length} pending${miss.length!==1?'':''}  · ${pct}% complete</div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>`;
+    el.addEventListener('click', () => showMod(mod));
+    mg.appendChild(el);
+  }
+  document.getElementById('tbl-section').classList.remove('on');
+}
+
+// ── TABLE ──
+function showMod(mod) {
+  curMod = mod; curList = talents.filter(t => trackerHasMissing(t,mod));
+  renderTable(`${MODULES[mod].icon} Pending — ${mod}`,
+    `${curList.length} talent${curList.length!==1?'s':''} who haven't completed this module`,
+    curList, [mod]);
+}
+function showAllPending() {
+  curMod = 'ALL'; curList = talents.filter(t => t.missing.length > 0);
+  renderTable('📋 All pending items',
+    `${curList.length} talents with at least one pending item`, curList, null);
+}
+function showComplete() {
+  curMod = 'DONE'; curList = talents.filter(t => t.missing.length === 0);
+  renderTable('✅ Onboarding complete',
+    `${curList.length} talents with no pending items`, curList, null);
+}
+
+function renderTable(title, sub, list, highlightMods) {
+  document.getElementById('tbl-title').textContent = title;
+  document.getElementById('tbl-sub').textContent   = sub;
+  const body = document.getElementById('tbl-body');
+  body.innerHTML = '';
+
+  if (!list.length) {
+    body.innerHTML = `<tr><td colspan="6" class="empty-msg">🎉 Nothing pending here!</td></tr>`;
+  } else {
+    list.forEach(t => {
+      const mods  = highlightMods ? t.missing.filter(m => highlightMods.some(h => m === h || m.startsWith(h + ' ('))) : t.missing;
+      const pills = mods.length
+        ? mods.map(m => `<span class="pill p-miss">${MODULES[m]?.icon||''} ${m}</span>`).join('')
+        : `<span class="pill p-done">✓ Complete</span>`;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="t-name">${escapeTrackerHtml(t.name)}</td>
+        <td class="t-email" style="color:var(--info);font-size:.78rem">${escapeTrackerHtml(t.ksn||'—')}</td>
+        <td class="t-email">${escapeTrackerHtml(t.email||'—')}</td>
+        <td class="t-email">${escapeTrackerHtml(t.phone||'—')}</td>
+        <td class="t-stage">${escapeTrackerHtml(t.stage||'—')}</td>
+        <td>${pills}</td>`;
+      body.appendChild(tr);
+    });
+  }
+
+  document.getElementById('tmpl-btn').style.display =
+    (curMod && curMod !== 'ALL' && curMod !== 'DONE') ? 'inline-block' : 'none';
+
+  document.getElementById('tbl-section').classList.add('on');
+  setTimeout(() => document.getElementById('tbl-section').scrollIntoView({ behavior:'smooth', block:'nearest' }), 80);
+}
+
+// ── COPY EMAILS (Outlook format: semicolon separated) ──
+function copyKSNs() {
+  const ksns = curList.map(t => t.ksn).filter(Boolean);
+  if (!ksns.length) { toast('No KSN IDs found in this list'); return; }
+  navigator.clipboard.writeText(ksns.join(';')).then(() => toast(`✓ ${ksns.length} KSN IDs copied`));
+}
+
+function copyEmailsOutlook() {
+  const emails = curList.map(t => t.email).filter(Boolean);
+  if (!emails.length) { toast('No emails available in this list'); return; }
+  // Outlook accepts semicolon-separated list for To/BCC field
+  navigator.clipboard.writeText(emails.join('; ')).then(() =>
+    toast(`✓ ${emails.length} email${emails.length!==1?'s':''} copied — paste into Outlook To/BCC`));
+}
+
+// ── DOWNLOAD PHONES AS CSV (for Sense) ──
+function downloadPhonesCSV() {
+  const rows = curList
+    .filter(t => t.phone)
+    .map(t => {
+      const num = t.phone.replace(/[^0-9]/g,'').replace(/^1?([0-9]{10})$/, '$1');
+      return '"' + escapeTrackerHtml(t.name) + '","' + num + '"';
+    });
+  if (!rows.length) { toast('No phone numbers available in this list'); return; }
+  const csv = 'Name,Phone\n' + rows.join('\n');
+  triggerCSVDownload(csv, 'sense_phones.csv');
+  toast('✓ ' + rows.length + ' numbers downloaded — import into Sense');
+}
+
+function triggerCSVDownload(csv, filename) {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+// ── TEMPLATE MODAL ──
+function openTemplateModal() {
+  if (!curMod || ['ALL','DONE'].includes(curMod)) return;
+  const cfg    = MODULES[curMod];
+  const names  = curList.map(t => t.name).filter(Boolean);
+  const emails = curList.map(t => t.email).filter(Boolean);
+  const phones = curList.map(t => t.phone).filter(Boolean).map(p => p.replace(/\D/g,'').replace(/^1?(\d{10})$/, '$1'));
+  const chips  = curList.slice(0,30).map(t => {
+    const phone = t.phone ? t.phone.replace(/[^0-9]/g,'').replace(/^1?([0-9]{10})$/, '$1') : '';
+    return '<span class="t-chip"><span class="t-chip-name">👤 ' + escapeTrackerHtml(t.name) + '</span>' + (phone ? '<span class="t-chip-phone">📱 ' + phone + '</span>' : '') + (t.ksn ? '<span class="t-chip-phone" style="color:var(--info)">🪪 ' + escapeTrackerHtml(t.ksn) + '</span>' : '') + '</span>';
+  }).join('')
+    + (curList.length > 30 ? `<span class="t-chip"><span class="t-chip-name">+${curList.length-30} more</span></span>` : '');
+
+  document.getElementById('m-title').textContent = `${cfg.icon} Templates — ${curMod}`;
+  const ksns = curList.map(t => t.ksn).filter(Boolean);
+  document.getElementById('m-sub').textContent   = `${names.length} talent${names.length!==1?'s':''} pending`;
+
+  const smsTemplate = buildSmsTemplate(curMod);
+
+  document.getElementById('m-body').innerHTML = `
+    <div class="m-label">Affected Talents</div>
+    <div class="talent-chips">${chips||'<span style="color:var(--muted);font-size:.8rem">None</span>'}</div>
+
+    <!-- TABS -->
+    <div style="display:flex;gap:.4rem;margin:1.1rem 0 .9rem;flex-wrap:wrap;">
+      <button class="tab-btn active" id="tab-email" onclick="switchTab('email')">✉️ Email Template</button>
+      <button class="tab-btn" id="tab-sms" onclick="switchTab('sms')">💬 SMS Template</button>
+    </div>
+
+    <!-- EMAIL TAB -->
+    <div id="panel-email">
+      <div class="m-label" style="margin-top:0">Subject</div>
+      <div class="tmpl-box" id="tmpl-email-subject" style="margin-bottom:.75rem;font-weight:600;padding:.7rem 1rem;"></div>
+      <div class="m-label">Body</div>
+      <div class="tmpl-box" id="tmpl-email-content"></div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.85rem">
+        <button class="btn btn-red btn-sm" onclick="copyEmailSubject()">📋 Copy subject</button>
+        <button class="btn btn-red btn-sm" onclick="copyEmailTmpl()">📋 Copy body</button>
+        <button class="btn btn-green btn-sm" onclick="copyEmailsOutlookModal(${emails.length})">📧 Copy ${emails.length} emails (Outlook)</button>
+        ${ksns.length ? '<button class="btn btn-blue btn-sm" onclick="copyKSNsModal()">🪪 Copy ' + ksns.length + ' KSN IDs</button>' : ''}
+      </div>
+      <div class="tmpl-note">
+        💡 <strong>Outlook tip:</strong> Paste the copied emails directly into the <strong>To</strong> or <strong>BCC</strong> field — Outlook recognizes the semicolon-separated format automatically.
+      </div>
+    </div>
+
+    <!-- SMS TAB -->
+    <div id="panel-sms" style="display:none">
+      
+      <div class="tmpl-box" id="tmpl-sms-content">${escapeTrackerHtml(smsTemplate)}</div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.85rem">
+        <button class="btn btn-red btn-sm" onclick="copySmsTmpl()">📋 Copy SMS template</button>
+        <button class="btn btn-blue btn-sm" onclick="downloadPhonesCSVModal()">📥 Download phones CSV</button>
+      </div>
+      <div class="tmpl-note">
+        💡 <strong>Sense tip:</strong> Open the downloaded <strong>sense_phones.csv</strong> file and import it into Sense. The file contains Name and Phone columns ready to use.
+      </div>
+    </div>
+  `;
+  document.getElementById('overlay').classList.add('open');
+
+  // Split subject from body in email template
+  const fullTmpl = cfg.template();
+  const lines    = fullTmpl.split('\n');
+  const subjLine = lines[0].replace(/^Subject:\s*/i, '').trim();
+  const bodyText = lines.slice(1).join('\n').replace(/^\n/, '');
+  const subjEl   = document.getElementById('tmpl-email-subject');
+  const bodyEl   = document.getElementById('tmpl-email-content');
+  if (subjEl) subjEl.textContent = subjLine;
+  if (bodyEl) bodyEl.textContent = bodyText;
+}
+
+function switchTab(tab) {
+  document.getElementById('panel-email').style.display = tab==='email' ? 'block' : 'none';
+  document.getElementById('panel-sms').style.display   = tab==='sms'   ? 'block' : 'none';
+  document.getElementById('tab-email').classList.toggle('active', tab==='email');
+  document.getElementById('tab-sms').classList.toggle('active',   tab==='sms');
+}
+
+function buildSmsTemplate(mod) {
+  const smsMap = {
+    'Pre-hire Training':    ()=>`Hi! This is ${SENDER.name} from Kelly Education. We noticed your online trainings are still pending. Please complete them and send confirmation to ${SENDER.docsEmail}. Thank you!`,
+    'Safety & Security':    ()=>`Hi! This is ${SENDER.name} from Kelly Education. Your Safety & Security training is still pending. Please complete it and send your certificate to ${SENDER.docsEmail}. Thank you!`,
+    'MDPS Training':        ()=>`Hi! This is ${SENDER.name} from Kelly Education. You haven't scheduled your New Hire Orientation yet. Please book your session here: https://calendly.com/miami-dade-onboarding-appointment/miami-dade-orientation-waterford?back=1&month=2026-03`,
+    'Education Requirement':()=>`Hi! This is ${SENDER.name} from Kelly Education. We still need your proof of education (diploma, U.S. equivalency, or unofficial transcripts). Please send it to ${SENDER.docsEmail}. Thank you!`,
+    'I-9':                  ()=>`Hi! This is ${SENDER.name} from Kelly Education. Your I-9 form is incomplete. Please complete Section 1 and upload your documents as soon as possible. Contact us if you need help.`,
+    'Drug Screen':          ()=>`Hi! This is ${SENDER.name} from Kelly Education. Your drug screen is still pending. Please complete it ASAP. Contact ${SENDER.email} for location info.`,
+    'Background Check':     ()=>`Hi! This is ${SENDER.name} from Kelly Education. Your background check is still pending. Please complete the required steps ASAP. Need help? Email ${SENDER.email}.`,
+    'FP Screening':         ()=>`Hi! This is ${SENDER.name} from Kelly Education. Your fingerprint screening hasn't been completed. Please schedule your appointment ASAP. Questions? Email ${SENDER.email}.`,
+  };
+  return smsMap[mod] ? smsMap[mod]() : `Hi! This is ${SENDER.name} from Kelly Education. You have a pending item for ${mod}. Please complete it as soon as possible. Thank you!`;
+}
+
+function copyEmailSubject() {
+  const el = document.getElementById('tmpl-email-subject');
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(() => toast('✓ Subject copied'));
+}
+function copyEmailTmpl() {
+  navigator.clipboard.writeText(document.getElementById('tmpl-email-content').textContent).then(() => toast('✓ Email body copied'));
+}
+function copySmsTmpl() {
+  navigator.clipboard.writeText(document.getElementById('tmpl-sms-content').textContent).then(() => toast('✓ SMS template copied'));
+}
+function copyEmailsOutlookModal(count) {
+  const emails = curList.map(t => t.email).filter(Boolean);
+  navigator.clipboard.writeText(emails.join('; ')).then(() => toast(`✓ ${emails.length} emails copied — paste into Outlook`));
+}
+function copyKSNsModal() {
+  const ksns = curList.map(t => t.ksn).filter(Boolean);
+  if (!ksns.length) { toast('No KSN IDs found in this list'); return; }
+  navigator.clipboard.writeText(ksns.join(';')).then(() => toast(`✓ ${ksns.length} KSN IDs copied`));
+}
+function downloadPhonesCSVModal() {
+  const rows = curList
+    .filter(t => t.phone)
+    .map(t => {
+      const num = t.phone.replace(/[^0-9]/g,'').replace(/^1?([0-9]{10})$/, '$1');
+      return '"' + escapeTrackerHtml(t.name) + '","' + num + '"';
+    });
+  if (!rows.length) { toast('No phone numbers in this list'); return; }
+  const csv = 'Name,Phone\n' + rows.join('\n');
+  triggerCSVDownload(csv, 'sense_phones.csv');
+  toast('✓ ' + rows.length + ' numbers downloaded');
+}function maybeClose(e) { if (e.target === document.getElementById('overlay')) closeModal(); }
+function closeModal()  { document.getElementById('overlay').classList.remove('open'); }
+
+// ── UTILS ──
+function resetDash() {
+  talents=[]; colMap={}; curMod=null; curList=[]; _cachedWb=null;
+  document.getElementById('dashboard').style.display   = 'none';
+  document.getElementById('upload-zone').style.display = 'block';
+  document.getElementById('file-input').value = '';
+  document.getElementById('hdr-file').textContent = '';
+  document.getElementById('tbl-section').classList.remove('on');
+}
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2600);
+}
+</script>
+<div id="recruiter-picker">
+  <div class="picker-title">Who are you working as?</div>
+  <div class="picker-sub" id="picker-sub">Select your name to load your tracker</div>
+  <div class="picker-grid" id="picker-grid"></div>
+  <button class="picker-back" onclick="backToUpload()">← Upload a different file</button>
+</div>
+
+<!-- pdf-lib for PDF filling -->
+<script src="vendor/pdf-lib.min.js"></script>
+<script>
+
+
+// ═══════════════════════════════════════
+// SECTION SWITCHER
+// ═══════════════════════════════════════
+function switchSection(section) {
+  // Hide all sections
+  ['upload-zone','dashboard','recruiter-picker','drug-section','scanner-section','checklist-section','help-section'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  // Show relevant
+  if (section === 'tracker') {
+    if (talents.length) {
+      document.getElementById('dashboard').style.display = 'block';
+    } else if (_cachedWb && _cachedWb.SheetNames.filter(n => KNOWN_RECRUITERS.includes(n)).length > 1) {
+      showRecruiterPicker(_cachedWb.SheetNames.filter(n => KNOWN_RECRUITERS.includes(n)), _cachedWb);
+    } else {
+      document.getElementById('upload-zone').style.display = 'block';
+    }
+  } else if (section === 'drug') {
+    document.getElementById('drug-section').style.display = 'block';
+  } else if (section === 'scanner') {
+    document.getElementById('scanner-section').style.display = 'block';
+  } else if (section === 'checklist') {
+    document.getElementById('checklist-section').style.display = 'block';
+    initChecklistSection();
+  } else if (section === 'help') {
+    document.getElementById('help-section').style.display = 'block';
+  }
+  // Update tabs
+  ['tracker','drug','scanner','checklist','help'].forEach(t => {
+    const el = document.getElementById('tab-' + t);
+    if (el) el.classList.toggle('active', t === section);
+  });
+}
+
+// ═══════════════════════════════════════
+// DRUG FORM — localStorage persistence
+// ═══════════════════════════════════════
+const DS_KEY = 'kelly_dashtracker_drug_' + trackerProfile.scope;
+
+function loadDrugDefaults() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(DS_KEY) || '{}');
+    if (saved.repName) document.getElementById('ds-rep-name').value = saved.repName;
+    if (saved.branch)  document.getElementById('ds-branch').value   = saved.branch;
+  } catch(e) {}
+  if (!document.getElementById('ds-rep-name').value && SENDER.name)
+    document.getElementById('ds-rep-name').value = SENDER.name;
+  if (!document.getElementById('ds-branch').value)
+    document.getElementById('ds-branch').value = 'W207';
+}
+
+function saveDrugDefaults() {
+  try {
+    localStorage.setItem(DS_KEY, JSON.stringify({
+      repName: document.getElementById('ds-rep-name').value,
+      branch:  document.getElementById('ds-branch').value,
+    }));
+  } catch(e) {}
+}
+
+function initDrugSection() {
+  loadSender();
+  loadDrugDefaults();
+  ['ds-rep-name','ds-branch'].forEach(id => {
+    document.getElementById(id).addEventListener('blur', saveDrugDefaults);
+  });
+  // Scanner file inputs
+  var camInput = document.getElementById('scan-camera-input');
+  var galInput = document.getElementById('scan-gallery-input');
+  if (camInput) camInput.addEventListener('change', function() { handleScanFiles(this.files); this.value=''; });
+  if (galInput) galInput.addEventListener('change', function() { handleScanFiles(this.files); this.value=''; });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initDrugSection);
+} else {
+  initDrugSection();
+}
+
+function setNow() {
+  const now = new Date();
+  let h = now.getHours(), m = now.getMinutes();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  document.getElementById('ds-time').value = h + ':' + String(m).padStart(2,'0') + ' ' + ampm;
+}
+
+function setToday() {
+  const now = new Date();
+  const mm = String(now.getMonth()+1).padStart(2,'0');
+  const dd = String(now.getDate()).padStart(2,'0');
+  document.getElementById('ds-date').value = mm + '/' + dd + '/' + now.getFullYear();
+}
+
+// ═══════════════════════════════════════
+// SIGNATURE CANVAS
+// ═══════════════════════════════════════
+
+
+
+
+
+// ═══════════════════════════════════════
+// PDF GENERATION
+// ═══════════════════════════════════════
+let lastFilledPdfUrl = null;
+
+async function generateDrugPDF() {
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating PDF...';
+
+  try {
+    const { PDFDocument, rgb, StandardFonts } = PDFLib;
+
+    // Fetch the original PDF — works when deployed alongside the HTML
+    let pdfBytes;
+    try {
+      pdfBytes = await fetch('drug_form.pdf').then(r => {
+        if (!r.ok) throw new Error('not found');
+        return r.arrayBuffer();
+      });
+    } catch(e) {
+      toast('⚠️ drug_form.pdf must be in the same folder as index.html');
+      btn.disabled = false;
+      btn.textContent = '⬇️ Generate & Download Filled PDF';
+      return;
+    }
+
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const page   = pdfDoc.getPages()[0];
+    const font   = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const H = 792; // page height in pts
+
+    // Field coordinates calibrated from form_structure.json
+    // pdf-lib y = H - top_from_structure
+    const textFields = [
+      { id:'ds-rep-name', x:155, y: H-136 },
+      { id:'ds-branch',   x:385, y: H-136 },
+      { id:'ds-lot',      x:305, y: H-216 },
+      { id:'ds-exp',      x:410, y: H-216 },
+      { id:'ds-time',     x:390, y: H-720 },
+      { id:'ds-date',     x:490, y: H-720 },
+    ];
+
+    textFields.forEach(f => {
+      const val = document.getElementById(f.id).value.trim();
+      if (!val) return;
+      page.drawText(val, { x:f.x, y:f.y, size:10, font, color:rgb(0,0,0) });
+    });
+
+    // Yellow highlights — label text only
+    const yellow = rgb(1, 0.93, 0.2);
+    const highlights = [
+      // Kelly Candidate Name label
+      { x:43.8, y:627.6, w:87.7,  h:12.3 },
+      // Candidate KSN ID or Last 4 of SSN label
+      { x:278.1, y:628.4, w:135.3, h:12.2 },
+      // Candidate Signature label (Step 2)
+      { x:45.3,  y:502.3, w:81.1,  h:12.2 },
+      // Date label (Step 2)
+      { x:468.8, y:504.5, w:21.8,  h:12.3 },
+    ];
+    highlights.forEach(h => {
+      page.drawRectangle({
+        x: h.x, y: h.y, width: h.w, height: h.h,
+        color: yellow, opacity: 0.35,
+        borderWidth: 0,
+      });
+    });
+
+
+
+    const filledBytes = await pdfDoc.save();
+    const blob = new Blob([filledBytes], { type:'application/pdf' });
+    lastFilledPdfUrl = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    const today = new Date(); const name = 'DrugScreen_' + (today.getMonth()+1) + '-' + today.getDate() + '-' + today.getFullYear();
+    a.href = lastFilledPdfUrl; a.download = name + '.pdf';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+
+    // Show print button
+    document.getElementById('print-btn').style.display = 'inline-flex';
+    toast('✓ PDF downloaded — ready to print!');
+  } catch(err) {
+    console.error(err);
+    toast('Error: ' + err.message);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '⬇️ Generate & Download Filled PDF';
+}
+
+function printPDF() {
+  if (!lastFilledPdfUrl) return;
+  const iframe = document.getElementById('print-frame');
+  iframe.src = lastFilledPdfUrl;
+  iframe.onload = () => {
+    try {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    } catch(e) {
+      // Fallback: open in new tab so user can print from there
+      window.open(lastFilledPdfUrl, '_blank');
+    }
+  };
+}
+</script>
+
+
+<!-- DRUG SCREEN SECTION -->
+<div id="drug-section">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem;">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-size:1.45rem;font-weight:800;">Drug Screen Form</div>
+      <div style="color:var(--muted);font-size:.82rem;margin-top:.2rem;">Oral Instant Swab · Kelly Education e1141</div>
+    </div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="form-card">
+    <div class="form-card-title">📋 Step 1 — Kelly Representative Info</div>
+    <div class="form-row form-row-2">
+      <div class="field-group">
+        <label class="field-label">Kelly Representative Name</label>
+        <input class="field-input" id="ds-rep-name" type="text" placeholder="e.g. Rodrigo Bermudez">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Branch No.</label>
+        <input class="field-input" id="ds-branch" type="text" placeholder="e.g. W207">
+      </div>
+    </div>
+
+    <div class="form-row form-row-2">
+      <div class="field-group">
+        <label class="field-label">Lot #</label>
+        <input class="field-input" id="ds-lot" type="text" placeholder="Lot number">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Expiration Date</label>
+        <input class="field-input" id="ds-exp" type="text" placeholder="MM/DD/YYYY">
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="form-card">
+    <div class="form-card-title">🖊️ Step 4 — Collection Info & Signature</div>
+    <div class="form-row form-row-2">
+      <div class="field-group">
+        <label class="field-label">Time of Collection</label>
+        <div style="display:flex;gap:.5rem;">
+          <input class="field-input" id="ds-time" type="text" placeholder="HH:MM AM/PM" style="flex:1;">
+          <button class="btn btn-ghost btn-sm" onclick="setNow()" title="Use current time" style="white-space:nowrap;">⏱ Now</button>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Date</label>
+        <div style="display:flex;gap:.5rem;">
+          <input class="field-input" id="ds-date" type="text" placeholder="MM/DD/YYYY" style="flex:1;">
+          <button class="btn btn-ghost btn-sm" onclick="setToday()" title="Use today" style="white-space:nowrap;">📅 Today</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="field-group" style="margin-top:.25rem;">
+
+    </div>
+  </div>
+
+  <!-- GENERATE -->
+  <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+    <button class="gen-btn" id="gen-btn" onclick="generateDrugPDF()" style="flex:2;min-width:200px;">
+      ⬇️ Download Filled PDF
+    </button>
+    <button class="gen-btn" id="print-btn" onclick="printPDF()"
+      style="flex:1;min-width:140px;display:none;background:rgba(0,212,154,0.15);color:var(--success);border:1px solid rgba(0,212,154,0.3);">
+      🖨️ Print
+    </button>
+  </div>
+  <p style="text-align:center;font-size:.73rem;color:var(--muted);margin-top:.75rem;">
+    Step 2 (Candidate signature) and Step 3 checkboxes are left blank for manual completion after printing. The representative signature line must also be signed by hand after printing.
+  </p>
+</div>
+
+
+<div id="checklist-section">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem;">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-size:1.45rem;font-weight:800;">Printable Onboarding Checklist</div>
+      <div style="color:var(--muted);font-size:.82rem;margin-top:.2rem;">Enter recruiter and date, mark the boxes, then download or print the PDF.</div>
+    </div>
+  </div>
+
+  <div class="checklist-editor">
+    <div class="checklist-fields">
+      <div class="field-group">
+        <label class="field-label">Recruiter</label>
+        <input class="field-input" id="cl-recruiter" type="text" placeholder="Recruiter name" oninput="syncChecklistPreview()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Date</label>
+        <div style="display:flex;gap:.5rem;">
+          <input class="field-input" id="cl-date" type="text" placeholder="MM/DD/YYYY" oninput="syncChecklistPreview()" style="flex:1;">
+          <button class="btn btn-ghost btn-sm" onclick="setChecklistToday()" style="white-space:nowrap;">📅 Today</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="checklist-sheet" id="checklist-sheet">
+    <img class="checklist-logo" alt="Kelly Education" src="data:image/png;base64,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">
+    <div class="checklist-title">Onboarding Checklist</div>
+    <div class="checklist-meta">
+      <div><div style="font-size:12px;color:#777;margin-bottom:4px;">RECRUITER</div><div class="checklist-meta-line" id="cl-preview-recruiter">&nbsp;</div></div>
+      <div><div style="font-size:12px;color:#777;margin-bottom:4px;">DATE</div><div class="checklist-meta-line" id="cl-preview-date">&nbsp;</div></div>
+    </div>
+
+    <div class="checklist-group">
+      <div class="checklist-group-title">OB</div>
+      <div class="checklist-options">
+        <label class="checklist-option"><input type="checkbox" id="cl-ob-sent"> OB Sent</label>
+        <label class="checklist-option"><input type="checkbox" id="cl-ob-completed"> OB Completed</label>
+      </div>
+    </div>
+
+    <div class="checklist-group">
+      <div class="checklist-group-title">I-9</div>
+      <div class="checklist-options">
+        <label class="checklist-option"><input type="checkbox" id="cl-i9-sent"> I-9 Sent</label>
+        <label class="checklist-option"><input type="checkbox" id="cl-i9-completed"> I-9 Completed</label>
+        <label class="checklist-option"><input type="checkbox" id="cl-existing-i9"> Existing I-9</label>
+      </div>
+    </div>
+
+    <div class="checklist-group">
+      <div class="checklist-group-title">Fingerprints</div>
+      <div class="checklist-options">
+        <label class="checklist-option"><input type="checkbox" id="cl-need-fp"> Need Fingerprints</label>
+        <label class="checklist-option"><input type="checkbox" id="cl-existing-fp"> Existing Fingerprints</label>
+      </div>
+    </div>
+
+    <div class="checklist-group">
+      <div class="checklist-group-title">Drug Screening</div>
+      <div class="checklist-options">
+        <label class="checklist-option"><input type="checkbox" id="cl-drug"> Drug Screening</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="checklist-actions">
+    <button class="gen-btn" onclick="generateChecklistPDF(false)" style="flex:2;min-width:210px;">⬇️ Download PDF</button>
+    <button class="gen-btn" onclick="generateChecklistPDF(true)" style="flex:1;min-width:150px;background:rgba(0,212,154,0.15);color:var(--success);border:1px solid rgba(0,212,154,0.3);">🖨️ Print</button>
+  </div>
+</div>
+
+<iframe id="print-frame" style="display:none;" title="print-frame"></iframe>
+<script>
+// ═══════════════════════════════════════
+// SCANNER
+// ═══════════════════════════════════════
+let scanDocType   = null;   // 'drug' | 'edu' | 'rfpi'
+let scanEduSub    = null;   // education subtype string
+let scanPhotos    = [];     // array of {dataURL, name}
+let lastScanPdfUrl = null;
+
+const EDU_LABELS = {
+  'Associates': 'Associates', 'Some College Credits': 'SomeCollegeCredits',
+  'Bachelors': 'Bachelors', 'Masters': 'Masters', 'PhD': 'PhD',
+  'Associates Equivalency': 'AssociatesEquiv', 'Bachelors Equivalency': 'BachelorsEquiv',
+  'Masters Equivalency': 'MastersEquiv', 'PhD Equivalency': 'PhDEquiv',
+  'HS Diploma': 'HSDiploma', 'HS Equivalency': 'HSEquiv', 'Transcripts': 'Transcripts'
+};
+
+function selectDocType(type) {
+  scanDocType = type;
+  scanEduSub  = null;
+  document.getElementById('dtype-drug').classList.toggle('selected', type === 'drug');
+  document.getElementById('dtype-edu').classList.toggle('selected',  type === 'edu');
+  document.getElementById('dtype-rfpi').classList.toggle('selected', type === 'rfpi');
+  const eduPanel = document.getElementById('edu-subtypes');
+  eduPanel.classList.toggle('show', type === 'edu');
+  if (type !== 'edu') {
+    // deselect all edu subs
+    document.querySelectorAll('.edu-sub-btn').forEach(b => b.classList.remove('selected'));
+  }
+  updateScanFilename();
+}
+
+function selectEduSub(btn, sub) {
+  scanEduSub = sub;
+  document.querySelectorAll('.edu-sub-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  updateScanFilename();
+}
+
+function updateScanFilename() {
+  const name = (document.getElementById('scan-name').value.trim().replace(/\s+/g,'_')) || 'Candidate';
+  let fn = '—';
+  if (scanDocType === 'drug') {
+    fn = 'DrugScreen_' + name + '.pdf';
+  } else if (scanDocType === 'rfpi') {
+    fn = 'RFPI_' + name + '.pdf';
+  } else if (scanDocType === 'edu' && scanEduSub) {
+    fn = 'Education_' + (EDU_LABELS[scanEduSub] || scanEduSub.replace(/\s+/g,'_')) + '_' + name + '.pdf';
+  } else if (scanDocType === 'edu') {
+    fn = 'Education_[type]_' + name + '.pdf';
+  }
+  document.getElementById('scan-filename').textContent = fn;
+}
+
+function handleScanFiles(files) {
+  Array.from(files).forEach(file => {
+    // Accept image/* OR empty type (HEIC on iOS has no MIME type)
+    const isImage = file.type.startsWith('image/') || file.type === '' || /\.(heic|heif|jpg|jpeg|png|webp|gif|bmp)$/i.test(file.name);
+    if (!isImage) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      scanPhotos.push({ dataURL: e.target.result, name: file.name });
+      renderScanPreviews();
+    };
+    reader.onerror = () => toast('Could not read file: ' + file.name);
+    reader.readAsDataURL(file);
+  });
+}
+
+function handleScanDrop(e) {
+  e.preventDefault();
+  document.getElementById('scan-drop').classList.remove('over');
+  handleScanFiles(e.dataTransfer.files);
+}
+
+function renderScanPreviews() {
+  const grid = document.getElementById('scan-previews');
+  grid.innerHTML = '';
+  scanPhotos.forEach(function(p, i) {
+    const div = document.createElement('div');
+    div.className = 'img-thumb';
+    const img = document.createElement('img');
+    img.src = p.dataURL; img.alt = 'page ' + (i+1);
+    const num = document.createElement('span');
+    num.className = 'img-thumb-num'; num.textContent = 'pg ' + (i+1);
+    const del = document.createElement('button');
+    del.className = 'img-thumb-del'; del.title = 'Remove'; del.textContent = '✕';
+    del.onclick = function() { removeScanPhoto(i); };
+    div.appendChild(img); div.appendChild(num); div.appendChild(del);
+    grid.appendChild(div);
+  });
+  const count = scanPhotos.length;
+  document.getElementById('scan-count').textContent =
+    count ? count + ' photo' + (count !== 1 ? 's' : '') + ' — ' + count + ' page' + (count !== 1 ? 's' : '') + ' in PDF' : 'No photos yet';
+  document.getElementById('scan-clear-btn').style.display = count ? 'inline-block' : 'none';
+  document.getElementById('scan-print-btn').style.display = 'none';
+  lastScanPdfUrl = null;
+}
+
+function removeScanPhoto(idx) {
+  scanPhotos.splice(idx, 1);
+  renderScanPreviews();
+}
+
+function clearScanPhotos() {
+  scanPhotos = [];
+  renderScanPreviews();
+}
+
+function getScanFilename() {
+  const name = (document.getElementById('scan-name').value.trim().replace(/\s+/g,'_')) || 'Candidate';
+  if (scanDocType === 'drug') return 'DrugScreen_' + name + '.pdf';
+  if (scanDocType === 'rfpi') return 'RFPI_' + name + '.pdf';
+  if (scanDocType === 'edu' && scanEduSub) {
+    return 'Education_' + (EDU_LABELS[scanEduSub] || scanEduSub.replace(/\s+/g,'_')) + '_' + name + '.pdf';
+  }
+  return 'Document_' + name + '.pdf';
+}
+
+async function generateScanPDF() {
+  // Validate
+  if (!scanDocType) { toast('⚠️ Please select a document type'); return; }
+  if (scanDocType === 'edu' && !scanEduSub) { toast('⚠️ Please select the education type'); return; }
+  if (!scanPhotos.length) { toast('⚠️ Please add at least one photo'); return; }
+  if (!document.getElementById('scan-name').value.trim()) { toast('⚠️ Please enter the candidate name'); return; }
+
+  const btn = document.getElementById('scan-gen-btn');
+  btn.disabled = true; btn.textContent = '⏳ Building PDF...';
+
+  try {
+    const { PDFDocument } = PDFLib;
+    const pdfDoc = await PDFDocument.create();
+
+    // Helper: load image → draw on canvas → get JPEG dataURL → ArrayBuffer
+    // Uses synchronous toDataURL (no toBlob) for max mobile compatibility
+    const imageToJpegBuffer = (dataURL) => new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const maxDim = 1400; // lower = faster on mobile
+          let w = img.naturalWidth  || img.width  || 800;
+          let h = img.naturalHeight || img.height || 600;
+          if (w > maxDim || h > maxDim) {
+            if (w >= h) { h = Math.round(h * maxDim / w); w = maxDim; }
+            else        { w = Math.round(w * maxDim / h); h = maxDim; }
+          }
+          const c = document.createElement('canvas');
+          c.width = w; c.height = h;
+          const ctx = c.getContext('2d');
+          ctx.fillStyle = '#fff';
+          ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          // toDataURL is synchronous and reliable across all browsers/mobile
+          const jpegDataURL = c.toDataURL('image/jpeg', 0.85);
+          // Convert base64 → ArrayBuffer without fetch
+          const b64 = jpegDataURL.split(',')[1];
+          const binary = atob(b64);
+          const buf = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) buf[i] = binary.charCodeAt(i);
+          resolve(buf.buffer);
+        } catch(e) { reject(e); }
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = dataURL;
+    });
+
+    for (let i = 0; i < scanPhotos.length; i++) {
+      btn.textContent = '⏳ Photo ' + (i+1) + ' of ' + scanPhotos.length + '...';
+      await new Promise(r => setTimeout(r, 10)); // let UI update
+      const photo = scanPhotos[i];
+      const jpegBuf = await imageToJpegBuffer(photo.dataURL);
+      const img = await pdfDoc.embedJpg(jpegBuf);
+
+      // Page sized to image, max letter
+      const { width: iw, height: ih } = img;
+      const maxW = 612, maxH = 792;
+      const scale = Math.min(maxW / iw, maxH / ih, 1);
+      const pw = Math.round(iw * scale), ph = Math.round(ih * scale);
+      const page = pdfDoc.addPage([pw, ph]);
+      page.drawImage(img, { x:0, y:0, width:pw, height:ph });
+    }
+
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type:'application/pdf' });
+    lastScanPdfUrl = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = lastScanPdfUrl;
+    a.download = getScanFilename();
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+
+    document.getElementById('scan-print-btn').style.display = 'inline-block';
+    toast('✓ PDF ready — ' + scanPhotos.length + ' page' + (scanPhotos.length !== 1 ? 's' : ''));
+  } catch(err) {
+    console.error(err);
+    toast('Error: ' + err.message);
+  }
+
+  btn.disabled = false; btn.textContent = '⬇️ Generate & Download PDF';
+}
+
+function printScanPDF() {
+  if (!lastScanPdfUrl) return;
+  const iframe = document.getElementById('print-frame');
+  iframe.src = lastScanPdfUrl;
+  iframe.onload = () => {
+    try { iframe.contentWindow.focus(); iframe.contentWindow.print(); }
+    catch(e) { window.open(lastScanPdfUrl, '_blank'); }
+  };
+}
+</script>
+
+<!-- SCANNER SECTION -->
+<div id="scanner-section">
+  <div style="margin-bottom:1.5rem;">
+    <div style="font-family:'Syne',sans-serif;font-size:1.45rem;font-weight:800;">Document Scanner</div>
+    <div style="color:var(--muted);font-size:.82rem;margin-top:.2rem;">Capture photos → name → export as PDF</div>
+  </div>
+
+  <!-- STEP 1: Document type -->
+  <div class="form-card">
+    <div class="form-card-title">1️⃣ Document Type</div>
+    <div class="doc-type-grid">
+      <button class="doc-type-btn" id="dtype-drug" onclick="selectDocType('drug')">
+        💊 Drug Screening
+      </button>
+      
+      <button class="doc-type-btn" id="dtype-edu" onclick="selectDocType('edu')">
+        🎒 Education Proof
+      </button>
+      <button class="doc-type-btn" id="dtype-rfpi" onclick="selectDocType('rfpi')">
+        📄 Release of Personal Information
+      </button>
+    </div>
+
+    <!-- Education subtypes -->
+    <div class="edu-subtypes" id="edu-subtypes">
+      <button class="edu-sub-btn" onclick="selectEduSub(this, 'Associates')">Associates</button>
+      <button class="edu-sub-btn" onclick="selectEduSub(this, 'Some College Credits')">Some College Credits</button>
+      <button class="edu-sub-btn" onclick="selectEduSub(this, 'Bachelors')">Bachelor's</button>
+      <button class="edu-sub-btn" onclick="selectEduSub(this, 'Masters')">Master's</button>
+      <button class="edu-sub-btn" onclick="selectEduSub(this, 'PhD')">PhD</button>
+      <button class="edu-sub-btn" onclick="selectEduSub(this, 'Associates Equivalency')">Associates Equivalency</button>
+      <button class="edu-sub-btn" onclick="selectEduSub(this, 'Bachelors Equivalency')">Bachelor's Equivalency</button>
+      <button class="edu-sub-btn" onclick="selectEduSub(this, 'Masters Equivalency')">Master's Equivalency</button>
+      <button class="edu-sub-btn" onclick="selectEduSub(this, 'PhD Equivalency')">PhD Equivalency</button>
+      <button class="edu-sub-btn" onclick="selectEduSub(this, 'HS Diploma')">HS Diploma</button>
+      <button class="edu-sub-btn" onclick="selectEduSub(this, 'HS Equivalency')">HS Equivalency</button>
+      <button class="edu-sub-btn" onclick="selectEduSub(this, 'Transcripts')">Transcripts</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Candidate name -->
+  <div class="form-card">
+    <div class="form-card-title">2️⃣ Candidate Name</div>
+    <div class="field-group">
+      <input class="field-input" id="scan-name" type="text" placeholder="e.g. John Smith"
+        oninput="updateScanFilename()">
+      <div style="margin-top:.5rem;font-size:.75rem;color:var(--muted);">
+        File name: <span id="scan-filename" style="color:var(--text);font-weight:500;">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: Photos -->
+  <div class="form-card">
+    <div class="form-card-title">3️⃣ Photos <span style="font-size:.72rem;font-weight:400;color:var(--muted);">(tap to add · multiple allowed)</span></div>
+
+    <!-- Upload area -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.25rem;">
+      <button class="gen-btn" onclick="document.getElementById('scan-camera-input').click()"
+        style="background:rgba(200,16,46,0.12);color:var(--red);border:1px solid rgba(200,16,46,0.3);font-size:.88rem;padding:.85rem;">
+        📷 Take Photo
+      </button>
+      <button class="gen-btn" onclick="document.getElementById('scan-gallery-input').click()"
+        style="background:rgba(77,159,255,0.1);color:var(--info);border:1px solid rgba(77,159,255,0.25);font-size:.88rem;padding:.85rem;">
+        🖼 Choose from Gallery
+      </button>
+    </div>
+    <!-- Camera input (mobile only, opens camera) -->
+    <input type="file" id="scan-camera-input" accept="image/*" capture="environment" multiple style="display:none">
+    <!-- Gallery input (no capture, lets user pick from photos) -->
+    <input type="file" id="scan-gallery-input" accept="image/*" multiple style="display:none">
+
+    <!-- Preview grid -->
+    <div class="img-preview-grid" id="scan-previews"></div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.85rem;flex-wrap:wrap;gap:.5rem;">
+      <span id="scan-count" style="font-size:.78rem;color:var(--muted);">No photos yet</span>
+      <button class="btn btn-ghost btn-sm" onclick="clearScanPhotos()" style="display:none;" id="scan-clear-btn">🗑 Clear all</button>
+    </div>
+  </div>
+
+  <!-- GENERATE -->
+  <button class="gen-btn" id="scan-gen-btn" onclick="generateScanPDF()">
+    ⬇️ Generate &amp; Download PDF
+  </button>
+  <div style="display:flex;justify-content:center;margin-top:.75rem;">
+    <button class="gen-btn" id="scan-print-btn"
+      style="display:none;max-width:200px;background:rgba(0,212,154,0.15);color:var(--success);border:1px solid rgba(0,212,154,0.3);"
+      onclick="printScanPDF()">
+      🖨️ Print
+    </button>
+  </div>
+  <p style="text-align:center;font-size:.73rem;color:var(--muted);margin-top:.6rem;">
+    Multiple photos are combined into a single PDF, one page per photo.
+  </p>
+</div>
+
+<div id="help-section" style="display:none">
+  <iframe
+    id="help-iframe"
+    src="manual.html"
+    style="width:100%;height:calc(100vh - 80px);border:none;display:block;"
+    title="User Manual">
+  </iframe>
+</div>
+
+<footer style="position:relative;z-index:5;text-align:center;padding:2rem 1rem 2.5rem;border-top:1px solid rgba(200,16,46,0.1);margin-top:3rem;">
+  <span style="font-size:.78rem;color:var(--muted);letter-spacing:.03em;">
+    Made with <span style="color:var(--red);font-size:.9rem;">♥</span> by
+    <span style="color:var(--text);font-weight:500;">Rodrigo Bermudez</span>
+  </span>
+</footer>
+
+
+
+<script>
+const CHECKLIST_LOGO_B64 = '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';
+let checklistPdfUrl = null;
+
+function initChecklistSection() {
+  const rec = document.getElementById('cl-recruiter');
+  if (rec && !rec.value && typeof SENDER !== 'undefined' && SENDER.name) rec.value = SENDER.name;
+  const date = document.getElementById('cl-date');
+  if (date && !date.value) setChecklistToday();
+  syncChecklistPreview();
+}
+
+function setChecklistToday() {
+  const now = new Date();
+  const mm = String(now.getMonth()+1).padStart(2,'0');
+  const dd = String(now.getDate()).padStart(2,'0');
+  document.getElementById('cl-date').value = mm + '/' + dd + '/' + now.getFullYear();
+  syncChecklistPreview();
+}
+
+function syncChecklistPreview() {
+  const r = document.getElementById('cl-recruiter');
+  const d = document.getElementById('cl-date');
+  const pr = document.getElementById('cl-preview-recruiter');
+  const pd = document.getElementById('cl-preview-date');
+  if (pr) pr.textContent = (r && r.value.trim()) || ' ';
+  if (pd) pd.textContent = (d && d.value.trim()) || ' ';
+}
+
+async function generateChecklistPDF(printAfter) {
+  try {
+    const { PDFDocument, StandardFonts, rgb } = PDFLib;
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([612, 792]);
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const logo = await pdfDoc.embedPng(Uint8Array.from(atob(CHECKLIST_LOGO_B64), c => c.charCodeAt(0)));
+
+    const logoDims = logo.scale(0.43);
+    page.drawImage(logo, {x:42, y:700, width:logoDims.width, height:logoDims.height});
+    page.drawText('Onboarding Checklist', {x:42,y:646,size:20,font:bold,color:rgb(.18,.17,.16)});
+
+    const recruiter = document.getElementById('cl-recruiter').value.trim();
+    const date = document.getElementById('cl-date').value.trim();
+    page.drawText('RECRUITER', {x:42,y:610,size:8,font:bold,color:rgb(.45,.45,.45)});
+    page.drawText(recruiter || ' ', {x:42,y:592,size:11,font:bold,color:rgb(.18,.17,.16)});
+    page.drawLine({start:{x:42,y:587},end:{x:360,y:587},thickness:1,color:rgb(.35,.35,.35)});
+    page.drawText('DATE', {x:400,y:610,size:8,font:bold,color:rgb(.45,.45,.45)});
+    page.drawText(date || ' ', {x:400,y:592,size:11,font:bold,color:rgb(.18,.17,.16)});
+    page.drawLine({start:{x:400,y:587},end:{x:560,y:587},thickness:1,color:rgb(.35,.35,.35)});
+
+    const groups = [
+      {title:'OB', items:[['cl-ob-sent','OB Sent'],['cl-ob-completed','OB Completed']]},
+      {title:'I-9', items:[['cl-i9-sent','I-9 Sent'],['cl-i9-completed','I-9 Completed'],['cl-existing-i9','Existing I-9']]},
+      {title:'FINGERPRINTS', items:[['cl-need-fp','Need Fingerprints'],['cl-existing-fp','Existing Fingerprints']]},
+      {title:'DRUG SCREENING', items:[['cl-drug','Drug Screening']]}
+    ];
+
+    let y=545;
+    const drawBox=(x,yy,checked)=>{
+      page.drawRectangle({x,y:yy,width:13,height:13,borderWidth:1.2,borderColor:rgb(.25,.25,.25)});
+      if(checked){
+        page.drawLine({start:{x:x+3,y:yy+6},end:{x:x+6,y:yy+3},thickness:1.8,color:rgb(0,.58,.25)});
+        page.drawLine({start:{x:x+6,y:yy+3},end:{x:x+11,y:yy+10},thickness:1.8,color:rgb(0,.58,.25)});
+      }
+    };
+
+    for(const g of groups){
+      page.drawLine({start:{x:42,y:y+17},end:{x:560,y:y+17},thickness:.6,color:rgb(.84,.84,.84)});
+      page.drawText(g.title,{x:42,y,size:9,font:bold,color:rgb(.42,.42,.42)});
+      y-=28;
+      let col=0;
+      for(const [id,label] of g.items){
+        const x=42 + (col%2)*250;
+        drawBox(x,y-2,document.getElementById(id).checked);
+        page.drawText(label,{x:x+22,y,size:12,font,color:rgb(.18,.17,.16)});
+        col++;
+        if(col%2===0) y-=30;
+      }
+      if(col%2!==0) y-=30;
+      y-=8;
+    }
+
+    const bytes = await pdfDoc.save();
+    const blob = new Blob([bytes],{type:'application/pdf'});
+    if (checklistPdfUrl) URL.revokeObjectURL(checklistPdfUrl);
+    checklistPdfUrl = URL.createObjectURL(blob);
+
+    if(printAfter){
+      const iframe=document.getElementById('print-frame');
+      iframe.src=checklistPdfUrl;
+      iframe.onload=()=>{ try{ iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch(e){ window.open(checklistPdfUrl,'_blank'); } };
+      toast('✓ Checklist PDF ready to print');
+    } else {
+      const a=document.createElement('a');
+      const safe=(recruiter||'Recruiter').replace(/[^a-z0-9_-]+/gi,'_');
+      a.href=checklistPdfUrl;
+      a.download='Onboarding_Checklist_'+safe+'_'+(date||'Date').replace(/\//g,'-')+'.pdf';
+      document.body.appendChild(a); a.click(); a.remove();
+      toast('✓ Checklist PDF downloaded');
+    }
+  } catch(err) {
+    console.error(err);
+    toast('Error generating checklist PDF: '+err.message);
+  }
+}
+</script>
+
+</body>
+</html>

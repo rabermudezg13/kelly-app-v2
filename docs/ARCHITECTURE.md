@@ -71,3 +71,6 @@ Los recursos generados se excluyen de Git y se incluyen en `dist/capture-assets`
 No se instala software en los equipos de los reclutadores.
 
 Smart Capture se ubica después de New Hire Orientation. Las entradas son pegar o abrir imagen; se retiró getDisplayMedia y el permiso display-capture.
+
+## Onboarding Tracker
+Pestaña exclusiva de reclutadores después de Smart Capture. Monta `public/dashtracker/index.html` al abrir por primera vez y conserva el iframe oculto al cambiar de pestaña. Desmontar el dashboard libera archivos. El fragmento URL inicializa nombre/email y ámbito de preferencias; no envía credenciales. Excel, PDFs y fotos se procesan en navegador. Solo preferencias de remitente/sucursal usan localStorage por reclutador. `prepare-dashtracker.mjs` copia xlsx/pdf-lib de versiones del lockfile. CSP limita las cargas a recursos locales. Ver `docs/DASHTRACKER.md`.
