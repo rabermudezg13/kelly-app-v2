@@ -53,7 +53,7 @@ usan `aria-pressed`. `public/dashboard-modern.js` omite el tema antiguo cuando
 React aplica esta clase, pero mantiene la estabilización de Row Generator.
 Ver `DASHBOARD_REDESIGN_PLAN.md` y `DASHBOARD_VERIFICATION.md`.
 
-## Smart Capture (rama de desarrollo)
+## Smart Capture (en producción)
 
 La pestaña de reclutadores monta `/smart-capture.html` en un iframe del mismo
 origen. Vite produce una segunda entrada que no importa servicios API, analítica
@@ -69,3 +69,5 @@ cobertura; la X es un control del DOM y no se dibuja en el PNG.
 y obtiene el modelo oficial versionado, verificando SHA-256 al preparar dev/build.
 Los recursos generados se excluyen de Git y se incluyen en `dist/capture-assets`.
 No se instala software en los equipos de los reclutadores.
+
+Smart Capture se ubica después de New Hire Orientation. Las entradas son pegar o abrir imagen; se retiró getDisplayMedia y el permiso display-capture.

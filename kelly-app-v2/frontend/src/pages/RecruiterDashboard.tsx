@@ -2053,7 +2053,6 @@ function RecruiterDashboard() {
         {/* Tabs */}
         <div className="dashboard-panel bg-white rounded-lg shadow-lg mb-6">
           <div className="dashboard-tabs flex flex-wrap border-b" role="group" aria-label="Dashboard sections">
-            <button aria-pressed={activeTab === 'smart-capture'} onClick={() => setActiveTab('smart-capture')} className={`px-6 py-3 font-semibold transition-colors ${activeTab === 'smart-capture' ? 'bg-emerald-700 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>✦ Smart Capture</button>
             <button
               aria-pressed={activeTab === 'sessions'}
               onClick={() => setActiveTab('sessions')}
@@ -2087,6 +2086,7 @@ function RecruiterDashboard() {
             >
               🎓 New Hire Orientation
             </button>
+            <button aria-pressed={activeTab === 'smart-capture'} onClick={() => setActiveTab('smart-capture')} className={`px-6 py-3 font-semibold transition-colors ${activeTab === 'smart-capture' ? 'bg-emerald-700 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>✦ Smart Capture</button>
             <button
               aria-pressed={activeTab === 'fingerprints'}
               onClick={() => setActiveTab('fingerprints')}
@@ -2202,7 +2202,7 @@ function RecruiterDashboard() {
 
         {/* Content */}
         {activeTab === 'smart-capture' ? (
-          <iframe title="Kelly Smart Capture" src="/smart-capture.html" allow="display-capture; clipboard-read" style={{width:'100%',height:'min(1100px, 90vh)',minHeight:700,border:0,borderRadius:18}} />
+          <iframe title="Kelly Smart Capture" src="/smart-capture.html" allow="clipboard-read" style={{width:'100%',height:'min(1100px, 90vh)',minHeight:700,border:0,borderRadius:18}} />
         ) : activeTab === 'tv-kiosk' ? (
           <InfoSessionProgressTV />
         ) : activeTab === 'ksn-tool' ? (
