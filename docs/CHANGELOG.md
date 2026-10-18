@@ -15,8 +15,26 @@ estado cuando existan pruebas nuevas; conservar las limitaciones pendientes.
 - Referencia: commit o PR, cuando esté disponible.
 ```
 
+## 2026-10-18 — Kelly Smart Capture (primera versión)
+- Estado: PR #13 en borrador; preview Vercel READY para `1eaadeb0`. No integrado en producción.
+- Cambios: pestaña independiente de reclutadores, pegar/abrir imagen/capturar pantalla,
+  OCR local, detección del marco de foto y alternativa MediaPipe, X central y tamaño
+  ajustables, revisión obligatoria y PNG aplanado `Nombre Apellido FP.png`.
+- Privacidad: sin API de imágenes, sin persistir capturas o nombres. Recursos de OCR
+  y detección servidos por el sitio; no requiere instalar aplicaciones/extensiones.
+- Pruebas: 4 pruebas de nombre/geometría/formato; navegador con datos ficticios:
+  apertura, pegado, OCR, detección del cuadro, arrastre de X, teclado y revisión.
+  PNG descargado comprobado píxel a píxel: foto opaca completa, dimensiones originales,
+  sin X en exportación. Harness final correcto: 16 tests backend, 4 de Smart Capture, build y cero TS nuevos.
+  Servidor estático de prueba registró solo GET de recursos: ningún envío de imagen/nombre.
+- CI: run `39139437093` correcto. Preview: `dpl_DhmmxCoTCzVKL3ikuEp4xU9dboaY`.
+- Pendientes: comprobación del selector real de captura de pantalla;
+  el control del navegador no permitió completar la selección de ventana.
+  No publicar en main hasta terminar la validación necesaria.
+- Detalles: `docs/SMART_CAPTURE.md`. No se guardaron ni publicaron datos de la captura real.
+
 ## 2026-10-05 — Corrección Session Configurations
-- Estado: verificado localmente; pendiente de integración y despliegue.
+- Estado: PR #12 integrado y desplegado; backend y frontend verificados en producción.
 - Causa: horarios antiguos codificados como texto JSON fallaban antes de normalizarse.
 - Cambios: lectura compatible con texto y arrays; guardado de arrays nativos,
   validación antes del commit y rollback ante fallo. Formularios bloqueados si
@@ -26,7 +44,10 @@ estado cuando existan pruebas nuevas; conservar las limitaciones pendientes.
   carga de formato antiguo, edición, guardado, persistencia al recargar y reintento
   tras error correctos. No se modificaron configuraciones reales ni lista semanal NHO.
 - Referencia: rama `codex/fix-session-configurations`; plan `docs/SESSION_CONFIG_FIX.md`.
-- Pendientes: CI e integración; verificar GET de producción tras despliegue.
+- Verificación final: CI run `37311369636` correcto. Commit desplegado
+  `c2f71f5a4b1e3832ad08571ab1fb678ae8d67ef4`; Vercel READY y health/las tres
+  configuraciones GET 200. No se hicieron escrituras de prueba en producción.
+- Pendientes: ninguno para esta corrección; se conserva la deuda TypeScript conocida.
 
 ## 2026-10-03 — Carpeta `.Agents/Skills`
 - Estado: creada localmente.
@@ -143,3 +164,11 @@ estado cuando existan pruebas nuevas; conservar las limitaciones pendientes.
   la comprobación sin sesión obtuvo el 401 esperado. Existen errores TypeScript
   anteriores a este trabajo, registrados por el harness como deuda conocida.
 - Referencia: PR #9; commits `858f02e` y `56e7426`.
+
+Verificación web adicional (2026-10-18): preview Vercel reconoció el nombre ficticio
+y cubrió automáticamente el marco de foto. Solo falta la selección nativa de ventana.
+
+## 2026-10-18 — Smart Capture en inglés
+- Solicitud: toda la interfaz del módulo en inglés.
+- Cambios: botones, instrucciones, estados, errores, etiquetas accesibles, placeholder, nombre de archivo vacío y atributo lang. Se conserva el sufijo FP y la lógica.
+- Verificación: pendiente de harness y preview actualizada; continúa pendiente la selección nativa de ventana.

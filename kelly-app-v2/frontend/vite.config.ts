@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  build: { rollupOptions: { input: { main: "index.html", capture: "smart-capture.html" } } },
   server: {
     host: '0.0.0.0', // Listen on all interfaces so nginx can connect
     port: 3025,

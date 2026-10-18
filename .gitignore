@@ -120,3 +120,6 @@ certs/
 # Verification reports and test caches
 .harness/
 .pytest_cache/
+
+# Generated local OCR and face detector assets
+kelly-app-v2/frontend/public/capture-assets/

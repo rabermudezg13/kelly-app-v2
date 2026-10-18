@@ -52,3 +52,20 @@ Los dashboards conservan handlers, estados y consultas; los botones existentes
 usan `aria-pressed`. `public/dashboard-modern.js` omite el tema antiguo cuando
 React aplica esta clase, pero mantiene la estabilización de Row Generator.
 Ver `DASHBOARD_REDESIGN_PLAN.md` y `DASHBOARD_VERIFICATION.md`.
+
+## Smart Capture (rama de desarrollo)
+
+La pestaña de reclutadores monta `/smart-capture.html` en un iframe del mismo
+origen. Vite produce una segunda entrada que no importa servicios API, analítica
+ni el estado del dashboard. Su CSP limita recursos al propio sitio; no hay
+endpoints, almacenamiento persistente ni transmisión de imágenes/nombres.
+El navegador puede almacenar recursos estáticos en caché, nunca se persisten
+capturas en el código de la aplicación. La descarga usa un canvas PNG aplanado.
+
+`frontend/src/smart-capture/` implementa el editor, OCR Tesseract local y detección
+por formato de perfil, con MediaPipe como alternativa. El usuario revisa nombre y
+cobertura; la X es un control del DOM y no se dibuja en el PNG.
+`frontend/scripts/prepare-capture.mjs` copia motores/datos de dependencias fijadas
+y obtiene el modelo oficial versionado, verificando SHA-256 al preparar dev/build.
+Los recursos generados se excluyen de Git y se incluyen en `dist/capture-assets`.
+No se instala software en los equipos de los reclutadores.

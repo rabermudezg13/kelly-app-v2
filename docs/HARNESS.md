@@ -62,3 +62,13 @@ en las reglas de la rama de GitHub; crear el workflow no activa esa protección.
 La referencia TypeScript almacena archivo, código, mensaje y multiplicidad, sin
 números de línea. Al resolver deuda, retirar los diagnósticos correspondientes y
 explicar el cambio en la bitácora. No regenerarla para aceptar errores nuevos.
+
+## Smart Capture
+El harness ejecuta `npm run test:capture`: nombre/apellido, nombre seguro con FP,
+límites de cobertura y detección del marco del perfil. Se requiere Node 22.6+.
+Para navegador usar imágenes ficticias; comprobar apertura/pegado, X/teclado,
+confirmación invalidada tras cambiar cobertura, PNG opaco sin X y limpieza.
+La captura de pantalla usa `getDisplayMedia` y depende del selector/permisos del
+navegador y sistema; requiere una comprobación manual sin compartir datos reales.
+El build obtiene un modelo público versionado; debe tener red al prepararse por
+primera vez. Las imágenes del usuario nunca intervienen en ese proceso.
