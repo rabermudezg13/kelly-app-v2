@@ -60,3 +60,17 @@ y cubrió automáticamente el marco de foto. Solo falta la selección nativa de 
 - Estado: corrección en rama aislada. Harness PASS (16 backend, 4 de captura, build, 0 TS nuevos). Fallo HTTP 503 simulado: editor muestra aviso y habilita ajustes manuales, sin espera indefinida.
 
 - Verificación adicional del inicio acotado: OCR recuperado con nombre ficticio y cubierta automática; HTTP 503 vuelve a edición manual. No cambia consultas semanales, permisos ni base de datos.
+
+## Cierre de publicación — 2026-10-18
+- PR #14 integrado: `8efc03b5053971840ab6a0649d9990b96d757cce`. Vercel producción READY (`dpl_6u13dLyPPLQtwtwyBzPheXYRT62j`).
+- URL: https://kelly-app-v2.vercel.app/smart-capture.html
+- Navegador de producción: pegado de captura ficticia, nombre y cubierta automática correctos; interfaz en inglés.
+- Harness local y CI run `39170009560` PASS: 16 backend, 4 captura, build, 21 diagnósticos TS conocidos y 0 nuevos.
+- Selector nativo de pantalla sigue pendiente de validación manual. No se modificó la consulta semanal.
+
+## 2026-10-18 — Simplificar Smart Capture
+- Plan: retirar captura mediante Share screen, conservar pegar/abrir y mover la pestaña después de New Hire Orientation. Verificar build, harness y navegador sin cambiar consultas.
+- Estado: implementación aislada en `codex/smart-capture-simplify`.
+
+- Cambios: retirados botón, video, getDisplayMedia y permiso del iframe; pestaña movida inmediatamente después de New Hire Orientation.
+- Validación: harness PASS (16 backend, 4 captura, build, 0 TS nuevos); navegador confirma solo Paste image/Open image. Consultas semanales sin cambios.

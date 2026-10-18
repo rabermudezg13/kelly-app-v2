@@ -7,15 +7,11 @@ export default function SmartCapture() {
   const [covers,setCovers]=useState<Cover[]>([]), [selected,setSelected]=useState(0)
   const [name,setName]=useState(''), [status,setStatus]=useState('Ready for your screenshot')
   const [busy,setBusy]=useState(false), [reviewed,setReviewed]=useState(false)
-  const [stream,setStream]=useState<MediaStream|null>(null)
-  const [capturePending,setCapturePending]=useState(false)
-  const canvas=useRef<HTMLCanvasElement>(null), video=useRef<HTMLVideoElement>(null), input=useRef<HTMLInputElement>(null)
-  const generation=useRef(0), controller=useRef<AbortController|null>(null), currentUrl=useRef(''), streamRef=useRef<MediaStream|null>(null)
-  const dragging=useRef(false), mounted=useRef(true)
-  const stopCapture=()=>{streamRef.current?.getTracks().forEach(t=>t.stop());streamRef.current=null;setStream(null)}
-  const clear=()=>{generation.current++;controller.current?.abort();URL.revokeObjectURL(currentUrl.current);currentUrl.current='';stopCapture();setImage(null);setCovers([]);setName('');setReviewed(false);setBusy(false);setStatus('Ready for your screenshot')}
-  useEffect(()=>()=>{mounted.current=false;generation.current++;controller.current?.abort();URL.revokeObjectURL(currentUrl.current);streamRef.current?.getTracks().forEach(t=>t.stop())},[])
-  useEffect(()=>{if(video.current&&stream)video.current.srcObject=stream},[stream])
+  const canvas=useRef<HTMLCanvasElement>(null), input=useRef<HTMLInputElement>(null)
+  const generation=useRef(0), controller=useRef<AbortController|null>(null), currentUrl=useRef('')
+  const dragging=useRef(false)
+  const clear=()=>{generation.current++;controller.current?.abort();URL.revokeObjectURL(currentUrl.current);currentUrl.current='';setImage(null);setCovers([]);setName('');setReviewed(false);setBusy(false);setStatus('Ready for your screenshot')}
+  useEffect(()=>()=>{generation.current++;controller.current?.abort();URL.revokeObjectURL(currentUrl.current)},[])
   useEffect(()=>{
     if(!image||!canvas.current)return
     const out=renderCovered(image,image.naturalWidth,image.naturalHeight,covers)
@@ -45,19 +41,6 @@ export default function SmartCapture() {
     window.addEventListener('paste',paste);return()=>window.removeEventListener('paste',paste)
   },[])
   const pasteButton=async()=>{try{const items=await navigator.clipboard.read();for(const item of items){const type=item.types.find(t=>t.startsWith('image/'));if(type){await load(await item.getType(type));return}}setStatus('There is no image on the clipboard.')}catch{setStatus('Click this panel and paste with Ctrl+V or ⌘V, or open an image.')}}
-  const capture=async()=>{
-    if(!navigator.mediaDevices?.getDisplayMedia){setStatus('This browser does not support screen capture. Take a screenshot with your system, then paste it or open the file.');return}
-    if(capturePending||stream)return
-    const job=generation.current;setCapturePending(true)
-    try{const media=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false});if(!mounted.current||job!==generation.current){media.getTracks().forEach(t=>t.stop());return}stopCapture();streamRef.current=media;setStream(media);media.getVideoTracks()[0].addEventListener('ended',stopCapture,{once:true})}
-    catch{if(mounted.current)setStatus('Screen capture was canceled or is unavailable. You can paste or open an image.')}
-    finally{if(mounted.current)setCapturePending(false)}
-  }
-  const freeze=()=>{
-    const v=video.current;if(!v?.videoWidth)return
-    const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d')!.drawImage(v,0,0)
-    stopCapture();c.toBlob(blob=>{if(blob&&mounted.current)void load(blob)},'image/png')
-  }
   const update=(cover:Cover)=>{if(!image)return;setReviewed(false);setCovers(old=>old.map((r,i)=>i===selected?clampCover(cover,image.naturalWidth,image.naturalHeight):r))}
   const point=(event:React.PointerEvent<HTMLDivElement>)=>{
     if(!image||busy)return
@@ -74,14 +57,13 @@ export default function SmartCapture() {
   const cover=covers[selected]
   return <main className="capture">
     <header><div><span className="eyebrow">KELLY · RECRUITER TOOLS</span><h1>Smart Capture<span>✦</span></h1><p>Your screenshot, ready to save.</p></div><span className="local">● Local processing</span></header>
-    <div className="steps"><span>01 <b>Paste or capture</b></span><span>02 <b>Review</b></span><span>03 <b>Download</b></span></div>
-    <div className="actions"><button onClick={pasteButton} disabled={busy}>Paste image</button><button onClick={()=>input.current?.click()} disabled={busy}>Open image</button><button onClick={capture} disabled={busy||capturePending||!!stream}>{capturePending ? 'Choose a window…' : 'Take screenshot'}</button><button className="quiet" onClick={clear}>Clear</button><input ref={input} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void load(file)}} /></div>
-    {stream&&<section className="live"><video ref={video} autoPlay muted playsInline/><button onClick={freeze}>Use this screenshot</button><button onClick={stopCapture}>Cancel</button></section>}
+    <div className="steps"><span>01 <b>Paste or open</b></span><span>02 <b>Review</b></span><span>03 <b>Download</b></span></div>
+    <div className="actions"><button onClick={pasteButton} disabled={busy}>Paste image</button><button onClick={()=>input.current?.click()} disabled={busy}>Open image</button><button className="quiet" onClick={clear}>Clear</button><input ref={input} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void load(file)}} /></div>
     <div className="workspace"><section className="preview"><div className="section-title"><h2>Preview</h2><span>PNG · original quality</span></div>
       {image?<div className="image-stage" onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);dragging.current=true;point(e)}} onPointerMove={e=>{if(dragging.current)point(e)}} onPointerUp={()=>{dragging.current=false}} onPointerCancel={()=>{dragging.current=false}}>
         <canvas ref={canvas} aria-label="Preview with solid photo cover"/>
         {covers.map((r,i)=><button key={i} className={`cross ${i===selected?'selected':''}`} aria-label={`Select cover ${i+1}`} style={{left:`${(r.x+r.width/2)/image.naturalWidth*100}%`,top:`${(r.y+r.height/2)/image.naturalHeight*100}%`}} onPointerDown={e=>{e.stopPropagation();setSelected(i);dragging.current=true;(e.currentTarget.parentElement as HTMLElement).setPointerCapture(e.pointerId)}} onClick={()=>setSelected(i)}>×</button>)}
-      </div>:<div className="empty"><span className="paste-icon">▧</span><h3>Paste your screenshot here</h3><p>Ctrl+V or ⌘V · PNG, JPEG, or WebP</p><p>You can also open an image or capture a window.</p></div>}
+      </div>:<div className="empty"><span className="paste-icon">▧</span><h3>Paste your screenshot here</h3><p>Ctrl+V or ⌘V · PNG, JPEG, or WebP</p><p>You can also open an image from your computer.</p></div>}
       <p className="hint">Click the photo to place the X. Drag on the image to center the cover. The X is not included in the download.</p>
     </section><aside><h2>Prepare download</h2><label htmlFor="candidate">First and last name</label><input id="candidate" value={name} disabled={busy||!image} placeholder="First Last" onChange={e=>{setName(e.target.value);setReviewed(false)}}/><small>{fileName(name)}</small>
       <hr/><h3>Adjust photo cover</h3><p className="hint">Cover the entire photo, including hair and edges.</p>

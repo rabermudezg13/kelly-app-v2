@@ -68,7 +68,6 @@ El harness ejecuta `npm run test:capture`: nombre/apellido, nombre seguro con FP
 límites de cobertura y detección del marco del perfil. Se requiere Node 22.6+.
 Para navegador usar imágenes ficticias; comprobar apertura/pegado, X/teclado,
 confirmación invalidada tras cambiar cobertura, PNG opaco sin X y limpieza.
-La captura de pantalla usa `getDisplayMedia` y depende del selector/permisos del
-navegador y sistema; requiere una comprobación manual sin compartir datos reales.
+Smart Capture admite pegar y abrir imágenes; ya no solicita compartir pantalla.
 El build obtiene un modelo público versionado; debe tener red al prepararse por
 primera vez. Las imágenes del usuario nunca intervienen en ese proceso.
