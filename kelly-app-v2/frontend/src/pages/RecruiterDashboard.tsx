@@ -43,7 +43,7 @@ import PCListCheck from '../components/PCListCheck'
 import InfoSessionProgressTV from './InfoSessionProgressTV'
 import * as XLSX from 'xlsx'
 
-type RecruiterTabType = 'sessions' | 'all-info-sessions' | 'new-hire-orientation' | 'fingerprints' | 'badges' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'ksn-tool' | 'storage' | 'pc-check' | 'tv-kiosk'
+type RecruiterTabType = 'sessions' | 'all-info-sessions' | 'new-hire-orientation' | 'fingerprints' | 'badges' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'ksn-tool' | 'storage' | 'pc-check' | 'tv-kiosk' | 'smart-capture'
 
 function RecruiterDashboard() {
   const { recruiterId } = useParams<{ recruiterId: string }>()
@@ -2053,6 +2053,7 @@ function RecruiterDashboard() {
         {/* Tabs */}
         <div className="dashboard-panel bg-white rounded-lg shadow-lg mb-6">
           <div className="dashboard-tabs flex flex-wrap border-b" role="group" aria-label="Dashboard sections">
+            <button aria-pressed={activeTab === 'smart-capture'} onClick={() => setActiveTab('smart-capture')} className={`px-6 py-3 font-semibold transition-colors ${activeTab === 'smart-capture' ? 'bg-emerald-700 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>✦ Smart Capture</button>
             <button
               aria-pressed={activeTab === 'sessions'}
               onClick={() => setActiveTab('sessions')}
@@ -2200,7 +2201,9 @@ function RecruiterDashboard() {
         </div>
 
         {/* Content */}
-        {activeTab === 'tv-kiosk' ? (
+        {activeTab === 'smart-capture' ? (
+          <iframe title="Kelly Smart Capture" src="/smart-capture.html" allow="display-capture; clipboard-read" style={{width:'100%',height:'min(1100px, 90vh)',minHeight:700,border:0,borderRadius:18}} />
+        ) : activeTab === 'tv-kiosk' ? (
           <InfoSessionProgressTV />
         ) : activeTab === 'ksn-tool' ? (
           <KsnTool />

@@ -18,4 +18,5 @@
 Implementado y verificado localmente: 16 pruebas backend, build, arranque y health
 correctos; cero diagnósticos TypeScript nuevos. Navegador: carga heredada, edición,
 guardado, recarga persistente y recuperación tras error correctos con SQLite ficticio.
-Pendiente CI e integración/despliegue. No se modificaron configuraciones reales.
+CI correcto; PR #12 integrado en `c2f71f5`. Vercel READY; health y GET de las tres
+configuraciones responden 200 en producción. No se modificaron configuraciones reales.

@@ -1,9 +1,26 @@
 # Memoria del proyecto — Kelly App v2
 
-Última actualización: 2026-10-05 (America/New_York).
+Última actualización: 2026-10-18 (America/New_York).
+
+## 2026-10-18 — Kelly Smart Capture (primera versión)
+- Estado: implementado en rama `codex/kelly-smart-capture`; no integrado en producción.
+- Cambios: pestaña independiente de reclutadores, pegar/abrir imagen/capturar pantalla,
+  OCR local, detección del marco de foto y alternativa MediaPipe, X central y tamaño
+  ajustables, revisión obligatoria y PNG aplanado `Nombre Apellido FP.png`.
+- Privacidad: sin API de imágenes, sin persistir capturas o nombres. Recursos de OCR
+  y detección servidos por el sitio; no requiere instalar aplicaciones/extensiones.
+- Pruebas: 4 pruebas de nombre/geometría/formato; navegador con datos ficticios:
+  apertura, pegado, OCR, detección del cuadro, arrastre de X, teclado y revisión.
+  PNG descargado comprobado píxel a píxel: foto opaca completa, dimensiones originales,
+  sin X en exportación. Harness final correcto: 16 tests backend, 4 de Smart Capture, build y cero TS nuevos.
+  Servidor estático de prueba registró solo GET de recursos: ningún envío de imagen/nombre.
+- Pendientes: CI y comprobación del selector real de captura de pantalla;
+  el control del navegador no permitió completar la selección de ventana.
+  No publicar en main hasta terminar la validación necesaria.
+- Detalles: `docs/SMART_CAPTURE.md`. No se guardaron ni publicaron datos de la captura real.
 
 ## 2026-10-05 — Corrección Session Configurations
-- Estado: verificado localmente; pendiente de integración y despliegue.
+- Estado: PR #12 integrado y desplegado; backend y frontend verificados en producción.
 - Causa: horarios antiguos codificados como texto JSON fallaban antes de normalizarse.
 - Cambios: lectura compatible con texto y arrays; guardado de arrays nativos,
   validación antes del commit y rollback ante fallo. Formularios bloqueados si
@@ -13,7 +30,10 @@
   carga de formato antiguo, edición, guardado, persistencia al recargar y reintento
   tras error correctos. No se modificaron configuraciones reales ni lista semanal NHO.
 - Referencia: rama `codex/fix-session-configurations`; plan `docs/SESSION_CONFIG_FIX.md`.
-- Pendientes: CI e integración; verificar GET de producción tras despliegue.
+- Verificación final: CI run `37311369636` correcto. Commit desplegado
+  `c2f71f5a4b1e3832ad08571ab1fb678ae8d67ef4`; Vercel READY y health/las tres
+  configuraciones GET 200. No se hicieron escrituras de prueba en producción.
+- Pendientes: ninguno para esta corrección; se conserva la deuda TypeScript conocida.
 
 ## Compromisos permanentes
 
@@ -58,6 +78,8 @@ registros coherentes. No se requiere un commit adicional solo para escribir el
 hash del propio commit: el PR o un identificador de revisión sirve como referencia.
 
 ## Estado actual
+
+- Smart Capture implementado en rama aislada; validación de captura directa pendiente.
 
 - Modernización horizontal desplegada en producción: PR #10 y #11 integrados.
   Versión funcional `b9d274a`, Vercel READY y backend healthy.
