@@ -42,4 +42,21 @@ y cubrió automáticamente el marco de foto. Solo falta la selección nativa de 
 ## 2026-10-18 — Smart Capture en inglés
 - Solicitud: toda la interfaz del módulo en inglés.
 - Cambios: botones, instrucciones, estados, errores, etiquetas accesibles, placeholder, nombre de archivo vacío y atributo lang. Se conserva el sufijo FP y la lógica.
-- Verificación: pendiente de harness y preview actualizada; continúa pendiente la selección nativa de ventana.
+- Verificación: harness PASS (16 backend, 4 Smart Capture, build, 0 errores TS nuevos). Preview Vercel READY y pantalla en inglés comprobada. Commit `6039538`, PR #13. Continúa pendiente la selección nativa de ventana; no integrado en producción.
+
+## 2026-10-18 — Prueba solicitada con captura proporcionada
+- Autorización: el usuario solicitó expresamente probar su imagen real en la preview.
+- Resultado: OCR reconoció nombre/apellido; cobertura automática completa sin ajuste manual; descarga con sufijo FP.
+- Verificación: PNG de 1555×679, foto opaca al 100%, sin X exportada, comparación RGB confirmó que el resto permanece igual.
+- Privacidad: archivo abierto y procesado en navegador; resultado guardado solo en Descargas del usuario. Sin nombres, imagen ni datos personales en Git, fixtures o bitácora.
+- Código: sin cambios; preview `6039538`, PR #13. La selección nativa de ventana sigue pendiente; producción no modificada.
+
+## 2026-10-18 — Publicación y protección ante fallo de carga OCR
+- Plan: verificar producción; resolver espera indefinida si falla la descarga de datos OCR antes de dar por terminada la publicación.
+- PR #13 integrado (`3d7d2e3`), Vercel producción READY y backend health 200.
+- Hallazgo: fallo de red en carga interna de idioma podía dejar pendiente la inicialización de Tesseract.
+- Corrección: capturar errores de inicialización y limitar la espera a 30 segundos; un fallo ofrece ajuste manual en vez de bloquear la interfaz. No se envían imágenes ni nombres.
+- Usuario autorizó explícitamente publicación tras probar su captura. Selección nativa de ventana sigue sin verificar por automatización.
+- Estado: corrección en rama aislada. Harness PASS (16 backend, 4 de captura, build, 0 TS nuevos). Fallo HTTP 503 simulado: editor muestra aviso y habilita ajustes manuales, sin espera indefinida.
+
+- Verificación adicional del inicio acotado: OCR recuperado con nombre ficticio y cubierta automática; HTTP 503 vuelve a edición manual. No cambia consultas semanales, permisos ni base de datos.
