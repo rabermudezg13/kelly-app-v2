@@ -11,7 +11,21 @@ export async function analyze(image: HTMLImageElement, signal: AbortSignal) {
   let name='', covers:Cover[]=[], warnings:string[]=[]
   try {
     try {
-      worker=await createWorker('eng',1,{workerPath:base+'worker.min.js',corePath:base+'core',langPath:base+'lang',cacheMethod:'none',workerBlobURL:false})
+      // Tesseract can leave initialization pending after a language-fetch error.
+      // Bound startup and expose errors so the editor can fall back to manual mode.
+      worker=await new Promise<Awaited<ReturnType<typeof createWorker>>>((resolve,reject)=>{
+        let settled=false
+        const finishError=(error:unknown)=>{if(settled)return;settled=true;clearTimeout(timer);signal.removeEventListener('abort',cancel);reject(error)}
+        const cancel=()=>finishError(new Error('Cancelled'))
+        const timer=setTimeout(()=>finishError(new Error('OCR startup timed out')),30000)
+        signal.addEventListener('abort',cancel,{once:true})
+        createWorker('eng',1,{workerPath:base+'worker.min.js',corePath:base+'core',langPath:base+'lang',cacheMethod:'none',workerBlobURL:false,errorHandler:finishError}).then(created=>{
+          clearTimeout(timer);signal.removeEventListener('abort',cancel)
+          if(settled){void created.terminate();return}
+          settled=true;resolve(created)
+        },finishError)
+        if(signal.aborted)cancel()
+      })
       if(signal.aborted) return {name,covers,warnings}
       await worker.setParameters({tessedit_pageseg_mode:PSM.SPARSE_TEXT})
       // Keep OCR focused on the profile header, avoiding the eligibility table.
