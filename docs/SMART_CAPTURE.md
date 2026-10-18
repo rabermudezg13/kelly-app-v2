@@ -31,3 +31,10 @@ el selector nativo de ventana de getDisplayMedia. No integrado en producción.
 
 Harness final PASS: 16 pruebas backend, 4 de captura, build y 21 diagnósticos TS previos/0 nuevos.
 Prueba con servidor estático: solo GET de recursos propios; ninguna petición con contenido de imagen/nombre.
+
+PR #13 en borrador; commit `1eaadeb0`. CI run `39139437093` PASS.
+Vercel preview READY: `dpl_DhmmxCoTCzVKL3ikuEp4xU9dboaY`; HTML 200 y editor visible.
+El selector nativo sigue pendiente; main no se modificó.
+
+Verificación web adicional (2026-10-18): preview Vercel reconoció el nombre ficticio
+y cubrió automáticamente el marco de foto. Solo falta la selección nativa de ventana.

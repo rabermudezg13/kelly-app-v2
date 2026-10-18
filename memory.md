@@ -3,7 +3,7 @@
 Última actualización: 2026-10-18 (America/New_York).
 
 ## 2026-10-18 — Kelly Smart Capture (primera versión)
-- Estado: implementado en rama `codex/kelly-smart-capture`; no integrado en producción.
+- Estado: PR #13 en borrador; preview Vercel READY para `1eaadeb0`. No integrado en producción.
 - Cambios: pestaña independiente de reclutadores, pegar/abrir imagen/capturar pantalla,
   OCR local, detección del marco de foto y alternativa MediaPipe, X central y tamaño
   ajustables, revisión obligatoria y PNG aplanado `Nombre Apellido FP.png`.
@@ -14,7 +14,8 @@
   PNG descargado comprobado píxel a píxel: foto opaca completa, dimensiones originales,
   sin X en exportación. Harness final correcto: 16 tests backend, 4 de Smart Capture, build y cero TS nuevos.
   Servidor estático de prueba registró solo GET de recursos: ningún envío de imagen/nombre.
-- Pendientes: CI y comprobación del selector real de captura de pantalla;
+- CI: run `39139437093` correcto. Preview: `dpl_DhmmxCoTCzVKL3ikuEp4xU9dboaY`.
+- Pendientes: comprobación del selector real de captura de pantalla;
   el control del navegador no permitió completar la selección de ventana.
   No publicar en main hasta terminar la validación necesaria.
 - Detalles: `docs/SMART_CAPTURE.md`. No se guardaron ni publicaron datos de la captura real.
@@ -212,3 +213,6 @@ hash del propio commit: el PR o un identificador de revisión sirve como referen
 - Pendientes y siguiente paso:
 - Detalle en bitácora:
 ```
+
+Verificación web adicional (2026-10-18): preview Vercel reconoció el nombre ficticio
+y cubrió automáticamente el marco de foto. Solo falta la selección nativa de ventana.
