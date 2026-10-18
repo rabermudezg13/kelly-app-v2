@@ -123,3 +123,5 @@ certs/
 
 # Generated local OCR and face detector assets
 kelly-app-v2/frontend/public/capture-assets/
+
+kelly-app-v2/frontend/public/dashtracker/vendor/

@@ -87,7 +87,7 @@ hash del propio commit: el PR o un identificador de revisión sirve como referen
 
 Smart Capture publicado y comprobado en producción: PR #13 y #14, commit `8efc03b`. Ver cierre de publicación al final.
 
-- Smart Capture implementado en rama aislada; validación de captura directa pendiente.
+- Smart Capture simplificado publicado (PR #15, `5b2cbc9`): solo pegar/abrir; pestaña después de New Hire Orientation. Captura directa retirada por solicitud del usuario.
 
 - Modernización horizontal desplegada en producción: PR #10 y #11 integrados.
   Versión funcional `b9d274a`, Vercel READY y backend healthy.
@@ -259,3 +259,13 @@ y cubrió automáticamente el marco de foto. Solo falta la selección nativa de 
 
 - Cambios: retirados botón, video, getDisplayMedia y permiso del iframe; pestaña movida inmediatamente después de New Hire Orientation.
 - Validación: harness PASS (16 backend, 4 captura, build, 0 TS nuevos); navegador confirma solo Paste image/Open image. Consultas semanales sin cambios.
+
+- Publicación completada: PR #15, commit `5b2cbc9309abea58600eb72cd25705a845ddf121`, Vercel READY `dpl_HLe9jmTuct9GAShV7oZHwZNs3ue3`; CI run `39171766776` PASS. Navegador de producción confirma ausencia de Take screenshot y botones Paste image/Open image. Orden de pestañas comprobado en diff; no se probó dashboard autenticado en producción.
+
+## 2026-10-18 — Onboarding Tracker
+- Plan y alcance: `docs/DASHTRACKER.md`; rama `codex/recruiter-dashtracker`.
+- Integración completa del HTML y PDF de Dashtracker, dependencias locales, ayuda faltante, preferencias por reclutador y retención en memoria al cambiar pestañas. Sin API ni cambios en consultas NHO.
+- Pruebas iniciales: 3 tests de reglas, escape/CSV y recursos correctos. Harness y navegador en curso.
+
+- Verificación: harness completo PASS (16 backend, 4 Smart Capture, 4 Tracker, build, 21 TS conocidos/0 nuevos). Navegador: Excel multireclutador, pendientes, texto escapado, plantillas, Help y descargas Drug Screen/Scanner/Checklist correctas. Los tres PDFs se abrieron con pdf-lib y tienen una página válida.
+- Corrección adicional: FP Info Requested ahora cuenta en tarjeta y lista; prueba de regresión incluida. Sin impresión física ni prueba de cámara móvil.

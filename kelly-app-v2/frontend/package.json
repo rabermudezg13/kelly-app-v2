@@ -8,15 +8,17 @@
     "build:check": "tsc && vite build",
     "preview": "vite preview",
     "start": "node server.js",
-    "predev": "node scripts/prepare-capture.mjs",
-    "prebuild": "node scripts/prepare-capture.mjs",
-    "test:capture": "node --experimental-strip-types --test src/smart-capture/geometry.test.mjs"
+    "predev": "node scripts/prepare-capture.mjs && node scripts/prepare-dashtracker.mjs",
+    "prebuild": "node scripts/prepare-capture.mjs && node scripts/prepare-dashtracker.mjs",
+    "test:capture": "node --experimental-strip-types --test src/smart-capture/geometry.test.mjs",
+    "test:tracker": "node --test tests/dashtracker.test.mjs"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "1.1.1",
     "@tesseract.js-data/eng": "1.0.0",
     "axios": "^1.6.2",
     "express": "^4.18.2",
+    "pdf-lib": "1.17.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.0",

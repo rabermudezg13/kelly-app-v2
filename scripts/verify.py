@@ -63,6 +63,7 @@ def main():
             "client = TestClient(app); response = client.get('/health'); "
             "assert response.status_code == 200, response.status_code; print('Startup and health OK')"], temporary)
         run("smart-capture-tests", ["npm", "run", "test:capture"], FRONTEND)
+        run("dashtracker-tests", ["npm", "run", "test:tracker"], FRONTEND)
         run("frontend-build", ["npm", "run", "build"], FRONTEND)
 
         def check_types(code, output):

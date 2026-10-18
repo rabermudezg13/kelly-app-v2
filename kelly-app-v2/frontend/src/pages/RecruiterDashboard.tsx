@@ -43,11 +43,12 @@ import PCListCheck from '../components/PCListCheck'
 import InfoSessionProgressTV from './InfoSessionProgressTV'
 import * as XLSX from 'xlsx'
 
-type RecruiterTabType = 'sessions' | 'all-info-sessions' | 'new-hire-orientation' | 'fingerprints' | 'badges' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'ksn-tool' | 'storage' | 'pc-check' | 'tv-kiosk' | 'smart-capture'
+type RecruiterTabType = 'sessions' | 'all-info-sessions' | 'new-hire-orientation' | 'fingerprints' | 'badges' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'ksn-tool' | 'storage' | 'pc-check' | 'tv-kiosk' | 'smart-capture' | 'dashtracker'
 
 function RecruiterDashboard() {
   const { recruiterId } = useParams<{ recruiterId: string }>()
   const [activeTab, setActiveTab] = useState<RecruiterTabType>('sessions')
+  const [trackerOpened, setTrackerOpened] = useState(false)
   const [recruiter, setRecruiter] = useState<Recruiter | null>(null)
   const [sessions, setSessions] = useState<AssignedSession[]>([])
   const [loading, setLoading] = useState(true)
@@ -2087,6 +2088,7 @@ function RecruiterDashboard() {
               🎓 New Hire Orientation
             </button>
             <button aria-pressed={activeTab === 'smart-capture'} onClick={() => setActiveTab('smart-capture')} className={`px-6 py-3 font-semibold transition-colors ${activeTab === 'smart-capture' ? 'bg-emerald-700 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>✦ Smart Capture</button>
+            <button aria-pressed={activeTab === 'dashtracker'} onClick={() => {setTrackerOpened(true);setActiveTab('dashtracker')}} className={`px-6 py-3 font-semibold transition-colors ${activeTab === 'dashtracker' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>📊 Onboarding Tracker</button>
             <button
               aria-pressed={activeTab === 'fingerprints'}
               onClick={() => setActiveTab('fingerprints')}
@@ -2201,7 +2203,10 @@ function RecruiterDashboard() {
         </div>
 
         {/* Content */}
-        {activeTab === 'smart-capture' ? (
+        {trackerOpened && <div hidden={activeTab !== 'dashtracker'}>
+          <iframe key={recruiterId} title="Kelly Onboarding Tracker" src={`/dashtracker/index.html#${encodeURIComponent(JSON.stringify({id:recruiterId,name:recruiter.name,email:recruiter.email}))}`} allow="clipboard-write" style={{width:'100%',height:'90vh',minHeight:700,border:0,borderRadius:18}} />
+        </div>}
+        {activeTab === 'dashtracker' ? null : activeTab === 'smart-capture' ? (
           <iframe title="Kelly Smart Capture" src="/smart-capture.html" allow="clipboard-read" style={{width:'100%',height:'min(1100px, 90vh)',minHeight:700,border:0,borderRadius:18}} />
         ) : activeTab === 'tv-kiosk' ? (
           <InfoSessionProgressTV />
