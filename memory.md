@@ -216,3 +216,8 @@ hash del propio commit: el PR o un identificador de revisión sirve como referen
 
 Verificación web adicional (2026-10-18): preview Vercel reconoció el nombre ficticio
 y cubrió automáticamente el marco de foto. Solo falta la selección nativa de ventana.
+
+## 2026-10-18 — Smart Capture en inglés
+- Solicitud: toda la interfaz del módulo en inglés.
+- Cambios: botones, instrucciones, estados, errores, etiquetas accesibles, placeholder, nombre de archivo vacío y atributo lang. Se conserva el sufijo FP y la lógica.
+- Verificación: pendiente de harness y preview actualizada; continúa pendiente la selección nativa de ventana.

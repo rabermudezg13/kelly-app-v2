@@ -9,7 +9,7 @@ test('reads first and last fields, excluding middle name and adjacent columns',(
 test('safe filename retains accents and FP suffix',()=>{
  assert.equal(fileName('  José   Pérez  '),'José Pérez FP.png')
  assert.equal(fileName('A/B:C?'),'ABC FP.png')
- assert.equal(fileName(''),'Candidato FP.png')
+ assert.equal(fileName(''),'Candidate FP.png')
 })
 test('cover remains within image after moving or resizing',()=>{
  assert.deepEqual(clampCover({x:-10,y:100,width:30,height:50},100,100),{x:0,y:50,width:30,height:50})

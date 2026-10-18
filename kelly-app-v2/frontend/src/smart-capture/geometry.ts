@@ -4,7 +4,7 @@ export function clampCover(r: Cover, width: number, height: number): Cover {
   return { x: Math.max(0, Math.min(width-w, r.x)), y: Math.max(0, Math.min(height-h, r.y)), width:w, height:h }
 }
 export function fileName(name: string) {
-  return `${name.normalize('NFC').replace(/[<>:"/\\|?*\u0000-\u001f]/g, '').trim().replace(/\s+/g, ' ').slice(0,120) || 'Candidato'} FP.png`
+  return `${name.normalize('NFC').replace(/[<>:"/\\|?*\u0000-\u001f]/g, '').trim().replace(/\s+/g, ' ').slice(0,120) || 'Candidate'} FP.png`
 }
 // Read the explicit fields, not the middle name or other personal details.
 export function candidateName(text: string) {

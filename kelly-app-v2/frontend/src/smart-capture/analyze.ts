@@ -24,14 +24,14 @@ export async function analyze(image: HTMLImageElement, signal: AbortSignal) {
         if(signal.aborted)cancel()
       })
       name=candidateName(result.data.text)
-      if(!name) warnings.push('Escribe el nombre y apellido: no se pudieron leer con certeza.')
-    } catch { warnings.push('No se pudo leer el nombre. Puedes escribirlo manualmente.') }
+      if(!name) warnings.push('Enter the first and last name: they could not be read reliably.')
+    } catch { warnings.push('The name could not be read. You can enter it manually.') }
     if(signal.aborted) return {name,covers,warnings}
     if(name) {
       const pixels=document.createElement('canvas'); pixels.width=image.naturalWidth; pixels.height=image.naturalHeight
       const ctx=pixels.getContext('2d')!; ctx.drawImage(image,0,0)
       const suggestion=profilePhoto(ctx.getImageData(0,0,pixels.width,pixels.height).data,pixels.width,pixels.height)
-      if(suggestion) return {name,covers:[suggestion],warnings:['Cobertura sugerida para este formato. Verifica todos los bordes de la foto.']}
+      if(suggestion) return {name,covers:[suggestion],warnings:['Photo cover suggested for this layout. Check every edge of the photo.']}
     }
     try {
       detector=await FaceDetector.createFromOptions(await FilesetResolver.forVisionTasks(base+'vision'),{baseOptions:{modelAssetPath:base+'face.tflite',delegate:'CPU'},runningMode:'IMAGE',minDetectionConfidence:0.4})
@@ -41,8 +41,8 @@ export async function analyze(image: HTMLImageElement, signal: AbortSignal) {
       crop.getContext('2d')!.drawImage(image,0,0)
       const result=detector.detect(crop)
       covers=result.detections.flatMap(d=>d.boundingBox ? [clampCover({x:d.boundingBox.originX-d.boundingBox.width*0.5,y:d.boundingBox.originY-d.boundingBox.height*0.65,width:d.boundingBox.width*2,height:d.boundingBox.height*2.1},image.naturalWidth,image.naturalHeight)] : [])
-      if(!covers.length) warnings.push('No se detectó una foto. Pulsa sobre ella para colocar la X y ajustar la cobertura.')
-    } catch { warnings.push('Detección automática no disponible. Coloca la X sobre la foto para cubrirla.') }
+      if(!covers.length) warnings.push('No photo was detected. Click it to place the X and adjust the cover.')
+    } catch { warnings.push('Automatic detection is unavailable. Place the X on the photo to cover it.') }
     return {name,covers,warnings}
   } finally { signal.removeEventListener('abort',stop); await worker?.terminate(); detector?.close() }
 }
