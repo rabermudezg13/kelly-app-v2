@@ -24,8 +24,8 @@ export function renderCovered(image: CanvasImageSource, width: number, height: n
 
 // For the supplied profile layout: find a connected photo/frame in the upper-left.
 // This is a layout suggestion, not identity or face recognition; always review it.
-export function profilePhoto(data: Uint8ClampedArray, width: number, height: number): Cover | null {
-  const step=3, cols=Math.floor(width*.22/step), rows=Math.floor(height*.55/step)
+export function profilePhoto(data: Uint8ClampedArray, width: number, height: number, fullScreenshot = false): Cover | null {
+  const step=3, cols=Math.floor(width*(fullScreenshot?1:.22)/step), rows=Math.floor(height*(fullScreenshot?1:.55)/step)
   const seen=new Uint8Array(cols*rows)
   const foreground=(x:number,y:number)=>{const i=(y*step*width+x*step)*4;return data[i+3]>0 && Math.min(data[i],data[i+1],data[i+2])<228}
   let best:Cover|null=null
@@ -37,7 +37,7 @@ export function profilePhoto(data: Uint8ClampedArray, width: number, height: num
       for(const [nx,ny] of [[px-1,py],[px+1,py],[px,py-1],[px,py+1]])if(nx>=0&&nx<cols&&ny>=0&&ny<rows){const k=ny*cols+nx;if(!seen[k]&&foreground(nx,ny)){seen[k]=1;queue.push(k)}}
     }
     const w=(maxX-minX+1)*step,h=(maxY-minY+1)*step
-    if(w>width*.06 && h>height*.12 && w/h>.45 && w/h<1.6 && count*step*step>w*h*.25){
+    if(w>Math.max(30,width*(fullScreenshot ? .025 : .06)) && h>Math.max(45,height*(fullScreenshot ? .05 : .12)) && (!fullScreenshot || (w<width*.4 && h<height*.65)) && w/h>.45 && w/h<1.6 && count*step*step>w*h*(fullScreenshot ? .4 : .25)){
       const r=clampCover({x:minX*step-4,y:minY*step-4,width:w+8,height:h+8},width,height)
       if(!best||r.width*r.height>best.width*best.height)best=r
     }

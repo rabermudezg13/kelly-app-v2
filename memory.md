@@ -2,7 +2,12 @@
 
 Última actualización: 2026-10-19 (America/New_York).
 
-## Estado de publicación — 2026-10-18
+## Estado actual — 2026-10-19
+- Smart Capture: corrección de pegado publicada en PR #18 (`9f00e30`), Vercel READY; comprobación web con captura ficticia y harness PASS.
+- Onboarding Tracker: filtro por reclutador publicado en PR #17 (`cd8c0c9`).
+- Detalles y límites en los cierres de cada tarea al final de este archivo.
+
+## Estado de publicación — 2026-10-18 (historial)
 - Smart Capture publicado mediante PR #13 (`3d7d2e3`). Usuario autorizó producción después de la prueba real.
 - Corrección de inicio OCR validada en navegador: reconocimiento automático y fallback manual ante HTTP 503.
 - Selección nativa de ventana pendiente de prueba manual; pegado, apertura, cobertura y exportación ya comprobados.
@@ -304,3 +309,18 @@ y cubrió automáticamente el marco de foto. Solo falta la selección nativa de 
 - Reproducción confirmada con iframe local y captura ficticia: pegado con foco en botón padre no carga imagen. Corrección: listener de paste en padre del mismo origen, fallback files, limpieza al desmontar y área de pegado enfocable. No cambia OCR, cobertura ni exportación. Pruebas de comportamiento añadidas; harness en curso.
 
 - Validación local: harness completo PASS (16 backend, 8 Smart Capture, 11 Tracker, build; 21 diagnósticos TS conocidos, 0 nuevos). Navegador con captura ficticia: pegado nativo con foco en padre y dentro del editor carga imagen y reconoce ANA PEREZ; texto normal conserva su pegado y la descarga se habilita tras revisión. Pruebas unitarias confirman limpieza y aislamiento de origen. Prueba nativa realizada en macOS, no en Windows. Publicación pendiente.
+
+## Cierre — Smart Capture Ctrl+V, 2026-10-19
+- PR #18 integrado: `9f00e301574ba8b151e598b2b5cf0228a727f565`; CI run `39291180526` PASS. Vercel producción READY `dpl_GXJXa9K3UysqZw1ZJCXV1W8aYoPZ`, alias kelly-app-v2.vercel.app asignado; backend health 200.
+- Archivo JS de producción coincide por SHA-256 con build local verificado. Navegador de producción: pegado nativo de imagen ficticia, OCR ANA PEREZ, cubierta sugerida y descarga habilitada tras revisión correctos.
+- Foco del padre y texto normal comprobados en iframe local del mismo origen. No se ejercitó dashboard autenticado en producción ni teclado nativo de Windows; pruebas realizadas en macOS. No se cambió backend ni datos.
+- Código, pruebas y plan documentados en PR #18. Este cierre posterior al despliegue queda guardado localmente para la próxima sincronización documental.
+
+## 2026-10-19 — Reconocimiento tras pegado (plan)
+- Usuario informa imagen pegada sin nombre ni cuadro. Revisar lectura limitada al 55% superior, dependencia del cuadro respecto del nombre y esperas sin límite en reconocimiento/detector.
+- Criterios: aceptar perfil desplazado dentro de una captura de pantalla completa; sugerir cuadro aunque OCR falle; mostrar resultados parciales y liberar modo manual si falla un recurso. Mantener procesamiento local, revisión y formato de descarga.
+- Implementar en rama aislada, reproducir con perfil ficticio desplazado, probar regresiones y harness antes de publicar. No asumir que la causa local confirma todavía el mensaje concreto del usuario.
+
+- Reproducción confirmada en producción anterior con perfil ficticio reducido y desplazado dentro de pantalla 1920×1300: aparecen exactamente los avisos de nombre vacío y foto ausente. Nueva versión local encuentra el cuadro antes del OCR; verificación de nombre en curso. Harness completo PASS (16 backend, 9 captura, 11 tracker, build, 0 TS nuevos).
+
+- Verificación completada: misma captura completa que fallaba reconoce ANA PEREZ y ubica cuadro en (596,758); recorte original conserva nombre y cuadro. En origen local nuevo con idioma OCR forzado a HTTP 503, la cubierta permanece y se habilita nombre manual con aviso claro. Harness final PASS (16 backend, 9 Smart Capture, 11 Tracker, build; 21 TS conocidos/0 nuevos). Pendiente publicación.

@@ -22,3 +22,14 @@ test('profile layout detects a connected photo and rejects a blank screenshot',(
  for(let y=94;y<284;y++)for(let x=68;x<258;x++){const i=(y*w+x)*4;pixels[i]=100;pixels[i+1]=130;pixels[i+2]=150}
  const r=profilePhoto(pixels,w,h);assert.ok(r);assert.ok(r.x<=68&&r.y<=94);assert.ok(r.x+r.width>=258&&r.y+r.height>=284)
 })
+
+// Simulate a smaller profile inside an uncropped desktop screenshot.
+test('finds a shifted photo outside the old upper-left search without accepting a wide toolbar',()=>{
+ const w=1920,h=1300,pixels=new Uint8ClampedArray(w*h*4).fill(255)
+ for(let y=0;y<70;y++)for(let x=0;x<w;x++){const i=(y*w+x)*4;pixels[i]=pixels[i+1]=pixels[i+2]=60}
+ for(let y=760;y<890;y++)for(let x=600;x<725;x++){const i=(y*w+x)*4;pixels[i]=100;pixels[i+1]=130;pixels[i+2]=150}
+ assert.equal(profilePhoto(pixels,w,h),null)
+ const r=profilePhoto(pixels,w,h,true);assert.ok(r)
+ assert.ok(r.x<=600&&r.y<=760&&r.x+r.width>=725&&r.y+r.height>=890)
+ const blank=new Uint8ClampedArray(w*h*4).fill(255);assert.equal(profilePhoto(blank,w,h,true),null)
+})
