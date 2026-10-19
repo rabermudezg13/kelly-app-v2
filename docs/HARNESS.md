@@ -74,3 +74,6 @@ primera vez. Las imágenes del usuario nunca intervienen en ese proceso.
 
 ## Onboarding Tracker
 `npm run test:tracker` prueba reglas originales de pendientes, escape HTML/CSV y recursos PDF/Help. Para navegador usar Excel ficticio, verificar selección de hojas, filtros/plantillas, descargas Drug Screen/Scanner/Checklist, Help y conservación al cambiar pestañas. No usar datos reales.
+
+## Importación exclusiva por reclutador — 2026-10-19
+El perfil del dashboard determina la hoja mediante correspondencias explícitas. Primero se leen los nombres del libro y después se parsea solo la hoja asignada. No hay selector, CSV ni fallback a primera hoja. Encabezados detectados dentro de la hoja seleccionada; errores limpian resultados anteriores. El nombre editable del remitente no influye. Este es un filtro local de importación, no una nueva frontera de autorización del servidor. Pruebas: correspondencias, XLSX/XLS, desconocidos, ambigüedad, falta de hoja, CSV y cargas consecutivas.
