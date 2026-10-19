@@ -30,7 +30,7 @@ export default function SmartCapture() {
       setImage(img);controller.current=new AbortController()
       const {analyze}=await import('./analyze')
       if(job!==generation.current)return
-      const result=await analyze(img,controller.current.signal)
+      const result=await analyze(img,controller.current.signal,partial=>{if(job===generation.current){setName(partial.name);setCovers(partial.covers);setSelected(0)}})
       if(job!==generation.current)return
       setName(result.name);setCovers(result.covers);setSelected(0)
       setStatus(result.warnings.join(' ')||'Name and cover suggested. Check that the entire photo is covered.')

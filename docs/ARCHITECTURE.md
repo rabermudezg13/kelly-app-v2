@@ -80,3 +80,6 @@ El perfil del dashboard determina la hoja mediante correspondencias explícitas.
 
 ## Pegado Smart Capture — 2026-10-19
 El editor escucha eventos paste en su ventana y en el dashboard padre del mismo origen. No usa lectura programática del portapapeles para el atajo. Se extrae una imagen desde items o files; el texto sigue su comportamiento normal. Al desmontar el iframe se retiran ambos listeners. Probar foco en pestaña padre y dentro del editor, pegado de texto, aislamiento entre orígenes y limpieza.
+
+## Reconocimiento de capturas completas — 2026-10-19
+Smart Capture busca primero el marco del perfil y, si falta, amplía la búsqueda a la imagen completa con límites de tamaño y proporción. Esta sugerencia es independiente del OCR. La lectura amplía texto pequeño y reintenta sobre toda la captura cuando el encabezado no contiene ambos campos. Los resultados parciales se publican solo para la generación de imagen activa. Cada reconocimiento tiene límite de 30 segundos; procesamiento y recursos permanecen en el navegador.
