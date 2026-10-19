@@ -415,12 +415,13 @@ header{flex-wrap:wrap;gap:12px}.nav-tabs{flex-wrap:wrap}
 </div>
 
 <div id="upload-zone">
+  <p id="tracker-import-error" role="alert" hidden style="color:#ffb830;margin-bottom:1rem"></p>
   <div class="drop-card" id="drop-area" onclick="document.getElementById('file-input').click()">
     <div class="drop-icon">📊</div>
     <div class="drop-title">Upload your Tracker</div>
-    <div class="drop-sub">Drop your Excel file here or click to browse<br><small style="opacity:.5">.xlsx · .xls · .csv</small></div>
+    <div class="drop-sub">Drop your Excel file here or click to browse<br><small style="opacity:.5">.xlsx · .xls</small></div>
     <button class="up-btn" onclick="event.stopPropagation();document.getElementById('file-input').click()">Choose File</button>
-    <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
+    <input type="file" id="file-input" accept=".xlsx,.xls">
   </div>
   <div class="cols-hint">
     <span>📄 Pre-hire Training</span><span>🦺 Safety &amp; Security</span>
@@ -428,7 +429,7 @@ header{flex-wrap:wrap;gap:12px}.nav-tabs{flex-wrap:wrap}
     <span>📝 I-9</span><span>💊 Drug Screen</span>
     <span>🔍 Background Check</span><span>🖐 FP Screening</span>
   </div>
-  <p style="margin-top:1rem;font-size:.72rem;color:var(--muted)">Columns are auto-detected from your Excel headers</p>
+  <p style="margin-top:1rem;font-size:.72rem;color:var(--muted)">Only your assigned recruiter worksheet is loaded. All other worksheets are ignored.</p>
 </div>
 
 <div id="dashboard">
@@ -653,98 +654,34 @@ drop.addEventListener('dragleave', () => drop.classList.remove('over'));
 drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
 document.getElementById('file-input').addEventListener('change', e => { if (e.target.files[0]) loadFile(e.target.files[0]); });
 
-const KNOWN_RECRUITERS = ['Rodrigo','Miccael','Nicolette','Jorge','Demetrius'];
-const RECRUITER_COLORS  = { Rodrigo:'#ff4060', Miccael:'#c07fe8', Nicolette:'#2ecc71', Jorge:'#f39c12', Demetrius:'#5dade2' };
-const RECRUITER_HEADER_ROW = { Rodrigo:0, Miccael:1, Nicolette:1, Jorge:1, Demetrius:1 };
-let _cachedWb = null;
-
+let trackerImportGeneration = 0;
+function showTrackerImportError(message) {
+  const error=document.getElementById('tracker-import-error');
+  error.textContent=message;error.hidden=false;
+}
 function loadFile(file) {
-  document.getElementById('hdr-file').textContent = file.name;
+  resetDash();
+  const job=trackerImportGeneration;
+  document.getElementById('tracker-import-error').hidden=true;
+  try {
+    trackerAssignedSheet(trackerProfile);
+    if (!/\.xlsx?$/i.test(file.name)) throw new Error('Choose the Excel workbook (.xlsx or .xls) with your recruiter worksheet. CSV files cannot identify a recruiter worksheet.');
+  } catch(error) { showTrackerImportError(error.message); return; }
   const reader = new FileReader();
   reader.onload = ev => {
+    if(job !== trackerImportGeneration)return;
     try {
-      const wb = XLSX.read(new Uint8Array(ev.target.result), { type:'array' });
-      _cachedWb = wb;
-
-      // Detect recruiter sheets
-      const recSheets = wb.SheetNames.filter(n => KNOWN_RECRUITERS.includes(n));
-
-      if (recSheets.length > 1) {
-        // Multi-recruiter workbook — show picker
-        showRecruiterPicker(recSheets, wb);
-      } else if (recSheets.length === 1) {
-        // Only one recruiter sheet — load directly
-        loadRecruiterSheet(recSheets[0], wb);
-      } else {
-        // No recruiter sheets — treat first sheet as before
-        const ws   = wb.Sheets[wb.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(ws, { defval:'' });
-        if (!rows.length) { alert('The file appears to be empty or has an incorrect format.'); return; }
-        parseRows(rows);
-      }
-    } catch(e) { console.error(e); alert('Error reading the file. Make sure it is a valid Excel or CSV file.'); }
+      const selected=trackerReadWorkbook(new Uint8Array(ev.target.result),trackerProfile,XLSX);
+      const rows=trackerRowsFromSheet(selected.sheet,XLSX);
+      if(!rows.length)throw new Error('Your recruiter worksheet contains no applicants.');
+      parseRows(rows);
+      document.getElementById('hdr-file').textContent=selected.name+"'s Tracker — only your worksheet";
+    } catch(error) {
+      resetDash();showTrackerImportError(error.message || 'Unable to read your recruiter worksheet.');
+    }
   };
+  reader.onerror = () => {if(job===trackerImportGeneration)showTrackerImportError('Unable to read this file. Please choose it again.');};
   reader.readAsArrayBuffer(file);
-}
-
-function showRecruiterPicker(sheets, wb) {
-  document.getElementById('upload-zone').style.display = 'none';
-
-  // Count talents per sheet for display
-  const grid = document.getElementById('picker-grid');
-  grid.innerHTML = '';
-
-  sheets.forEach(name => {
-    const ws      = wb.Sheets[name];
-    const hRow    = RECRUITER_HEADER_ROW[name] !== undefined ? RECRUITER_HEADER_ROW[name] : 1;
-    const raw     = XLSX.utils.sheet_to_json(ws, { header:1, defval:null });
-    // Count non-empty data rows (skip header rows)
-    const count   = raw.slice(hRow + 1).filter(r => r && r[2]).length;
-    const color   = RECRUITER_COLORS[name] || 'var(--red)';
-    const initial = name[0].toUpperCase();
-
-    const btn = document.createElement('button');
-    btn.className = 'picker-btn';
-    btn.style.color = color;
-    btn.innerHTML =
-      '<span class="pb-initial" style="background:' + color + '22;color:' + color + '">' + initial + '</span>' +
-      '<div><div>' + name + '</div><div class="pb-count">' + count + ' talent' + (count !== 1 ? 's' : '') + '</div></div>';
-    btn.onclick = () => loadRecruiterSheet(name, wb);
-    grid.appendChild(btn);
-  });
-
-  document.getElementById('recruiter-picker').style.display = 'block';
-}
-
-function loadRecruiterSheet(name, wb) {
-  document.getElementById('recruiter-picker').style.display = 'none';
-  const ws   = wb.Sheets[name];
-  const hRow = RECRUITER_HEADER_ROW[name] !== undefined ? RECRUITER_HEADER_ROW[name] : 0;
-
-  // Read as 2D array, use hRow as header, skip legend rows above it
-  const raw2d = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
-  if (raw2d.length <= hRow) { alert('No data found in sheet: ' + name); return; }
-
-  const headers  = raw2d[hRow];
-  const dataRows = raw2d.slice(hRow + 1).filter(function(r) { return r && r[2]; });
-
-  // Convert to array-of-objects
-  const rows = dataRows.map(function(r) {
-    var obj = {};
-    headers.forEach(function(h, i) { if (h) obj[String(h).trim()] = r[i] !== undefined ? r[i] : ''; });
-    return obj;
-  });
-
-  if (!rows.length) { alert('No data found in sheet: ' + name); return; }
-
-  document.getElementById('hdr-file').textContent = name + "'s Tracker";
-  parseRows(rows);
-}
-
-function backToUpload() {
-  document.getElementById('recruiter-picker').style.display = 'none';
-  document.getElementById('upload-zone').style.display = 'block';
-  _cachedWb = null;
 }
 
 function parseRows(rows) {
@@ -1090,7 +1027,12 @@ function closeModal()  { document.getElementById('overlay').classList.remove('op
 
 // ── UTILS ──
 function resetDash() {
-  talents=[]; colMap={}; curMod=null; curList=[]; _cachedWb=null;
+  trackerImportGeneration++; talents=[]; colMap={}; curMod=null; curList=[];
+  document.getElementById('tbl-body').textContent='';
+  document.getElementById('stats-row').textContent='';
+  document.getElementById('modules-grid').textContent='';
+  document.getElementById('m-body').textContent='';
+  closeModal();
   document.getElementById('dashboard').style.display   = 'none';
   document.getElementById('upload-zone').style.display = 'block';
   document.getElementById('file-input').value = '';
@@ -1103,13 +1045,6 @@ function toast(msg) {
   setTimeout(() => el.classList.remove('show'), 2600);
 }
 </script>
-<div id="recruiter-picker">
-  <div class="picker-title">Who are you working as?</div>
-  <div class="picker-sub" id="picker-sub">Select your name to load your tracker</div>
-  <div class="picker-grid" id="picker-grid"></div>
-  <button class="picker-back" onclick="backToUpload()">← Upload a different file</button>
-</div>
-
 <!-- pdf-lib for PDF filling -->
 <script src="vendor/pdf-lib.min.js"></script>
 <script>
@@ -1120,7 +1055,7 @@ function toast(msg) {
 // ═══════════════════════════════════════
 function switchSection(section) {
   // Hide all sections
-  ['upload-zone','dashboard','recruiter-picker','drug-section','scanner-section','checklist-section','help-section'].forEach(id => {
+  ['upload-zone','dashboard','drug-section','scanner-section','checklist-section','help-section'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
@@ -1128,8 +1063,7 @@ function switchSection(section) {
   if (section === 'tracker') {
     if (talents.length) {
       document.getElementById('dashboard').style.display = 'block';
-    } else if (_cachedWb && _cachedWb.SheetNames.filter(n => KNOWN_RECRUITERS.includes(n)).length > 1) {
-      showRecruiterPicker(_cachedWb.SheetNames.filter(n => KNOWN_RECRUITERS.includes(n)), _cachedWb);
+
     } else {
       document.getElementById('upload-zone').style.display = 'block';
     }

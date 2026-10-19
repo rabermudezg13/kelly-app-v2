@@ -74,3 +74,6 @@ Smart Capture se ubica después de New Hire Orientation. Las entradas son pegar 
 
 ## Onboarding Tracker
 Pestaña exclusiva de reclutadores después de Smart Capture. Monta `public/dashtracker/index.html` al abrir por primera vez y conserva el iframe oculto al cambiar de pestaña. Desmontar el dashboard libera archivos. El fragmento URL inicializa nombre/email y ámbito de preferencias; no envía credenciales. Excel, PDFs y fotos se procesan en navegador. Solo preferencias de remitente/sucursal usan localStorage por reclutador. `prepare-dashtracker.mjs` copia xlsx/pdf-lib de versiones del lockfile. CSP limita las cargas a recursos locales. Ver `docs/DASHTRACKER.md`.
+
+## Importación exclusiva por reclutador — 2026-10-19
+El perfil del dashboard determina la hoja mediante correspondencias explícitas. Primero se leen los nombres del libro y después se parsea solo la hoja asignada. No hay selector, CSV ni fallback a primera hoja. Encabezados detectados dentro de la hoja seleccionada; errores limpian resultados anteriores. El nombre editable del remitente no influye. Este es un filtro local de importación, no una nueva frontera de autorización del servidor. Pruebas: correspondencias, XLSX/XLS, desconocidos, ambigüedad, falta de hoja, CSV y cargas consecutivas.
