@@ -77,3 +77,6 @@ primera vez. Las imágenes del usuario nunca intervienen en ese proceso.
 
 ## Importación exclusiva por reclutador — 2026-10-19
 El perfil del dashboard determina la hoja mediante correspondencias explícitas. Primero se leen los nombres del libro y después se parsea solo la hoja asignada. No hay selector, CSV ni fallback a primera hoja. Encabezados detectados dentro de la hoja seleccionada; errores limpian resultados anteriores. El nombre editable del remitente no influye. Este es un filtro local de importación, no una nueva frontera de autorización del servidor. Pruebas: correspondencias, XLSX/XLS, desconocidos, ambigüedad, falta de hoja, CSV y cargas consecutivas.
+
+## Pegado Smart Capture — 2026-10-19
+El editor escucha eventos paste en su ventana y en el dashboard padre del mismo origen. No usa lectura programática del portapapeles para el atajo. Se extrae una imagen desde items o files; el texto sigue su comportamiento normal. Al desmontar el iframe se retiran ambos listeners. Probar foco en pestaña padre y dentro del editor, pegado de texto, aislamiento entre orígenes y limpieza.
