@@ -230,3 +230,17 @@ y cubrió automáticamente el marco de foto. Solo falta la selección nativa de 
 - Implementado: selección por perfil, lectura selectiva, encabezado dinámico, rechazo explícito sin coincidencia/CSV y limpieza de resultados. 11 pruebas Tracker PASS.
 
 - Verificación final local: harness PASS (16 backend, 4 captura, 11 tracker, build y 0 TS nuevos). Excel proporcionado leído localmente: las cuatro correspondencias cargan exclusivamente su hoja y detectan encabezados válidos; sin datos personales en pruebas/reportes. Navegador ficticio: carga automática sin selector y aviso de hoja faltante correctos.
+
+## Cierre — filtro por reclutador, 2026-10-19
+- PR #17 integrado: `cd8c0c919f80f04e0e5ef0e28516b4357cb958b8`; Vercel READY `dpl_E3aaAnkTewkCDP2ogwo2fAmmkyra`, backend health 200. CI run `39245551039` PASS.
+- Navegador local: Rodrigo automático y error de hoja Miccael ausente en fixture. Preview/producción: perfil de prueba Jorge Silva carga exclusivamente Jorge, sin selector. Prueba local con libro proporcionado: cuatro correspondencias PASS, ningún dato de candidatos guardado.
+- Límites: prueba web con perfiles sintéticos mediante el mismo fragmento que genera el dashboard; no se inició sesión como cada reclutador en producción. Correspondencias confirmadas expresamente por el usuario.
+
+## 2026-10-19 — Smart Capture Ctrl+V (plan)
+- Causa probable: el evento paste del dashboard padre no llega al listener del iframe cuando el foco permanece en la pestaña.
+- Plan: escuchar pegado en editor y padre del mismo origen, retirar ambos listeners al desmontar; admitir items y files del portapapeles. No interceptar texto ni depender de permisos clipboard.read para Ctrl+V.
+- Validar foco fuera/dentro del marco, limpieza al salir y OCR/descarga conservados. Harness completo y prueba web con imagen ficticia antes de publicar.
+
+- Reproducción confirmada con iframe local y captura ficticia: pegado con foco en botón padre no carga imagen. Corrección: listener de paste en padre del mismo origen, fallback files, limpieza al desmontar y área de pegado enfocable. No cambia OCR, cobertura ni exportación. Pruebas de comportamiento añadidas; harness en curso.
+
+- Validación local: harness completo PASS (16 backend, 8 Smart Capture, 11 Tracker, build; 21 diagnósticos TS conocidos, 0 nuevos). Navegador con captura ficticia: pegado nativo con foco en padre y dentro del editor carga imagen y reconoce ANA PEREZ; texto normal conserva su pegado y la descarga se habilita tras revisión. Pruebas unitarias confirman limpieza y aislamiento de origen. Prueba nativa realizada en macOS, no en Windows. Publicación pendiente.

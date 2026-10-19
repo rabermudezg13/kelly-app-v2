@@ -10,7 +10,7 @@
     "start": "node server.js",
     "predev": "node scripts/prepare-capture.mjs && node scripts/prepare-dashtracker.mjs",
     "prebuild": "node scripts/prepare-capture.mjs && node scripts/prepare-dashtracker.mjs",
-    "test:capture": "node --experimental-strip-types --test src/smart-capture/geometry.test.mjs",
+    "test:capture": "node --experimental-strip-types --test src/smart-capture/*.test.mjs",
     "test:tracker": "node --test tests/dashtracker.test.mjs"
   },
   "dependencies": {

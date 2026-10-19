@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { clampCover, fileName, renderCovered, type Cover } from './geometry'
+import { listenForImagePaste } from './clipboard'
 import './capture.css'
 
 export default function SmartCapture() {
@@ -36,10 +37,7 @@ export default function SmartCapture() {
     }catch(error){if(job===generation.current)setStatus(error instanceof Error?error.message:'Unable to open the image.')}
     finally{if(job===generation.current)setBusy(false)}
   }
-  useEffect(()=>{
-    const paste=(event:ClipboardEvent)=>{const file=Array.from(event.clipboardData?.items||[]).find(i=>i.type.startsWith('image/'))?.getAsFile();if(file){event.preventDefault();void load(file)}}
-    window.addEventListener('paste',paste);return()=>window.removeEventListener('paste',paste)
-  },[])
+  useEffect(()=>listenForImagePaste(window,file=>{void load(file)}),[])
   const pasteButton=async()=>{try{const items=await navigator.clipboard.read();for(const item of items){const type=item.types.find(t=>t.startsWith('image/'));if(type){await load(await item.getType(type));return}}setStatus('There is no image on the clipboard.')}catch{setStatus('Click this panel and paste with Ctrl+V or ⌘V, or open an image.')}}
   const update=(cover:Cover)=>{if(!image)return;setReviewed(false);setCovers(old=>old.map((r,i)=>i===selected?clampCover(cover,image.naturalWidth,image.naturalHeight):r))}
   const point=(event:React.PointerEvent<HTMLDivElement>)=>{
@@ -63,7 +61,7 @@ export default function SmartCapture() {
       {image?<div className="image-stage" onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);dragging.current=true;point(e)}} onPointerMove={e=>{if(dragging.current)point(e)}} onPointerUp={()=>{dragging.current=false}} onPointerCancel={()=>{dragging.current=false}}>
         <canvas ref={canvas} aria-label="Preview with solid photo cover"/>
         {covers.map((r,i)=><button key={i} className={`cross ${i===selected?'selected':''}`} aria-label={`Select cover ${i+1}`} style={{left:`${(r.x+r.width/2)/image.naturalWidth*100}%`,top:`${(r.y+r.height/2)/image.naturalHeight*100}%`}} onPointerDown={e=>{e.stopPropagation();setSelected(i);dragging.current=true;(e.currentTarget.parentElement as HTMLElement).setPointerCapture(e.pointerId)}} onClick={()=>setSelected(i)}>×</button>)}
-      </div>:<div className="empty"><span className="paste-icon">▧</span><h3>Paste your screenshot here</h3><p>Ctrl+V or ⌘V · PNG, JPEG, or WebP</p><p>You can also open an image from your computer.</p></div>}
+      </div>:<div className="empty" tabIndex={0} role="region" aria-label="Paste screenshot here" onClick={event=>event.currentTarget.focus()}><span className="paste-icon">▧</span><h3>Paste your screenshot here</h3><p>Ctrl+V or ⌘V · PNG, JPEG, or WebP</p><p>You can also open an image from your computer.</p></div>}
       <p className="hint">Click the photo to place the X. Drag on the image to center the cover. The X is not included in the download.</p>
     </section><aside><h2>Prepare download</h2><label htmlFor="candidate">First and last name</label><input id="candidate" value={name} disabled={busy||!image} placeholder="First Last" onChange={e=>{setName(e.target.value);setReviewed(false)}}/><small>{fileName(name)}</small>
       <hr/><h3>Adjust photo cover</h3><p className="hint">Cover the entire photo, including hair and edges.</p>
