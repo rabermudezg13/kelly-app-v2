@@ -3,7 +3,7 @@
 Última actualización: 2026-10-19 (America/New_York).
 
 ## Estado actual — 2026-10-19
-- Smart Capture: corrección de pegado publicada en PR #18 (`9f00e30`), Vercel READY; comprobación web con captura ficticia y harness PASS.
+- Smart Capture: reconocimiento de capturas completas y cubierta independiente publicado en PR #19 (`0b24d96`), Vercel READY. Captura real validada localmente; prueba ficticia en producción y harness PASS. Pegado corregido previamente en PR #18.
 - Onboarding Tracker: filtro por reclutador publicado en PR #17 (`cd8c0c9`).
 - Detalles y límites en los cierres de cada tarea al final de este archivo.
 
@@ -324,3 +324,22 @@ y cubrió automáticamente el marco de foto. Solo falta la selección nativa de 
 - Reproducción confirmada en producción anterior con perfil ficticio reducido y desplazado dentro de pantalla 1920×1300: aparecen exactamente los avisos de nombre vacío y foto ausente. Nueva versión local encuentra el cuadro antes del OCR; verificación de nombre en curso. Harness completo PASS (16 backend, 9 captura, 11 tracker, build, 0 TS nuevos).
 
 - Verificación completada: misma captura completa que fallaba reconoce ANA PEREZ y ubica cuadro en (596,758); recorte original conserva nombre y cuadro. En origen local nuevo con idioma OCR forzado a HTTP 503, la cubierta permanece y se habilita nombre manual con aviso claro. Harness final PASS (16 backend, 9 Smart Capture, 11 Tracker, build; 21 TS conocidos/0 nuevos). Pendiente publicación.
+
+## Prueba con captura proporcionada — 2026-10-19
+- Imagen IMG_5541.PNG procesada exclusivamente en navegador local: ambos campos reconocidos correctamente y cuadro automático (65,89,200,200). PNG descargado al equipo con nombre esperado.
+- Verificación del PNG: dimensiones originales conservadas, toda la región de foto (68,94)-(259,284) opaca uniforme, tabla sin cambios. La captura se limpió del editor y portapapeles. No se incorporaron datos personales, imágenes ni nombre del candidato a Git/documentación.
+- PR #19 integrado en `0b24d96288f12d2c2c33e1642343ae20b8acbd21`; CI `39294396070` PASS. Despliegue y verificación final pendientes en este punto.
+
+## Cierre — reconocimiento de capturas, 2026-10-19
+- PR #19: `0b24d96288f12d2c2c33e1642343ae20b8acbd21`; CI `39294396070` PASS; Vercel producción READY `dpl_4epNgAA9WDFAd6w1hX8haLNtj9Sz`, alias principal asignado. Backend health 200.
+- Bundle de producción idéntico por SHA-256 al build local verificado. Navegador publicado con captura ficticia completa reconoce nombre y sugiere cuadro correcto. Imagen real del usuario comprobada exclusivamente en entorno local: nombre, opacidad completa, dimensiones y tabla preservadas.
+- Límites: no se probó teclado nativo Windows ni dashboard autenticado de producción. Detección es una sugerencia que exige revisión; texto ilegible puede necesitar entrada manual. No cambios de backend/datos. Cierre posterior al deploy guardado localmente para próxima sincronización documental.
+
+## 2026-10-21 — Registros visibles en inicio (plan)
+- Objetivo: facilitar registro desde el contenido principal; en móvil estaba escondido en menú de la derecha.
+- Plan explícito (modo de herramienta Plan no disponible): mostrar las seis opciones de visita bajo bienvenida en móvil/escritorio, mantener acceso de staff separado y reutilizar las mismas rutas actuales. Compartir catálogo con /register-visit para no divergir.
+- Criterios: opciones sin abrir menú, nombres legibles, enlaces correctos, navegación atrás y formularios existentes sin envíos de prueba a producción. Verificar móvil/escritorio, teclado, build y harness antes de publicar.
+
+- Corrección de alcance indicada por usuario: inicio debe mostrar únicamente Register Visit y Staff, iguales a las opciones del menú; las seis categorías siguen apareciendo solo tras elegir Register Visit. Se retiró la propuesta de accesos directos y catálogo compartido. /register-visit queda sin modificaciones.
+
+- Implementado: dos tarjetas principales visibles en todos los tamaños; menú móvil retirado, sin espacio de 43vh; registros antes de anuncios. /register-visit y formularios sin cambios. Pruebas: harness PASS (16 backend, 9 captura, 11 tracker, build; 21 TS conocidos/0 nuevos); navegador 390×844 y 375×667 sin desbordamiento, escritorio, Tab/Enter → categorías → formulario Info Session y Staff → login correctos. Sin enviar registros ni credenciales. Pendiente publicación.
