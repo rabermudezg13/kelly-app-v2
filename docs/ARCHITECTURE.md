@@ -83,3 +83,6 @@ El editor escucha eventos paste en su ventana y en el dashboard padre del mismo 
 
 ## Reconocimiento de capturas completas — 2026-10-19
 Smart Capture busca primero el marco del perfil y, si falta, amplía la búsqueda a la imagen completa con límites de tamaño y proporción. Esta sugerencia es independiente del OCR. La lectura amplía texto pequeño y reintenta sobre toda la captura cuando el encabezado no contiene ambos campos. Los resultados parciales se publican solo para la generación de imagen activa. Cada reconocimiento tiene límite de 30 segundos; procesamiento y recursos permanecen en el navegador.
+
+## Inicio y acceso al registro — 2026-10-21
+HomePage muestra Register Visit y Staff como tarjetas principales en todos los tamaños. Se elimina el menú móvil de tres puntos y el espacio inicial de 43vh; las tarjetas preceden a los anuncios. Register Visit continúa en /register-visit y allí se elige categoría; Staff continúa en /staff/login. No cambia ningún formulario ni endpoint.
