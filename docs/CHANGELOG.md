@@ -307,3 +307,19 @@ y cubrió automáticamente el marco de foto. Solo falta la selección nativa de 
 - Implementación: pestaña común de carga diferida en los siete dashboards; solo Name/Phone, deduplicación opcional, teléfono US 10/11 dígitos, revisión obligatoria y lotes individuales. Prompt editable separado, copia/fallback manual. Sin dependencias nuevas ni API IA/Sense.
 - Validación: harness PASS (16 backend, 9 captura, 11 tracker, 6 Text Talents; build y 21 TS conocidos/0 nuevos). Libro real procesado solo localmente: 1204 contactos válidos, 1 fila omitida, lotes 180×6 +124. Descargas reales primer/último CSV validadas con lector independiente: dos columnas y 180/124 filas; no PII en logs/reportes.
 - Navegador: siete roles ficticios con API local, pestañas abiertas y Admin vuelve a sus herramientas; cambio de hoja y limpieza; retención normal al cambiar pestaña Staff; fecha seleccionada con calendario y CTA actualizan prompt y copia sin teléfonos; móvil 390×844 sin desbordamiento. Capturas solo con fixture ficticio. Pendiente publicación; importación real en Sense no probada.
+
+## Cierre — Text Talents, 2026-10-23
+- PR #22 integrado: `252d87bd606605aeff1dd53636757c5978e3ac2f`; CI `39993209047` PASS. Vercel producción READY `dpl_FGnQewM5x4ataJGV31PGtWVwWvQe`, alias principal asignado; backend health 200.
+- Recursos JS/CSS publicados HTTP 200; CSS idéntico al local y código del módulo idéntico al normalizar nombres de dependencias generados por build. Navegación/funcionalidad probadas en siete roles con API ficticia local, no con sesiones autenticadas reales de producción.
+- Libro real leído/exportado solo localmente; no contactos en Git, capturas ni reportes. CSV inicial/final verificados independientemente. Screenshots usan contactos ficticios. No se envió ningún SMS, ni contactos a IA/Sense.
+- Disponible en todos los dashboards de roles; prompt con fecha, tono, idioma y CTA. Importación real de Sense pendiente de validar con plantilla de cuenta. Mantener revisión de excluidos y mapeo antes de usar los CSV.
+- Plan, implementación y pruebas publicados en PR #22; este cierre posterior al deploy queda local para próxima sincronización documental.
+
+## 2026-10-23 — Alfred
+- Estado: en curso, rama codex/alfred.
+- Objetivo: command deck editable en los siete dashboards, basado en treamdeck (63a1727).
+- Plan: copia de texto/comandos, enlaces, grupos, cuadrícula, búsqueda y respaldo JSON; persistencia local por usuario, interfaz English moderna y adaptable. Sin ejecución de scripts ni cambios de API/datos.
+- Verificación pendiente: comportamiento, aislamiento/validación, navegador y harness. Ver memory.md para criterios previos a implementación.
+- Implementado: Copy text/Open link exclusivamente, botones editables, grupos, búsqueda y respaldos; límites/esquema/URLs validados y preferencias locales aisladas por ID de usuario. Legacy script se importa como texto. Native links con noopener/noreferrer; sin ejecutar programas.
+- Verificado localmente: siete dashboards con perfiles/API ficticios; creación/edición/copia/recarga, grupos/búsqueda, exportación/importación y enlace en nueva pestaña. Móvil 390px sin overflow. Se conserva navegación y consultas previas. Harness final pendiente antes de publicación. Detalles docs/ALFRED.md.
+- Harness final PASS: 16 backend, 9 captura, 11 tracker, 6 Text Talents, 6 Alfred; build y 21 TS conocidos/0 nuevos. Navegador adicional: separación por dos IDs ficticios, rechazo javascript, Escape, columnas, regreso a Admin. Sin modificaciones de backend ni registros reales. Publicación pendiente.

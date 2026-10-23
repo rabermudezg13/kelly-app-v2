@@ -12,7 +12,8 @@
     "prebuild": "node scripts/prepare-capture.mjs && node scripts/prepare-dashtracker.mjs",
     "test:capture": "node --experimental-strip-types --test src/smart-capture/*.test.mjs",
     "test:tracker": "node --test tests/dashtracker.test.mjs",
-    "test:text-talents": "node --experimental-strip-types --test src/text-talents/*.test.mjs"
+    "test:text-talents": "node --experimental-strip-types --test src/text-talents/*.test.mjs",
+    "test:alfred": "node --experimental-strip-types --test src/alfred/core.test.mjs"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "1.1.1",

@@ -88,3 +88,9 @@ Verificar los seis dashboards (Staff, Management, Frontdesk, Talent, User, Recru
 
 ## Text Talents
 El harness incluye test:text-talents: partición en máximo 180, formato CSV, teléfonos/duplicados/excluidos, selección de hoja/encabezados y plantilla. Prueba web: abrir desde los siete roles, importar workbook ficticio/real local sin registrar PII, revisar y descargar primer/último lote, cambiar hoja, limpiar y copiar prompt con nueva fecha/CTA. Ver docs/TEXT_TALENTS.md para límites y privacidad.
+
+## Alfred
+`npm run test:alfred` included in harness: backup compatibility/schema/size limits,
+URL protocols/credentials, content preservation and user key isolation. Browser
+checks use synthetic data across seven roles, edit/copy/reload, groups, backup,
+links and mobile layout. No production data writes.

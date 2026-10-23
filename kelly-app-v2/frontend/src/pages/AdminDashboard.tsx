@@ -6,10 +6,11 @@ import PCListCheck from '../components/PCListCheck'
 import RecruiterManagement from '../components/RecruiterManagement'
 import DataArchiveManagement from '../components/DataArchiveManagement'
 import TextTalentsPanel from '../components/TextTalentsPanel'
+import AlfredPanel from '../components/AlfredPanel'
 
 function AdminDashboard() {
   const navigate = useNavigate()
-  const [showTextTalents, setShowTextTalents] = useState(false)
+  const [activeSection, setActiveSection] = useState<'dashboard'|'text-talents'|'alfred'>('dashboard')
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -242,11 +243,13 @@ function AdminDashboard() {
         </div>
 
         <div className="mb-6 flex flex-wrap gap-3" aria-label="Dashboard sections">
-          <button aria-pressed={!showTextTalents} onClick={()=>setShowTextTalents(false)} className="rounded-lg bg-white px-6 py-3 font-semibold text-gray-900">Dashboard</button>
-          <button aria-pressed={showTextTalents} onClick={()=>setShowTextTalents(true)} className="rounded-lg bg-emerald-700 px-6 py-3 font-semibold text-white">💬 Text Talents</button>
+          <button aria-pressed={activeSection === 'dashboard'} onClick={()=>setActiveSection('dashboard')} className="rounded-lg bg-white px-6 py-3 font-semibold text-gray-900">Dashboard</button>
+          <button aria-pressed={activeSection === 'text-talents'} onClick={()=>setActiveSection('text-talents')} className="rounded-lg bg-emerald-700 px-6 py-3 font-semibold text-white">💬 Text Talents</button>
+          <button aria-pressed={activeSection === 'alfred'} onClick={()=>setActiveSection('alfred')} className="rounded-lg bg-white px-6 py-3 font-semibold text-gray-900">▦ Alfred</button>
         </div>
-        <TextTalentsPanel active={showTextTalents} />
-        <div hidden={showTextTalents}>
+        <TextTalentsPanel active={activeSection === 'text-talents'} />
+        <AlfredPanel active={activeSection === 'alfred'} />
+        <div hidden={activeSection !== 'dashboard'}>
         {/* Messages */}
         {error && (
           <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
