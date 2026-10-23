@@ -290,3 +290,20 @@ y cubrió automáticamente el marco de foto. Solo falta la selección nativa de 
 - No eliminar tablas, registros, snapshots de archivo ni API backend histórica. Sin migraciones. Validar navegación con datos ficticios, redirecciones y harness completo antes de publicar.
 
 - Implementado y verificado: harness completo PASS (16 backend, 9 Smart Capture, 11 Tracker, build; 21 TS conocidos/0 nuevos). Navegador mediante login UI con seis roles ficticios y API local: pestañas retiradas ausentes, NHO y módulos vigentes presentes; Info Session Progress abre sin Open TV Kiosk. Ambas rutas antiguas redirigen correctamente. Sin sesiones ni datos reales de producción. Pendiente publicación.
+
+## Cierre — TV Kiosk y Storage retirados, 2026-10-23
+- PR #21 integrado: `163c4cd78099d75b316de741c0b07de0375b5ccf`; CI `39986280212` PASS. Vercel producción READY `dpl_BofHuRnPAFrgbstqH4J3YiS1rYb4`, alias principal asignado. Backend health 200.
+- Publicación comprobada: ruta Storage antigua redirige a inicio en navegador; bundle publicado contiene redirecciones TV → progreso normal y Storage → inicio. TV Kiosk solo aparece en metadatos Git de Vercel, no como etiqueta de interfaz. El bundle no coincide por hash con local debido a metadatos Vercel; no se afirma identidad binaria.
+- Seis dashboards verificados mediante login UI con perfiles ficticios y API local; no se inició sesión en dashboards reales de producción. Info Session Progress normal conservado. No se tocaron tablas, registros ni snapshots Storage.
+- Plan y pruebas previas están publicados en PR #21; cierre posterior al despliegue guardado localmente para próxima sincronización documental.
+
+## 2026-10-23 — Text Talents (plan)
+- Usuario solicita pestaña en todos los dashboards: Excel → CSV con máximo 180 registros (más encabezado) y prompt copiable para invitar sustitutos a trabajar un día concreto, con engagement/CTA. Confirmó exportar solo nombre y teléfono.
+- Estructura revisada localmente: Substitute/Identifier/Email/Phone/Address/Substitute Creation Date/Call Details. No guardar contactos en Git, fixtures ni reportes. Una fila sin teléfono requiere revisión explícita.
+- Plan explícito: módulo común local, selección de hoja y columnas, resumen de válidos/excluidos/duplicados, lotes ordenados de 180, encabezados Name/Phone, CSV UTF-8 con escape y conservación de teléfonos; revisión previa. No importar automáticamente columnas privadas.
+- Prompt independiente de los contactos, con fecha, zona, tono, idioma, detalles verificados y CTA; copiar para IA externa a elección sin llamada IA ni envío de SMS. English UI. Conservar archivo al cambiar pestañas durante la sesión, liberar al salir.
+- Integrar Staff/Management/Frontdesk/Talent/User/Recruiter/Admin sin tocar consultas semanales ni formularios. Pruebas de límites, formato, teléfonos, hojas/columnas faltantes, cambio de archivo, prompt sin contactos; harness y navegador antes de publicar. Sense requiere mapear columnas usando su plantilla/configuración de cuenta, no se afirma envío probado.
+
+- Implementación: pestaña común de carga diferida en los siete dashboards; solo Name/Phone, deduplicación opcional, teléfono US 10/11 dígitos, revisión obligatoria y lotes individuales. Prompt editable separado, copia/fallback manual. Sin dependencias nuevas ni API IA/Sense.
+- Validación: harness PASS (16 backend, 9 captura, 11 tracker, 6 Text Talents; build y 21 TS conocidos/0 nuevos). Libro real procesado solo localmente: 1204 contactos válidos, 1 fila omitida, lotes 180×6 +124. Descargas reales primer/último CSV validadas con lector independiente: dos columnas y 180/124 filas; no PII en logs/reportes.
+- Navegador: siete roles ficticios con API local, pestañas abiertas y Admin vuelve a sus herramientas; cambio de hoja y limpieza; retención normal al cambiar pestaña Staff; fecha seleccionada con calendario y CTA actualizan prompt y copia sin teléfonos; móvil 390×844 sin desbordamiento. Capturas solo con fixture ficticio. Pendiente publicación; importación real en Sense no probada.

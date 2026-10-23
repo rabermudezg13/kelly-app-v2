@@ -5,9 +5,11 @@ import type { User } from '../types'
 import PCListCheck from '../components/PCListCheck'
 import RecruiterManagement from '../components/RecruiterManagement'
 import DataArchiveManagement from '../components/DataArchiveManagement'
+import TextTalentsPanel from '../components/TextTalentsPanel'
 
 function AdminDashboard() {
   const navigate = useNavigate()
+  const [showTextTalents, setShowTextTalents] = useState(false)
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -239,6 +241,12 @@ function AdminDashboard() {
           </div>
         </div>
 
+        <div className="mb-6 flex flex-wrap gap-3" aria-label="Dashboard sections">
+          <button aria-pressed={!showTextTalents} onClick={()=>setShowTextTalents(false)} className="rounded-lg bg-white px-6 py-3 font-semibold text-gray-900">Dashboard</button>
+          <button aria-pressed={showTextTalents} onClick={()=>setShowTextTalents(true)} className="rounded-lg bg-emerald-700 px-6 py-3 font-semibold text-white">💬 Text Talents</button>
+        </div>
+        <TextTalentsPanel active={showTextTalents} />
+        <div hidden={showTextTalents}>
         {/* Messages */}
         {error && (
           <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -500,6 +508,7 @@ function AdminDashboard() {
         {/* Recruiter Management Section */}
         <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
           <RecruiterManagement isAdmin={true} showDashboardLinks={true} />
+        </div>
         </div>
       </div>
     </div>

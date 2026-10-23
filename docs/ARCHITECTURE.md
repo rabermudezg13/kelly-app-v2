@@ -89,3 +89,6 @@ HomePage muestra Register Visit y Staff como tarjetas principales en todos los t
 
 ## Módulos retirados — 2026-10-23
 Se retiraron TV Kiosk y Storage de los dashboards y sus pantallas frontend. Los enlaces antiguos redirigen mediante replace: TV a Info Session Progress normal, códigos Storage al inicio. Info Session Progress permanece. El backend Storage, sus tablas y snapshots históricos se conservan sin modificaciones; no hay migraciones ni borrados de datos.
+
+## Text Talents
+TextTalentsPanel compartido en los siete dashboards, con carga diferida de React y XLSX al abrir. No importa servicios API ni persiste contactos. El componente genera CSVs de dos columnas de hasta 180 contactos y un prompt independiente de los datos. Estado local mientras siga montado; sin caché de contactos entre sesiones. Ver TEXT_TALENTS.md.
