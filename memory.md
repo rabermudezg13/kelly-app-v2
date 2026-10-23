@@ -3,6 +3,8 @@
 Última actualización: 2026-10-23 (America/New_York).
 
 ## Estado actual — 2026-10-23
+- Alfred implementado/verificado localmente en siete dashboards, pendiente publicación; Stream Deck solo enlaces/copia con preferencias locales por usuario.
+- Text Talents publicado en los siete dashboards, PR #22 (`252d87b`), Vercel READY: Excel local a CSV Name/Phone de máximo 180 contactos y plantilla de prompt de invitación. Harness/CI y navegador local correctos; Sense real no probado.
 - TV Kiosk y Storage retirados de los seis dashboards y pantallas frontend. PR #21 (`163c4cd`), Vercel READY. Datos y backend históricos conservados; Info Session Progress normal permanece.
 - Inicio: Register Visit y Staff visibles directamente en móvil y escritorio. Categorías solo después de Register Visit. Publicado PR #20 (`2b5d8fd`), Vercel READY, navegación comprobada.
 - Smart Capture: reconocimiento de capturas completas y cubierta independiente publicado en PR #19 (`0b24d96`), Vercel READY. Captura real validada localmente; prueba ficticia en producción y harness PASS. Pegado corregido previamente en PR #18.
@@ -374,3 +376,21 @@ y cubrió automáticamente el marco de foto. Solo falta la selección nativa de 
 - Implementación: pestaña común de carga diferida en los siete dashboards; solo Name/Phone, deduplicación opcional, teléfono US 10/11 dígitos, revisión obligatoria y lotes individuales. Prompt editable separado, copia/fallback manual. Sin dependencias nuevas ni API IA/Sense.
 - Validación: harness PASS (16 backend, 9 captura, 11 tracker, 6 Text Talents; build y 21 TS conocidos/0 nuevos). Libro real procesado solo localmente: 1204 contactos válidos, 1 fila omitida, lotes 180×6 +124. Descargas reales primer/último CSV validadas con lector independiente: dos columnas y 180/124 filas; no PII en logs/reportes.
 - Navegador: siete roles ficticios con API local, pestañas abiertas y Admin vuelve a sus herramientas; cambio de hoja y limpieza; retención normal al cambiar pestaña Staff; fecha seleccionada con calendario y CTA actualizan prompt y copia sin teléfonos; móvil 390×844 sin desbordamiento. Capturas solo con fixture ficticio. Pendiente publicación; importación real en Sense no probada.
+
+## Cierre — Text Talents, 2026-10-23
+- PR #22 integrado: `252d87bd606605aeff1dd53636757c5978e3ac2f`; CI `39993209047` PASS. Vercel producción READY `dpl_FGnQewM5x4ataJGV31PGtWVwWvQe`, alias principal asignado; backend health 200.
+- Recursos JS/CSS publicados HTTP 200; CSS idéntico al local y código del módulo idéntico al normalizar nombres de dependencias generados por build. Navegación/funcionalidad probadas en siete roles con API ficticia local, no con sesiones autenticadas reales de producción.
+- Libro real leído/exportado solo localmente; no contactos en Git, capturas ni reportes. CSV inicial/final verificados independientemente. Screenshots usan contactos ficticios. No se envió ningún SMS, ni contactos a IA/Sense.
+- Disponible en todos los dashboards de roles; prompt con fecha, tono, idioma y CTA. Importación real de Sense pendiente de validar con plantilla de cuenta. Mantener revisión de excluidos y mapeo antes de usar los CSV.
+- Plan, implementación y pruebas publicados en PR #22; este cierre posterior al deploy queda local para próxima sincronización documental.
+
+## 2026-10-23 — Alfred (plan explícito)
+- Base revisada: treamdeck commit 63a17278d7da5859c82c7e50d925b771a42857db, una página KeyForge. Copiar texto/comandos, abrir URL, grupos renombrables, cuadrícula 3–6, respaldo JSON y edición de botones. Los scripts originales solo se copian.
+- Plan (herramienta Plan no disponible): módulo React compartido diferido en siete dashboards, CSS acotado, botones accesibles con edición visible, búsqueda, grupos y respaldos compatibles. Persistencia local versionada por usuario autenticado; sin sincronización entre equipos ni backend nuevo.
+- Validar esquema/tamaño de importación, enlaces http/https sin credenciales, sin HTML ejecutable ni ejecución de scripts. Confirmar reemplazo/importación y borrados; informar fallos de almacenamiento/portapapeles. No guardar datos personales ni secretos en botones.
+- Criterios: crear/editar/borrar, copiar/abrir, renombrar grupos, conservar al recargar y aislar usuarios; móvil/teclado y siete roles; pruebas de validación/compatibilidad y harness completo antes de integrar/publicar. Conservar NHO y módulos anteriores.
+- Aclaración del usuario: es un Stream Deck web. Solo dos acciones expuestas: abrir enlaces y copiar el contenido del botón. Se retira opción de comandos; respaldos antiguos script se convierten a copia de texto, nunca se ejecutan.
+- Implementado en siete roles: Stream Deck con solo Copy text/Open link, edición visible, grupos, búsqueda, columnas y respaldos compatibles. HTML importado no se ejecuta; scripts legacy normalizados a texto. Validación acotada y guardado por usuario/navegador con aviso ante fallo, sin backend nuevo.
+- Navegador con API/perfiles ficticios: siete roles abren Alfred; crear/editar/copiar al clipboard, persistencia tras recarga, crear/renombrar grupo, búsqueda, exportación y restauración confirmada, enlace nativo en nueva pestaña correctos. Móvil 390px sin overflow. Capturas solo con contenido ficticio. No sesiones reales ni datos de producción usados.
+- Verificación final local PASS: 16 backend, 9 Smart Capture, 11 Tracker, 6 Text Talents y 6 Alfred; build correcto, 21 TS conocidos y 0 nuevos. Segundo usuario ficticio con ID distinto no recibe botón personalizado del primero. URL javascript rechazada en editor, Escape cierra diálogo y columnas se guardan. Admin vuelve a herramientas previas.
+- Revisión React: carga diferida, sin listeners globales ni HTML inyectado, diálogos nativos con teclado/foco, CSS acotado; enlaces nativos target=_blank con noopener/noreferrer. Publicación pendiente.

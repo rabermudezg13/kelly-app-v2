@@ -7,10 +7,11 @@ import StatisticsDashboard from './StatisticsDashboard'
 import EventManagement from '../components/EventManagement'
 import PCListCheck from '../components/PCListCheck'
 import TextTalentsPanel from '../components/TextTalentsPanel'
+import AlfredPanel from '../components/AlfredPanel'
 import RecruiterManagement from '../components/RecruiterManagement'
 import InfoSessionProgressPage from './InfoSessionProgressPage'
 
-type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'pc-check' | 'recruiters' | 'info-session-progress' | 'text-talents'
+type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'pc-check' | 'recruiters' | 'info-session-progress' | 'text-talents' | 'alfred'
 
 function FrontdeskDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('info-session')
@@ -1154,6 +1155,7 @@ function FrontdeskDashboard() {
               🎟️ Event
             </button>
             <button aria-pressed={activeTab === 'text-talents'} onClick={() => setActiveTab('text-talents')} className={`px-6 py-3 font-semibold transition-colors ${activeTab === 'text-talents' ? 'bg-emerald-700 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>💬 Text Talents</button>
+            <button aria-pressed={activeTab === 'alfred'} onClick={() => setActiveTab('alfred')} className={`px-6 py-3 font-semibold transition-colors ${activeTab === 'alfred' ? 'bg-emerald-700 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>▦ Alfred</button>
             <button
               aria-pressed={activeTab === 'pc-check'}
               onClick={() => setActiveTab('pc-check')}
@@ -1195,7 +1197,8 @@ function FrontdeskDashboard() {
 
         {/* Content */}
         <TextTalentsPanel active={activeTab === 'text-talents'} />
-        <div hidden={activeTab === 'text-talents'} className="bg-white rounded-lg shadow-lg p-6">
+        <AlfredPanel active={activeTab === 'alfred'} />
+        <div hidden={activeTab === 'text-talents' || activeTab === 'alfred'} className="bg-white rounded-lg shadow-lg p-6">
           {activeTab === 'info-session' && renderInfoSessionLive()}
           {activeTab === 'info-session-progress' && <InfoSessionProgressPage />}
           {activeTab === 'info-session-completed' && renderInfoSessionCompleted()}

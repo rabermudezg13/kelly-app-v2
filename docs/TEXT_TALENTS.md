@@ -23,3 +23,10 @@ No se ha enviado un broadcast ni se ha importado una lista real en Sense como pr
 ## Validación
 `npm run test:text-talents` incluido en scripts/verify.py. Casos: límites 0/180/181/360/1204, orden, formato de dos columnas, comillas/Unicode/nuevas líneas, seguridad de celdas, teléfonos, duplicados, columnas/hojas y prompt.
 Usar fixtures ficticios para screenshots. Archivo real solo lectura/procesamiento local; no contactos en Git, logs o reportes. Comprobar importación, revisión, descargas, cambio de hoja, clear, copia, navegación de roles y vista móvil en navegador antes de publicar.
+
+## Cierre — Text Talents, 2026-10-23
+- PR #22 integrado: `252d87bd606605aeff1dd53636757c5978e3ac2f`; CI `39993209047` PASS. Vercel producción READY `dpl_FGnQewM5x4ataJGV31PGtWVwWvQe`, alias principal asignado; backend health 200.
+- Recursos JS/CSS publicados HTTP 200; CSS idéntico al local y código del módulo idéntico al normalizar nombres de dependencias generados por build. Navegación/funcionalidad probadas en siete roles con API ficticia local, no con sesiones autenticadas reales de producción.
+- Libro real leído/exportado solo localmente; no contactos en Git, capturas ni reportes. CSV inicial/final verificados independientemente. Screenshots usan contactos ficticios. No se envió ningún SMS, ni contactos a IA/Sense.
+- Disponible en todos los dashboards de roles; prompt con fecha, tono, idioma y CTA. Importación real de Sense pendiente de validar con plantilla de cuenta. Mantener revisión de excluidos y mapeo antes de usar los CSV.
+- Plan, implementación y pruebas publicados en PR #22; este cierre posterior al deploy queda local para próxima sincronización documental.

@@ -92,3 +92,9 @@ Se retiraron TV Kiosk y Storage de los dashboards y sus pantallas frontend. Los 
 
 ## Text Talents
 TextTalentsPanel compartido en los siete dashboards, con carga diferida de React y XLSX al abrir. No importa servicios API ni persiste contactos. El componente genera CSVs de dos columnas de hasta 180 contactos y un prompt independiente de los datos. Estado local mientras siga montado; sin caché de contactos entre sesiones. Ver TEXT_TALENTS.md.
+
+## Alfred
+Shared lazy AlfredPanel in seven role dashboards. Browser-local versioned preferences
+scoped by authenticated user ID; copy text/open http(s) links only. Groups, search,
+JSON backups with schema/size validation; legacy KeyForge script becomes text.
+No API/schema changes or command execution. See ALFRED.md.

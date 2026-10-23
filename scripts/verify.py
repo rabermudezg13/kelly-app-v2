@@ -65,6 +65,7 @@ def main():
         run("smart-capture-tests", ["npm", "run", "test:capture"], FRONTEND)
         run("dashtracker-tests", ["npm", "run", "test:tracker"], FRONTEND)
         run("text-talents-tests", ["npm", "run", "test:text-talents"], FRONTEND)
+        run("alfred-tests", ["npm", "run", "test:alfred"], FRONTEND)
         run("frontend-build", ["npm", "run", "build"], FRONTEND)
 
         def check_types(code, output):

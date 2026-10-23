@@ -40,9 +40,10 @@ import StatisticsDashboard from './StatisticsDashboard'
 import EventManagement from '../components/EventManagement'
 import PCListCheck from '../components/PCListCheck'
 import TextTalentsPanel from '../components/TextTalentsPanel'
+import AlfredPanel from '../components/AlfredPanel'
 import * as XLSX from 'xlsx'
 
-type RecruiterTabType = 'sessions' | 'all-info-sessions' | 'new-hire-orientation' | 'fingerprints' | 'badges' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'ksn-tool' | 'pc-check' | 'smart-capture' | 'dashtracker' | 'text-talents'
+type RecruiterTabType = 'sessions' | 'all-info-sessions' | 'new-hire-orientation' | 'fingerprints' | 'badges' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'ksn-tool' | 'pc-check' | 'smart-capture' | 'dashtracker' | 'text-talents' | 'alfred'
 
 function RecruiterDashboard() {
   const { recruiterId } = useParams<{ recruiterId: string }>()
@@ -2166,6 +2167,7 @@ function RecruiterDashboard() {
               🔧 KSN Tool
             </button>
             <button aria-pressed={activeTab === 'text-talents'} onClick={() => setActiveTab('text-talents')} className={`px-6 py-3 font-semibold transition-colors ${activeTab === 'text-talents' ? 'bg-emerald-700 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>💬 Text Talents</button>
+            <button aria-pressed={activeTab === 'alfred'} onClick={() => setActiveTab('alfred')} className={`px-6 py-3 font-semibold transition-colors ${activeTab === 'alfred' ? 'bg-emerald-700 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>▦ Alfred</button>
             <button
               aria-pressed={activeTab === 'pc-check'}
               onClick={() => setActiveTab('pc-check')}
@@ -2182,10 +2184,11 @@ function RecruiterDashboard() {
 
         {/* Content */}
         <TextTalentsPanel active={activeTab === 'text-talents'} />
+        <AlfredPanel active={activeTab === 'alfred'} />
         {trackerOpened && <div hidden={activeTab !== 'dashtracker'}>
           <iframe key={recruiterId} title="Kelly Onboarding Tracker" src={`/dashtracker/index.html#${encodeURIComponent(JSON.stringify({id:recruiterId,name:recruiter.name,email:recruiter.email}))}`} allow="clipboard-write" style={{width:'100%',height:'90vh',minHeight:700,border:0,borderRadius:18}} />
         </div>}
-        {activeTab === 'text-talents' || activeTab === 'dashtracker' ? null : activeTab === 'smart-capture' ? (
+        {activeTab === 'alfred' || activeTab === 'text-talents' || activeTab === 'dashtracker' ? null : activeTab === 'smart-capture' ? (
           <iframe title="Kelly Smart Capture" src="/smart-capture.html" allow="clipboard-read" style={{width:'100%',height:'min(1100px, 90vh)',minHeight:700,border:0,borderRadius:18}} />
 
         ) : activeTab === 'ksn-tool' ? (
