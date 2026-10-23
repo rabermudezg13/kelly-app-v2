@@ -278,3 +278,15 @@ y cubrió automáticamente el marco de foto. Solo falta la selección nativa de 
 - Corrección de alcance indicada por usuario: inicio debe mostrar únicamente Register Visit y Staff, iguales a las opciones del menú; las seis categorías siguen apareciendo solo tras elegir Register Visit. Se retiró la propuesta de accesos directos y catálogo compartido. /register-visit queda sin modificaciones.
 
 - Implementado: dos tarjetas principales visibles en todos los tamaños; menú móvil retirado, sin espacio de 43vh; registros antes de anuncios. /register-visit y formularios sin cambios. Pruebas: harness PASS (16 backend, 9 captura, 11 tracker, build; 21 TS conocidos/0 nuevos); navegador 390×844 y 375×667 sin desbordamiento, escritorio, Tab/Enter → categorías → formulario Info Session y Staff → login correctos. Sin enviar registros ni credenciales. Pendiente publicación.
+
+## Cierre — accesos de inicio, 2026-10-21
+- PR #20 integrado: `2b5d8fd9bfaa6ba39eb266958fbf407444961ce8`; CI `39598337726` PASS. Vercel producción READY `dpl_9kTzuhohe68fnZokhGh66qixs3WM`, alias kelly-app-v2.vercel.app asignado. Backend health 200.
+- Navegador de producción en móvil: dos tarjetas Register Visit/Staff visibles en inicio; Register Visit abre las seis categorías y Staff abre login. Sin envíos de formularios ni credenciales. Escritorio/teclado y ausencia de desbordamiento comprobados localmente.
+- Formularios, categorías, APIs y datos sin cambios. Plan y validación previa publicados en PR #20; este cierre posterior al deploy se guarda localmente para próxima sincronización documental.
+
+## 2026-10-23 — Retirar TV Kiosk y Storage (plan)
+- Alcance: retirar pestañas, renders e imports de los seis dashboards que los ofrecen; eliminar acceso Open TV Kiosk en Info Session Progress. Conservar Info Session Progress normal.
+- Retirar pantallas/componentes frontend obsoletos y cliente Storage sin consumidores. Enlaces antiguos /info-session-progress/tv → /info-session-progress y /storage/scan/:code → inicio, con replace.
+- No eliminar tablas, registros, snapshots de archivo ni API backend histórica. Sin migraciones. Validar navegación con datos ficticios, redirecciones y harness completo antes de publicar.
+
+- Implementado y verificado: harness completo PASS (16 backend, 9 Smart Capture, 11 Tracker, build; 21 TS conocidos/0 nuevos). Navegador mediante login UI con seis roles ficticios y API local: pestañas retiradas ausentes, NHO y módulos vigentes presentes; Info Session Progress abre sin Open TV Kiosk. Ambas rutas antiguas redirigen correctamente. Sin sesiones ni datos reales de producción. Pendiente publicación.
