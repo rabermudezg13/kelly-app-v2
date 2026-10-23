@@ -82,3 +82,6 @@ El perfil del dashboard determina la hoja mediante correspondencias explícitas.
 El editor escucha eventos paste en su ventana y en el dashboard padre del mismo origen. No usa lectura programática del portapapeles para el atajo. Se extrae una imagen desde items o files; el texto sigue su comportamiento normal. Al desmontar el iframe se retiran ambos listeners. Probar foco en pestaña padre y dentro del editor, pegado de texto, aislamiento entre orígenes y limpieza.
 
 Para reconocimiento Smart Capture, probar también un perfil ficticio reducido y desplazado dentro de una pantalla completa: nombre y cubierta deben recuperarse. El caso geométrico rechaza una barra horizontal y una imagen vacía. En navegador comprobar el recorte original, la captura completa y que una falla OCR conserve la sugerencia de cubierta y permita edición manual.
+
+## Retirada de módulos — 2026-10-23
+Verificar los seis dashboards (Staff, Management, Frontdesk, Talent, User, Recruiter): sin pestañas Storage/TV Kiosk, con NHO y sus demás secciones. Info Session Progress normal no debe ofrecer Open TV Kiosk. Enlaces antiguos redirigen a progreso normal y al inicio respectivamente. Usar usuarios y respuestas ficticios locales; no crear registros de producción. Backend Storage y snapshots históricos se conservan.

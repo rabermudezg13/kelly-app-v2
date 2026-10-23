@@ -5,13 +5,11 @@ import { formatMiamiTime, getMiamiDateKey, formatMiamiDateDisplay } from '../uti
 import CHRPage from './CHRPage'
 import StatisticsDashboard from './StatisticsDashboard'
 import EventManagement from '../components/EventManagement'
-import StorageManagement from '../components/StorageManagement'
 import PCListCheck from '../components/PCListCheck'
 import RecruiterManagement from '../components/RecruiterManagement'
 import InfoSessionProgressPage from './InfoSessionProgressPage'
-import InfoSessionProgressTV from './InfoSessionProgressTV'
 
-type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'storage' | 'pc-check' | 'recruiters' | 'info-session-progress' | 'tv-kiosk'
+type TabType = 'info-session' | 'info-session-completed' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'pc-check' | 'recruiters' | 'info-session-progress'
 
 function ManagementDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('info-session')
@@ -1098,17 +1096,6 @@ function ManagementDashboard() {
               🎟️ Event
             </button>
             <button
-              aria-pressed={activeTab === 'storage'}
-              onClick={() => setActiveTab('storage')}
-              className={`px-6 py-3 font-semibold transition-colors ${
-                activeTab === 'storage'
-                  ? 'bg-teal-600 text-white border-b-2 border-teal-600'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              📦 Storage
-            </button>
-            <button
               aria-pressed={activeTab === 'pc-check'}
               onClick={() => setActiveTab('pc-check')}
               className={`px-6 py-3 font-semibold transition-colors ${
@@ -1135,17 +1122,6 @@ function ManagementDashboard() {
 
         <div className="mb-4 flex flex-wrap justify-end gap-2">
           <button
-            aria-pressed={activeTab === 'tv-kiosk'}
-              onClick={() => setActiveTab('tv-kiosk')}
-            className={`px-5 py-3 rounded-lg font-semibold transition-colors ${
-              activeTab === 'tv-kiosk'
-                ? 'bg-gray-950 text-white'
-                : 'bg-white text-gray-900 border border-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            📺 TV Kiosk
-          </button>
-          <button
             aria-pressed={activeTab === 'info-session-progress'}
               onClick={() => setActiveTab('info-session-progress')}
             className={`px-5 py-3 rounded-lg font-semibold transition-colors ${
@@ -1161,7 +1137,6 @@ function ManagementDashboard() {
         {/* Content */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           {activeTab === 'info-session' && renderInfoSessionLive()}
-          {activeTab === 'tv-kiosk' && <InfoSessionProgressTV />}
           {activeTab === 'info-session-progress' && <InfoSessionProgressPage />}
           {activeTab === 'info-session-completed' && renderInfoSessionCompleted()}
           {activeTab === 'new-hire-orientation' && renderNewHireOrientations()}
@@ -1171,7 +1146,6 @@ function ManagementDashboard() {
           {activeTab === 'statistics' && <StatisticsDashboard />}
           {activeTab === 'chr' && <CHRPage />}
           {activeTab === 'event' && <EventManagement />}
-          {activeTab === 'storage' && <StorageManagement />}
           {activeTab === 'pc-check' && <PCListCheck />}
           {activeTab === 'recruiters' && <RecruiterManagement isAdmin={false} showDashboardLinks={true} />}
         </div>

@@ -66,10 +66,6 @@ export default function InfoSessionProgressPage() {
           <h2 className="text-2xl font-bold text-gray-900">Info Session Progress</h2>
           <p className="text-sm text-gray-600">Today's Info Session visitors. Updates are shared with all staff.</p>
         </div>
-        <a href="/info-session-progress/tv" target="_blank" rel="noreferrer"
-          className="rounded-lg bg-gray-900 px-4 py-2 font-semibold text-white hover:bg-black">
-          Open TV Kiosk
-        </a>
       </div>
 
       {loading ? <p className="py-10 text-center">Loading...</p> : rows.length === 0 ? (

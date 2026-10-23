@@ -86,3 +86,6 @@ Smart Capture busca primero el marco del perfil y, si falta, amplía la búsqued
 
 ## Inicio y acceso al registro — 2026-10-21
 HomePage muestra Register Visit y Staff como tarjetas principales en todos los tamaños. Se elimina el menú móvil de tres puntos y el espacio inicial de 43vh; las tarjetas preceden a los anuncios. Register Visit continúa en /register-visit y allí se elige categoría; Staff continúa en /staff/login. No cambia ningún formulario ni endpoint.
+
+## Módulos retirados — 2026-10-23
+Se retiraron TV Kiosk y Storage de los dashboards y sus pantallas frontend. Los enlaces antiguos redirigen mediante replace: TV a Info Session Progress normal, códigos Storage al inicio. Info Session Progress permanece. El backend Storage, sus tablas y snapshots históricos se conservan sin modificaciones; no hay migraciones ni borrados de datos.
