@@ -6,9 +6,10 @@ import CHRPage from './CHRPage'
 import StatisticsDashboard from './StatisticsDashboard'
 import EventManagement from '../components/EventManagement'
 import PCListCheck from '../components/PCListCheck'
+import TextTalentsPanel from '../components/TextTalentsPanel'
 import InfoSessionProgressPage from './InfoSessionProgressPage'
 
-type TabType = 'info-session' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'pc-check' | 'info-session-progress'
+type TabType = 'info-session' | 'new-hire-orientation' | 'badges' | 'fingerprints' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'pc-check' | 'info-session-progress' | 'text-talents'
 
 function TalentDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('info-session')
@@ -993,6 +994,7 @@ function TalentDashboard() {
             >
               🎟️ Event
             </button>
+            <button aria-pressed={activeTab === 'text-talents'} onClick={() => setActiveTab('text-talents')} className={`px-6 py-3 font-semibold transition-colors ${activeTab === 'text-talents' ? 'bg-emerald-700 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>💬 Text Talents</button>
             <button
               aria-pressed={activeTab === 'pc-check'}
               onClick={() => setActiveTab('pc-check')}
@@ -1022,7 +1024,8 @@ function TalentDashboard() {
         </div>
 
         {/* Content */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <TextTalentsPanel active={activeTab === 'text-talents'} />
+        <div hidden={activeTab === 'text-talents'} className="bg-white rounded-lg shadow-lg p-6">
           {activeTab === 'info-session' && renderInfoSessionLive()}
           {activeTab === 'info-session-progress' && <InfoSessionProgressPage />}
           {activeTab === 'new-hire-orientation' && renderNewHireOrientations()}

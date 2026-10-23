@@ -85,3 +85,6 @@ Para reconocimiento Smart Capture, probar también un perfil ficticio reducido y
 
 ## Retirada de módulos — 2026-10-23
 Verificar los seis dashboards (Staff, Management, Frontdesk, Talent, User, Recruiter): sin pestañas Storage/TV Kiosk, con NHO y sus demás secciones. Info Session Progress normal no debe ofrecer Open TV Kiosk. Enlaces antiguos redirigen a progreso normal y al inicio respectivamente. Usar usuarios y respuestas ficticios locales; no crear registros de producción. Backend Storage y snapshots históricos se conservan.
+
+## Text Talents
+El harness incluye test:text-talents: partición en máximo 180, formato CSV, teléfonos/duplicados/excluidos, selección de hoja/encabezados y plantilla. Prueba web: abrir desde los siete roles, importar workbook ficticio/real local sin registrar PII, revisar y descargar primer/último lote, cambiar hoja, limpiar y copiar prompt con nueva fecha/CTA. Ver docs/TEXT_TALENTS.md para límites y privacidad.
