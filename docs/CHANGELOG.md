@@ -323,3 +323,18 @@ y cubrió automáticamente el marco de foto. Solo falta la selección nativa de 
 - Implementado: Copy text/Open link exclusivamente, botones editables, grupos, búsqueda y respaldos; límites/esquema/URLs validados y preferencias locales aisladas por ID de usuario. Legacy script se importa como texto. Native links con noopener/noreferrer; sin ejecutar programas.
 - Verificado localmente: siete dashboards con perfiles/API ficticios; creación/edición/copia/recarga, grupos/búsqueda, exportación/importación y enlace en nueva pestaña. Móvil 390px sin overflow. Se conserva navegación y consultas previas. Harness final pendiente antes de publicación. Detalles docs/ALFRED.md.
 - Harness final PASS: 16 backend, 9 captura, 11 tracker, 6 Text Talents, 6 Alfred; build y 21 TS conocidos/0 nuevos. Navegador adicional: separación por dos IDs ficticios, rechazo javascript, Escape, columnas, regreso a Admin. Sin modificaciones de backend ni registros reales. Publicación pendiente.
+
+
+## Cierre — Alfred, 2026-10-23
+- Publicado PR #23 / `93aedf274e80c0c48c9d42826e92487657e99e22`. CI `39998937926` PASS, Vercel READY `dpl_6BoMxm5A8kTcS29aejq4d6AjRztF`, alias principal asignado, backend health 200.
+- JS/CSS Alfred HTTP 200; CSS idéntico al local, módulo idéntico tras normalizar nombres de dependencias de build. Solo Copy text/Open link. Harness 48 pruebas y build PASS, 0 TS nuevos.
+- Siete roles y flujos verificados con API/usuarios ficticios locales, no sesiones autenticadas reales de producción. Preferencias locales sin sincronización automática. No cambios de backend/datos; cierre posterior al deploy local para próxima sincronización documental.
+
+## 2026-10-28 — Drug Screening: nombre manuscrito
+- Estado: investigación/prueba local, codex/drug-screen-name-ocr.
+- Objetivo: OCR Python gratuito al tomar/elegir foto en Scanner y nombre de PDF con Drug Screening. Original y PDF locales; únicamente recorte Kelly Candidate Name temporal en RAM si se integra servidor, sin persistencia ni terceros.
+- Plan y criterios previos en memory.md. Probar modelo abierto/calidad/recursos antes de cambiar producción. No PII en repositorio ni reportes.
+- Implementado: OCR manuscrito Python TrOCR CPU (modelo MIT fijado), recorte por etiquetas con Tesseract local, puente autenticado y endpoint en memoria sin persistencia de imágenes/nombres. Inference offline en proceso corto limitado; modelo estático se descarga en preparación separada. UI English con nombre editable/revisión y Name Drug Screening.pdf; Education/RFPI conservados.
+- Verificación local: nombre del ejemplo y recorte automático correctos; flujo completo con formulario ficticio en navegador, galería y handler Take Photo, PDF de 1 página/imagen descargado y leído independientemente. Herramienta IAB no soporta blob en iframe; descarga se verifica en Scanner directo. Cámara física/Windows no comprobados. Límites/casos tardíos/privacidad en docs/DRUG_SCREEN_OCR.md. Harness final en curso; publicación pendiente.
+
+- Harness final PASS: 57 pruebas (22 backend, 9 captura, 14 tracker/scanner, 6 Text Talents, 6 Alfred), build y 0 TS nuevos (21 conocidos). Descarga PDF ficticio verificada; modelo real probado localmente con nombre manuscrito y recorte automático. Publicación pendiente.

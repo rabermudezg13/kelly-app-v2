@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 import uvicorn
 import os
 
-from app.api import info_session, admin, announcements, info_session_config, new_hire_orientation_config, new_hire_orientation, recruiter, auth, visits, exclusion_list, row_template, chr, statistics, event, meet_greet, paraprofessional_config, storage
+from app.api import info_session, admin, announcements, info_session_config, new_hire_orientation_config, new_hire_orientation, recruiter, auth, visits, exclusion_list, row_template, chr, statistics, event, meet_greet, paraprofessional_config, storage, document_ocr
 from app.database import engine, Base, SessionLocal
 from app.services.user_service import initialize_default_admin
 import sqlite3
@@ -264,6 +264,25 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+
+app.include_router(document_ocr.router, prefix="/api/document-ocr", tags=["Document OCR"])
+
+@app.on_event("startup")
+def prepare_document_name_model():
+    # Only production PostgreSQL services prepare static weights. Harness stays offline.
+    if os.environ.get("DATABASE_URL", "").startswith(("postgres://", "postgresql")):
+        import threading
+        from app.services.handwriting_model import prepare
+        def background_prepare():
+            try:
+                prepare()
+                print("Document name OCR model ready.", flush=True)
+            except Exception:
+                print("Document name OCR model unavailable; manual entry remains available.")
+        threading.Thread(target=background_prepare, daemon=True).start()
+
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=3026, reload=True)

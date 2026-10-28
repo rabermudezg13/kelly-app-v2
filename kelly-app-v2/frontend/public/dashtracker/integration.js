@@ -1,4 +1,4 @@
-// Local adaptation of rabermudezg13/dashtracker; no API requests or candidate storage.
+// Local adaptation of rabermudezg13/dashtracker. Excel stays local; optional name OCR uses the authenticated parent bridge, without candidate storage.
 const trackerProfile = (() => {
   try { const p=JSON.parse(decodeURIComponent(location.hash.slice(1))); return {scope:String(p.id||'standalone'),name:String(p.name||''),email:String(p.email||'')}; }
   catch { return {scope:'standalone',name:'',email:''}; }

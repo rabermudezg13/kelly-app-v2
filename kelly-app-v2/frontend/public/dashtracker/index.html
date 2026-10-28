@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
 <script src="integration.js"></script>
+<script src="/capture-assets/tesseract.min.js"></script>
+<script src="scan-name.js" defer></script>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -1439,6 +1441,7 @@ function selectDocType(type) {
     document.querySelectorAll('.edu-sub-btn').forEach(b => b.classList.remove('selected'));
   }
   updateScanFilename();
+  if (window.scanNameChanged) window.scanNameChanged();
 }
 
 function selectEduSub(btn, sub) {
@@ -1452,7 +1455,7 @@ function updateScanFilename() {
   const name = (document.getElementById('scan-name').value.trim().replace(/\s+/g,'_')) || 'Candidate';
   let fn = '—';
   if (scanDocType === 'drug') {
-    fn = 'DrugScreen_' + name + '.pdf';
+    fn = drugScreenFilename(document.getElementById('scan-name').value);
   } else if (scanDocType === 'rfpi') {
     fn = 'RFPI_' + name + '.pdf';
   } else if (scanDocType === 'edu' && scanEduSub) {
@@ -1461,6 +1464,8 @@ function updateScanFilename() {
     fn = 'Education_[type]_' + name + '.pdf';
   }
   document.getElementById('scan-filename').textContent = fn;
+  const download = document.getElementById('scan-download-link');
+  if (download && scanDocType === 'drug') download.download = fn;
 }
 
 function handleScanFiles(files) {
@@ -1472,6 +1477,7 @@ function handleScanFiles(files) {
     reader.onload = e => {
       scanPhotos.push({ dataURL: e.target.result, name: file.name });
       renderScanPreviews();
+      if (window.scanNameChanged) window.scanNameChanged();
     };
     reader.onerror = () => toast('Could not read file: ' + file.name);
     reader.readAsDataURL(file);
@@ -1505,22 +1511,27 @@ function renderScanPreviews() {
     count ? count + ' photo' + (count !== 1 ? 's' : '') + ' — ' + count + ' page' + (count !== 1 ? 's' : '') + ' in PDF' : 'No photos yet';
   document.getElementById('scan-clear-btn').style.display = count ? 'inline-block' : 'none';
   document.getElementById('scan-print-btn').style.display = 'none';
+  const download = document.getElementById('scan-download-link');
+  download.hidden = true; download.removeAttribute('href');
+  if (lastScanPdfUrl) URL.revokeObjectURL(lastScanPdfUrl);
   lastScanPdfUrl = null;
 }
 
 function removeScanPhoto(idx) {
   scanPhotos.splice(idx, 1);
   renderScanPreviews();
+  if (window.scanNameChanged) window.scanNameChanged();
 }
 
 function clearScanPhotos() {
   scanPhotos = [];
   renderScanPreviews();
+  if (window.scanNameChanged) window.scanNameChanged();
 }
 
 function getScanFilename() {
   const name = (document.getElementById('scan-name').value.trim().replace(/\s+/g,'_')) || 'Candidate';
-  if (scanDocType === 'drug') return 'DrugScreen_' + name + '.pdf';
+  if (scanDocType === 'drug') return drugScreenFilename(document.getElementById('scan-name').value);
   if (scanDocType === 'rfpi') return 'RFPI_' + name + '.pdf';
   if (scanDocType === 'edu' && scanEduSub) {
     return 'Education_' + (EDU_LABELS[scanEduSub] || scanEduSub.replace(/\s+/g,'_')) + '_' + name + '.pdf';
@@ -1533,6 +1544,7 @@ async function generateScanPDF() {
   if (!scanDocType) { toast('⚠️ Please select a document type'); return; }
   if (scanDocType === 'edu' && !scanEduSub) { toast('⚠️ Please select the education type'); return; }
   if (!scanPhotos.length) { toast('⚠️ Please add at least one photo'); return; }
+  if (scanDocType === 'drug' && !document.getElementById('scan-name-reviewed').checked) { toast('Please review the candidate name and check the confirmation.'); return; }
   if (!document.getElementById('scan-name').value.trim()) { toast('⚠️ Please enter the candidate name'); return; }
 
   const btn = document.getElementById('scan-gen-btn');
@@ -1595,10 +1607,11 @@ async function generateScanPDF() {
     const blob = new Blob([pdfBytes], { type:'application/pdf' });
     lastScanPdfUrl = URL.createObjectURL(blob);
 
-    const a = document.createElement('a');
+    const a = document.getElementById('scan-download-link');
     a.href = lastScanPdfUrl;
     a.download = getScanFilename();
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    a.hidden = false;
+    a.click();
 
     document.getElementById('scan-print-btn').style.display = 'inline-block';
     toast('✓ PDF ready — ' + scanPhotos.length + ' page' + (scanPhotos.length !== 1 ? 's' : ''));
@@ -1666,11 +1679,22 @@ function printScanPDF() {
     <div class="form-card-title">2️⃣ Candidate Name</div>
     <div class="field-group">
       <input class="field-input" id="scan-name" type="text" placeholder="e.g. John Smith"
-        oninput="updateScanFilename()">
+        oninput="updateScanFilename(); if(window.scanNameEdited) window.scanNameEdited()">
       <div style="margin-top:.5rem;font-size:.75rem;color:var(--muted);">
         File name: <span id="scan-filename" style="color:var(--text);font-weight:500;">—</span>
       </div>
     </div>
+  </div>
+
+  <div class="form-card" id="scan-name-ocr" hidden>
+    <div class="form-card-title">Read handwritten candidate name</div>
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:.75rem;">The name is read from the first photo. Only the name crop is sent to Kelly App for temporary processing. Photos and the PDF stay in your browser. Review the name before downloading.</p>
+    <p id="scan-ocr-status" role="status" style="font-size:.8rem;margin-bottom:.75rem;">Add a photo to read Kelly Candidate Name.</p>
+    <img id="scan-name-crop" alt="Candidate name crop for recognition" hidden style="max-width:100%;max-height:100px;background:white;border-radius:8px;margin-bottom:.75rem;">
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" type="button" id="scan-ocr-retry">Read name again</button>
+    </div>
+    <label style="display:block;font-size:.8rem;margin-top:.75rem;"><input type="checkbox" id="scan-name-reviewed"> I checked the candidate name</label>
   </div>
 
   <!-- STEP 3: Photos -->
@@ -1703,6 +1727,7 @@ function printScanPDF() {
   </div>
 
   <!-- GENERATE -->
+  <a id="scan-download-link" hidden class="btn btn-ghost" style="margin-bottom:.75rem;" download>Download PDF again</a>
   <button class="gen-btn" id="scan-gen-btn" onclick="generateScanPDF()">
     ⬇️ Generate &amp; Download PDF
   </button>

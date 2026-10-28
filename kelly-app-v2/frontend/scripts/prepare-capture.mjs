@@ -2,6 +2,7 @@ import { cp, mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 const root=new URL('../',import.meta.url), assets=new URL('public/capture-assets/',root)
 await mkdir(assets,{recursive:true})
+await cp(new URL('node_modules/tesseract.js/dist/tesseract.min.js',root),new URL('tesseract.min.js',assets))
 await cp(new URL('node_modules/tesseract.js/dist/worker.min.js',root),new URL('worker.min.js',assets))
 await mkdir(new URL('core/',assets),{recursive:true})
 for(const file of await readdir(new URL('node_modules/tesseract.js-core/',root))) {

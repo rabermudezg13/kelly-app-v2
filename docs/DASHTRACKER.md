@@ -42,3 +42,11 @@ verify Vercel preview before production. No automatic sending of messages.
 - PR #17 integrado: `cd8c0c919f80f04e0e5ef0e28516b4357cb958b8`; Vercel READY `dpl_E3aaAnkTewkCDP2ogwo2fAmmkyra`, backend health 200. CI run `39245551039` PASS.
 - Navegador local: Rodrigo automático y error de hoja Miccael ausente en fixture. Preview/producción: perfil de prueba Jorge Silva carga exclusivamente Jorge, sin selector. Prueba local con libro proporcionado: cuatro correspondencias PASS, ningún dato de candidatos guardado.
 - Límites: prueba web con perfiles sintéticos mediante el mismo fragmento que genera el dashboard; no se inició sesión como cada reclutador en producción. Correspondencias confirmadas expresamente por el usuario.
+
+## Drug Screening name OCR — 2026-10-28
+This supersedes the original blanket local-only statement for this optional name
+recognition flow. Photos and PDFs remain browser-local. Only the first photo's
+handwritten name strip is sent through the authenticated dashboard to Python,
+processed in memory and discarded. No third-party OCR API or candidate storage.
+Review/correct the name before exporting Name Drug Screening.pdf. Other document
+types remain local/manual. See DRUG_SCREEN_OCR.md for model, safeguards and limits.
