@@ -60,3 +60,45 @@ def test_names_are_not_guessed_from_numbers_or_instructions():
     assert normalize_name("Ana-María O’Neill")=="Ana-María O’Neill"
     for value in ['','Alex','1234','Alex Example /tmp','<script>test</script>']:
         assert normalize_name(value)==''
+
+def test_ocr_copy_removes_slanted_table_rule_and_trims_empty_space():
+    from PIL import ImageDraw
+    from app.services.name_strip import clean_name_strip
+    original=Image.new('RGB',(600,80),'white')
+    draw=ImageDraw.Draw(original)
+    # Fictitious ink strokes and a separate tilted table rule.
+    draw.rectangle((20,15,32,50),fill='black')
+    draw.rectangle((55,18,70,48),fill='black')
+    draw.line((0,73,599,55),fill='black',width=3)
+    draw.line((597,0,597,79),fill='black',width=2)
+    before=original.tobytes()
+    cleaned=clean_name_strip(original)
+    assert original.tobytes()==before
+    assert cleaned.width<100 and cleaned.height<60
+    assert cleaned.getextrema()[0][0]==0
+
+
+def test_ocr_copy_preserves_strips_without_confirmed_table_rule():
+    from PIL import ImageDraw
+    from app.services.name_strip import clean_name_strip
+    for blank in [True,False]:
+        source=Image.new('RGB',(400,70),'white')
+        if not blank:ImageDraw.Draw(source).text((20,20),'Alex Example',fill='black')
+        assert clean_name_strip(source) is source
+    rule_only=Image.new('RGB',(400,70),'white')
+    ImageDraw.Draw(rule_only).line((0,60,399,60),fill='black',width=3)
+    assert clean_name_strip(rule_only) is rule_only
+
+
+def test_rule_cleanup_keeps_letter_strokes_crossing_the_rule():
+    from PIL import ImageDraw
+    from app.services.name_strip import clean_name_strip
+    source=Image.new('RGB',(600,80),'white')
+    draw=ImageDraw.Draw(source)
+    draw.line((0,65,599,65),fill='black',width=3)
+    draw.rectangle((25,20,36,70),fill='black')
+    draw.rectangle((65,20,76,70),fill='black')
+    cleaned=clean_name_strip(source)
+    # Strokes below the rule survive in the trimmed OCR copy.
+    assert cleaned.height>=60
+    assert cleaned.width<100

@@ -6,6 +6,7 @@ import json
 import sys
 import unicodedata
 from app.services.handwriting_model import MODEL_DIR
+from app.services.name_strip import clean_name_strip
 
 def normalize_name(value):
     name = ' '.join(unicodedata.normalize('NFKC', value).split()).strip(' .,:;')
@@ -25,6 +26,10 @@ def main():
         raise ValueError('crop too large')
     with Image.open(io.BytesIO(raw)) as source:
         image = ImageOps.exif_transpose(source).convert('RGB')
+    cleaned = clean_name_strip(image)
+    if cleaned is not image:
+        image.close()
+        image = cleaned
     processor = TrOCRProcessor.from_pretrained(MODEL_DIR, local_files_only=True)
     model = VisionEncoderDecoderModel.from_pretrained(MODEL_DIR, local_files_only=True, use_safetensors=True).eval()
     with torch.inference_mode():

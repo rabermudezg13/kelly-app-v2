@@ -64,5 +64,8 @@ SPARSE_TEXT (11) if needed, combining only word geometry from the same pixels.
 The default worker layout could miss an adjacent printed label and suppress all
 recognition. Neither layout alone must find every boundary, but the combined
 result still requires the name label, right-hand field and next-row label. No
-fixed/guessed crop or whole-page upload is introduced. At most two local passes,
+fixed/guessed crop or whole-page upload is introduced. A third local SPARSE pass at 1200px runs only after both layouts fail on a larger header; its verified geometry maps back to the original image for a full-resolution crop. At most three local passes,
 within the existing deadline; a cancelled generation skips the retry/response.
+
+## OCR-only table rule cleanup — 2026-10-28
+Python detects a long rule (at least 65% strip width) across the lower half, removes it from a temporary grayscale copy while preserving strokes crossing the rule, filters tiny/edge/vertical remnants, and trims whitespace around remaining ink. Strips without a confirmed rule or enough remaining ink retain the original pixels. The original image/PDF and browser preview are unchanged. All preprocessing stays in worker RAM, within existing limits; no new dependencies or external calls. Detection/cleanup tests use synthetic strokes only.
