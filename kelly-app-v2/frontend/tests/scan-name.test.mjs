@@ -59,3 +59,17 @@ test('layout retry stops on success, missing labels and cancelled generation',as
  const cancelled={async setParameters(){},async recognize(){calls++;current=false;return {data:{blocks:[]}}}};
  assert.equal(await ctx.readDrugNameField(cancelled,{},900,1200,()=>current),null);assert.equal(calls,1);
 })
+
+test('smaller header recovers table labels and maps crop back to original pixels',async()=>{
+ const large={},small={width:1200},seen=[];let calls=0;
+ const worker={async setParameters(){},async recognize(canvas){seen.push(canvas);calls++;return {data:{blocks:[{paragraphs:[{lines:[{words:calls===3?words:[]}]}]}]}}}};
+ const resize=(canvas,width)=>{assert.equal(canvas,large);assert.equal(width,1200);return small};
+ const box=await ctx.readDrugNameField(worker,large,1800,2400,()=>true,()=>{},resize);
+ const expected=ctx.locateDrugNameCrop(words,1200,1600);
+ assert.equal(calls,3);assert.deepEqual(seen,[large,large,small]);
+ for(const key of ['x','y','width','height'])assert.ok(Math.abs(box[key]-expected[key]*1.5)<1e-8);
+ calls=0;assert.equal(await ctx.readDrugNameField(worker,large,1200,1600,()=>true,()=>{},()=>{throw Error('unnecessary resize')}),null);assert.equal(calls,2);
+ let current=true;calls=0;
+ const cancelWorker={async setParameters(){},async recognize(){calls++;if(calls===3)current=false;return {data:{blocks:[]}}}};
+ assert.equal(await ctx.readDrugNameField(cancelWorker,large,1800,2400,()=>current,()=>{},resize),null);assert.equal(calls,3);
+})

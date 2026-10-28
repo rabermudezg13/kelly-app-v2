@@ -23,7 +23,7 @@
   }
   return null;
  }
- async function readNameField(worker,canvas,width,height,isCurrent=()=>true,onRetry=()=>{}){
+ async function readNameField(worker,canvas,width,height,isCurrent=()=>true,onRetry=()=>{},resize=()=>null){
   const words=[];
   // AUTO reads the form as a page; SPARSE_TEXT recovers isolated field labels.
   // Both use the same pixels, so verified boundaries can be combined safely.
@@ -36,6 +36,23 @@
    for(const block of result.data.blocks||[])for(const p of block.paragraphs||[])for(const line of p.lines||[])words.push(...line.words);
    const box=locateNameCrop(words,width,height);
    if(box)return box;
+  }
+  // Table rules can hide a label at one scale. Retry locally at a smaller
+  // resolution, then map verified boundaries back to the original photo.
+  if(width>1200&&isCurrent()){
+   const reduced=resize(canvas,1200);
+   if(!reduced)return null;
+   onRetry();
+   await worker.setParameters({tessedit_pageseg_mode:'11'});
+   if(!isCurrent())return null;
+   const result=await worker.recognize(reduced,{}, {blocks:true});
+   if(!isCurrent())return null;
+   const scaledWords=[],factor=width/reduced.width;
+   for(const block of result.data.blocks||[])for(const p of block.paragraphs||[])for(const line of p.lines||[])for(const word of line.words){
+    const bbox={};for(const key of ['x0','y0','x1','y1'])bbox[key]=word.bbox[key]*factor;
+    scaledWords.push({...word,bbox});
+   }
+   return locateNameCrop(scaledWords,width,height);
   }
   return null;
  }
@@ -75,7 +92,11 @@
    ])}finally{clearTimeout(initTimer)}
    if(ticket!==generation){await ownWorker.terminate();return}worker=ownWorker;
    const timer=setTimeout(()=>ownWorker.terminate(),30000);
-   let box;try{box=await readNameField(ownWorker,canvas,canvas.width,Math.round(image.naturalHeight*scale),()=>ticket===generation,()=>status('Checking the form layout again…'))}finally{clearTimeout(timer)}
+   const resize=(source,width)=>{
+    const smaller=document.createElement('canvas');smaller.width=width;smaller.height=Math.round(source.height*width/source.width);
+    smaller.getContext('2d').drawImage(source,0,0,smaller.width,smaller.height);return smaller;
+   };
+   let box;try{box=await readNameField(ownWorker,canvas,canvas.width,Math.round(image.naturalHeight*scale),()=>ticket===generation,()=>status('Checking the form layout again…'),resize)}finally{clearTimeout(timer)}
    if(ticket!==generation)return;
    await ownWorker.terminate();worker=null;ownWorker=null;
    if(!box){status('The name field could not be located safely. Enter the candidate name manually, or retake a straight, clear photo of the complete form. No crop was sent.');return}

@@ -106,3 +106,5 @@ Education/RFPI and tab retention; do not upload full documents to production tes
 Scanner regression also covers complementary label results from two local OCR
 layouts, early success, bounded retry and cancellation. Real-photo verification
 must use the browser's actual top-half crop/resolution, not a whole-page OCR trial.
+
+Scanner photo regression: third local label pass at 1200px remaps geometry and respects cancellation; Python tests clean a synthetic tilted table rule without changing source, and preserve no-rule/blank strips. Real-photo/model checks stay local and outside committed fixtures.

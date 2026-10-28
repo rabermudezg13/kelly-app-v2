@@ -445,3 +445,21 @@ y cubrió automáticamente el marco de foto. Solo falta la selección nativa de 
 - Usuario confirmó el mensaje exacto de campo no localizado/sin recorte enviado, coincidente con reproducción. Se fija explícitamente segmentación de página AUTO y alternativa SPARSE_TEXT, combinando geometría sobre mismos píxeles solo cuando haga falta. No coordenadas fijas ni envíos de foto completa.
 - Reproducción Node con mismos píxeles del encabezado: antes null; ahora recorte de nombre válido. Motor Python lee nombre correcto, verificado visualmente solo localmente. Harness PASS 59 pruebas (22 backend, 9 captura, 16 tracker/scanner, 6 TT, 6 Alfred), build y 21 TS conocidos/0 nuevos. Validación navegador en curso.
 - Navegador sobre build local final con API ficticia y motor Python real: imagen completa del PDF proporcionado entra por Gallery, reconoce automáticamente y completa el mismo nombre revisado. Estado Name suggested y comparación exacta true; sin PII en reporte/captura/Git. Se limpia del editor y se usa fixture ficticio para evidencia. Publicación pendiente.
+
+
+## Cierre — detección de nombre Drug Screening, 2026-10-28
+- PR #25 integrado en main: d1e8c23685238883056e2eb3a7fe9462fd8d6e24; CI 40767346630 success. Harness local 59 pruebas PASS, build y 21 TS conocidos/0 nuevos.
+- Vercel producción READY dpl_D2StubBNq7VeDjyFMKehoJNJByKb; scan-name.js HTTP 200 idéntico al archivo probado. Backend health 200; redeploy automático b111ee42-7bd8-4ae6-92c8-4fdd2d6106b1 en DEPLOYING al cierre provisional (sin cambios backend).
+- Prueba completa local del formulario real reconoce el nombre revisado; evidencia visual solo Alex Example. Inferencia autenticada en producción no probada. Se eliminaron los intermediarios privados creados para esta prueba; original intacto.
+- Recargar producción y volver a seleccionar la foto para ejecutar el detector corregido. Cierre documental posterior a merge queda local para próxima sincronización.
+
+
+## 2026-10-28 — Foto real: reintento de etiquetas a distinta escala (plan)
+- IMG_5663 reproduce recorte null con AUTO y SPARSE a 1792px: falta Reason. Mismos píxeles a 1200px reconocen todos los límites y producen recorte válido. La escala influye en segmentación de las líneas de tabla.
+- Plan antes de editar: añadir un tercer intento SPARSE local a 1200px solo si faltan límites; remapear geometría a resolución original y conservar recorte de calidad original, plazo/cancelación y validaciones. Probar foto exacta, nombre en Python y flujo de navegador; regresiones de fallback/cancelación y harness completo antes de publicar. Sin datos personales en Git/evidencia.
+
+- Segundo corte roto confirmado: recorte ya localizado contiene regla inclinada de tabla; TrOCR original devuelve vacío. Experimento local elimina regla larga y restos estrechos, ajusta al texto y reconoce el nombre revisado exactamente. Plan ampliado antes de editar Python: preprocesar solo la copia OCR en RAM si se confirma una regla larga en mitad inferior; conservar original si no hay límites fiables/ink suficiente. Sin OCR externo ni persistencia. Añadir pruebas sintéticas con regla inclinada, sin regla y blanco, y repetir harness/navegador.
+
+- Implementado reintento local a 1200px y limpieza de regla larga solo en copia OCR RAM. Harness PASS: 62 pruebas (24 backend, 9 Smart Capture, 17 Tracker/Scanner, 6 TT, 6 Alfred), build, 21 TS conocidos/0 nuevos. Prueba de foto real/navegador en curso; publicación pendiente.
+
+- Ajuste de limpieza conserva trazos que cruzan la regla; regresión sintética añadida. Foto exacta en navegador → recorte → Python → campo: Name suggested y coincidencia exacta con nombre revisado true. Foto retirada del editor; evidencia solo ficticia. Harness final PASS 63 pruebas (25 backend, 9 Smart Capture, 17 Tracker/Scanner, 6 TT, 6 Alfred), build, 21 TS conocidos/0 nuevos. No se probó cámara física ni inferencia autenticada producción. Publicación pendiente.
