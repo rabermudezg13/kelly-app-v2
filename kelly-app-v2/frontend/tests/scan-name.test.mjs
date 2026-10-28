@@ -26,6 +26,7 @@ test('manual correction cancels pending OCR and late results cannot overwrite it
   Image:class{naturalWidth=900;naturalHeight=1200;set src(value){queueMicrotask(()=>this.onload())}},
   Tesseract:{async createWorker(){return {
    async terminate(){},
+   async setParameters(){},
    async recognize(){return {data:{blocks:[{paragraphs:[{lines:[{words}]}]}]}}}
   }}}
  })
@@ -36,4 +37,25 @@ test('manual correction cancels pending OCR and late results cannot overwrite it
  events.get('message')({origin:'https://example.test',source:parent,data:{type:'kelly:drug-name-result',id:'test-request',name:'Wrong Example'}})
  await new Promise(resolve=>setImmediate(resolve));assert.equal(nodes.get('scan-name').value,'Jordan Example');assert.equal(nodes.get('scan-name-reviewed').checked,false)
  events.get('pagehide')()
+})
+
+test('two layouts combine verified boundaries when neither alone identifies the field',async()=>{
+ const page=words.filter(w=>!(w.text==='Candidate'&&w.bbox.x0===400));
+ const sparse=[words.find(w=>w.text==='Candidate'&&w.bbox.x0===400)];
+ assert.equal(ctx.locateDrugNameCrop(page,900,1200),null);assert.equal(ctx.locateDrugNameCrop(sparse,900,1200),null);
+ const modes=[],results=[page,sparse];let calls=0,retries=0;
+ const worker={async setParameters(p){modes.push(p.tessedit_pageseg_mode)},async recognize(){calls++;return {data:{blocks:[{paragraphs:[{lines:[{words:results.shift()}]}]}]}}}};
+ const box=await ctx.readDrugNameField(worker,{},900,1200,()=>true,()=>retries++);
+ assert.ok(box);assert.ok(box.x+box.width<400);assert.deepEqual(modes,['3','11']);assert.equal(calls,2);assert.equal(retries,1);
+})
+test('layout retry stops on success, missing labels and cancelled generation',async()=>{
+ let calls=0,current=true;
+ const good={async setParameters(){},async recognize(){calls++;return {data:{blocks:[{paragraphs:[{lines:[{words}]}]}]}}}};
+ assert.ok(await ctx.readDrugNameField(good,{},900,1200));assert.equal(calls,1);
+ calls=0;
+ const empty={async setParameters(){},async recognize(){calls++;return {data:{blocks:[]}}}};
+ assert.equal(await ctx.readDrugNameField(empty,{},900,1200),null);assert.equal(calls,2);
+ calls=0;
+ const cancelled={async setParameters(){},async recognize(){calls++;current=false;return {data:{blocks:[]}}}};
+ assert.equal(await ctx.readDrugNameField(cancelled,{},900,1200,()=>current),null);assert.equal(calls,1);
 })

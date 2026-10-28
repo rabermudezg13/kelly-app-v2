@@ -2,7 +2,8 @@
 
 Última actualización: 2026-10-28 (America/New_York).
 
-## Estado actual — 2026-10-23
+## Estado actual — 2026-10-28
+- Drug Screening OCR: PR #24 (`3c738de`), 57 pruebas/CI PASS; web READY y backend SUCCESS. Modelo listo confirmado en log 2026-10-28 19:03:44 UTC (15:03 Miami). Inferencia autenticada de producción todavía no ejercitada; reconocimiento real probado localmente.
 - Alfred publicado en siete dashboards, PR #23 (`93aedf2`), Vercel READY; Stream Deck solo enlaces/copia con preferencias locales por usuario. Harness/CI y pruebas locales correctos; recursos publicados y health comprobados.
 - Text Talents publicado en los siete dashboards, PR #22 (`252d87b`), Vercel READY: Excel local a CSV Name/Phone de máximo 180 contactos y plantilla de prompt de invitación. Harness/CI y navegador local correctos; Sense real no probado.
 - TV Kiosk y Storage retirados de los seis dashboards y pantallas frontend. PR #21 (`163c4cd`), Vercel READY. Datos y backend históricos conservados; Info Session Progress normal permanece.
@@ -414,3 +415,33 @@ y cubrió automáticamente el marco de foto. Solo falta la selección nativa de 
 
 - Harness final PASS: 22 backend, 9 Smart Capture, 14 Tracker/Scanner, 6 Text Talents, 6 Alfred (57 total), build correcto y 21 TS conocidos/0 nuevos. Corrección tardía protegida en prueba de comportamiento; descarga real del PDF ficticio comprobada. Fuente del documento real solo se examinó/procesó localmente.
 - Preparado para PR/publicación, sin aprobación humana pendiente. Se agrega log genérico de modelo listo para verificar preparación en producción sin inferencias sobre candidatos reales. No hay nombres/documentos en ese log.
+
+
+## Cierre parcial — Drug Screening OCR, 2026-10-28
+- PR #24 integrado: `3c738de19efafdcafc9f69802ea38903dde4823a`; head `9e7439b58436f07828f2a0be0a7913e7746b9bfd`. CI PR `40745197143` y main `40745493847` success. 57 pruebas locales PASS, build y 21 TS conocidos/0 nuevos.
+- Frontend producción READY `dpl_4t72EGFtujaZV2G3TUTVGCSZkoT3`. HTML/scan-name.js/manual/Tesseract HTTP 200 e idénticos a archivos locales. Backend actual health 200, pero despliegue nuevo `32f62b2d-5069-4c13-811b-852d1ea21b3b` sigue QUEUED, sin logs de build; NO se confirma OCR en producción ni modelo listo.
+- Railway identifica incidencia activa desde 2026-10-28 17:49 UTC: deployments stuck in initializing / builds and deployments not progressing, regiones incluida US West. Fuente https://status.railway.com/ consultada hoy. Main CI pasó, no pendientes de aprobación ni configuración staged. No reiniciar/borrar servicio sano ni duplicar despliegues para sortear una incidencia de plataforma.
+- Pendiente externo: Railway debe avanzar la cola. Después revisar SUCCESS para ese commit, log genérico Document name OCR model ready, health y endpoint autenticado (sin candidatos reales). Hasta entonces entrada manual y PDF local disponibles; la UI maneja OCR no disponible.
+- Prueba real y recorte automático correctos solo localmente. Navegador con motor Python real y fixture ficticio: Take Photo/galería reconocen nombre; PDF descargado leído independientemente. Education/RFPI conservan sus nombres. Cámara física/Windows e inferencia autenticada de producción no probadas. Captura de evidencia solo ficticia.
+- Usuario preguntó qué aprobación se esperaba: se aclaró que ninguna; espera actual es plataforma, no humano. No se crea seguimiento programado sin solicitud. Cierre posterior a integración guardado localmente para próxima sincronización documental; tarea de activación queda pendiente, no se declara completa.
+
+## 2026-10-28 — Seguimiento: «no lee el nombre»
+- Verificación nueva de solo lectura: despliegue OCR 32f62b2d-5069-4c13-811b-852d1ea21b3b continúa QUEUED, mismo commit 3c738de; sin logs de arranque ni modelo listo. No hay evidencia de un fallo nuevo de reconocimiento: el motor Python aún no está publicado en servidor.
+- No se modifican datos, código, configuración ni se duplican despliegues. Estado funcional real: web nueva visible, OCR remoto todavía no disponible; entrada manual/PDF local permanecen. No declarar lectura activada ni atribuir el problema a la foto del usuario. Activación pendiente de Railway.
+
+## 2026-10-28 — Consulta de plazo de activación
+- Estado oficial Railway consultado otra vez: incidencia de despliegues continúa identificada, sin hora estimada de resolución publicada. La actualización diaria de recuperación de otro incidente no equivale a ETA de este fallo.
+- Criterio de disponibilidad: despliegue backend SUCCESS, modelo listo y prueba de lectura satisfactoria. No prometer hora ni notificación automática sin un seguimiento programado solicitado.
+
+
+## 2026-10-28 — Nueva revisión: OCR desplegado
+- Railway deployment 32f62b2d-5069-4c13-811b-852d1ea21b3b cambió a SUCCESS para commit 3c738de. Log explícito: Document name OCR model ready, 19:03:44.412 UTC (15:03:44 America/New_York). Ya no está en cola.
+- No se hizo inferencia con documentos de candidatos en producción ni se abrió sesión real. Confirmados despliegue y preparación del modelo; prueba completa previa fue local. Indicar recargar el dashboard y volver a seleccionar Drug Screening/foto para iniciar una nueva solicitud.
+
+## 2026-10-28 — Corrección de lectura tras despliegue (plan)
+- Usuario informa OCR aún sin nombre. Backend SUCCESS/modelo listo; logs consultados no muestran solicitudes al endpoint. Se reproduce primer corte roto localmente: Tesseract sobre mitad superior de la foto a ~1800px reconoce Kelly Candidate Name/Reason, pero no Candidate en campo derecho; locateNameCrop devuelve null. La prueba anterior del ejemplo usó reconocimiento de página completa, no la misma mitad superior/resolución del navegador.
+- Plan explícito antes de editar: probar escalas de lectura del encabezado y reintento local limitado, conservando exigencia de límites verificables/no subir foto completa. Añadir regresión con geometría ficticia para ese caso y probar el mismo flujo real exacto del navegador con el ejemplo solo local. Mantener corrección manual, cancelación/generaciones y PDF. Confirmar el mensaje del usuario en paralelo; no asumir que esta reproducción explica todos los casos.
+- Validar harness y navegador antes de publicar; no duplicar cambios de backend ni guardar documentos en servidor/Git.
+- Usuario confirmó el mensaje exacto de campo no localizado/sin recorte enviado, coincidente con reproducción. Se fija explícitamente segmentación de página AUTO y alternativa SPARSE_TEXT, combinando geometría sobre mismos píxeles solo cuando haga falta. No coordenadas fijas ni envíos de foto completa.
+- Reproducción Node con mismos píxeles del encabezado: antes null; ahora recorte de nombre válido. Motor Python lee nombre correcto, verificado visualmente solo localmente. Harness PASS 59 pruebas (22 backend, 9 captura, 16 tracker/scanner, 6 TT, 6 Alfred), build y 21 TS conocidos/0 nuevos. Validación navegador en curso.
+- Navegador sobre build local final con API ficticia y motor Python real: imagen completa del PDF proporcionado entra por Gallery, reconoce automáticamente y completa el mismo nombre revisado. Estado Name suggested y comparación exacta true; sin PII en reporte/captura/Git. Se limpia del editor y se usa fixture ficticio para evidencia. Publicación pendiente.

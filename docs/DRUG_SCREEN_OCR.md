@@ -57,3 +57,12 @@ handwriting may need a retake or manual entry. No inferred completion/medical
 results, no account/candidate updates, no NHO query changes.
 
 Deployment refs and final checks belong in memory.md and CHANGELOG.md.
+
+## Field detection repair — 2026-10-28
+The browser explicitly reads the form header with page-layout AUTO (3), then
+SPARSE_TEXT (11) if needed, combining only word geometry from the same pixels.
+The default worker layout could miss an adjacent printed label and suppress all
+recognition. Neither layout alone must find every boundary, but the combined
+result still requires the name label, right-hand field and next-row label. No
+fixed/guessed crop or whole-page upload is introduced. At most two local passes,
+within the existing deadline; a cancelled generation skips the retry/response.

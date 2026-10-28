@@ -23,6 +23,23 @@
   }
   return null;
  }
+ async function readNameField(worker,canvas,width,height,isCurrent=()=>true,onRetry=()=>{}){
+  const words=[];
+  // AUTO reads the form as a page; SPARSE_TEXT recovers isolated field labels.
+  // Both use the same pixels, so verified boundaries can be combined safely.
+  for(const mode of ['3','11']){
+   if(!isCurrent())return null;
+   if(mode==='11')onRetry();
+   await worker.setParameters({tessedit_pageseg_mode:mode});
+   const result=await worker.recognize(canvas,{}, {blocks:true});
+   if(!isCurrent())return null;
+   for(const block of result.data.blocks||[])for(const p of block.paragraphs||[])for(const line of p.lines||[])words.push(...line.words);
+   const box=locateNameCrop(words,width,height);
+   if(box)return box;
+  }
+  return null;
+ }
+ root.readDrugNameField=readNameField;
  root.drugScreenFilename=drugScreenFilename;
  root.locateDrugNameCrop=locateNameCrop;
  if(typeof document==='undefined')return;
@@ -58,10 +75,8 @@
    ])}finally{clearTimeout(initTimer)}
    if(ticket!==generation){await ownWorker.terminate();return}worker=ownWorker;
    const timer=setTimeout(()=>ownWorker.terminate(),30000);
-   let result;try{result=await ownWorker.recognize(canvas,{}, {blocks:true})}finally{clearTimeout(timer)}
+   let box;try{box=await readNameField(ownWorker,canvas,canvas.width,Math.round(image.naturalHeight*scale),()=>ticket===generation,()=>status('Checking the form layout again…'))}finally{clearTimeout(timer)}
    if(ticket!==generation)return;
-   const words=[];for(const block of result.data.blocks||[])for(const p of block.paragraphs||[])for(const line of p.lines||[])words.push(...line.words);
-   const box=locateNameCrop(words,canvas.width,Math.round(image.naturalHeight*scale));
    await ownWorker.terminate();worker=null;ownWorker=null;
    if(!box){status('The name field could not be located safely. Enter the candidate name manually, or retake a straight, clear photo of the complete form. No crop was sent.');return}
    const strip=document.createElement('canvas'),outScale=Math.min(1,1600/(box.width/scale));strip.width=Math.round(box.width/scale*outScale);strip.height=Math.round(box.height/scale*outScale);

@@ -338,3 +338,29 @@ y cubrió automáticamente el marco de foto. Solo falta la selección nativa de 
 - Verificación local: nombre del ejemplo y recorte automático correctos; flujo completo con formulario ficticio en navegador, galería y handler Take Photo, PDF de 1 página/imagen descargado y leído independientemente. Herramienta IAB no soporta blob en iframe; descarga se verifica en Scanner directo. Cámara física/Windows no comprobados. Límites/casos tardíos/privacidad en docs/DRUG_SCREEN_OCR.md. Harness final en curso; publicación pendiente.
 
 - Harness final PASS: 57 pruebas (22 backend, 9 captura, 14 tracker/scanner, 6 Text Talents, 6 Alfred), build y 0 TS nuevos (21 conocidos). Descarga PDF ficticio verificada; modelo real probado localmente con nombre manuscrito y recorte automático. Publicación pendiente.
+
+
+## Cierre parcial — Drug Screening OCR, 2026-10-28
+- Integrado PR #24 / `3c738de19efafdcafc9f69802ea38903dde4823a`. CI PR `40745197143`, main `40745493847` success; 57 pruebas, build y 0 TS nuevos.
+- Web Vercel READY `dpl_4t72EGFtujaZV2G3TUTVGCSZkoT3`; recursos Scanner/OCR publicados coinciden con local. Backend health 200 pero nueva versión OCR sigue QUEUED (`32f62b2d-5069-4c13-811b-852d1ea21b3b`), sin build iniciado.
+- Incidencia oficial Railway activa: https://status.railway.com/, identificada 17:49 UTC, retrasa builds/deployments. No falta aprobación humana. Activación y modelo listo en producción PENDIENTES; no se afirma OCR publicado/operativo. Manual/PDF local se conservan. Cierre local para próxima sincronización documental.
+
+## 2026-10-28 — Seguimiento de lectura Drug Screening
+- Usuario informa que no lee el nombre. Nueva consulta Railway confirma backend OCR todavía QUEUED (32f62b2d-5069-4c13-811b-852d1ea21b3b), sin arranque/modelo listo. Web publicada no equivale a OCR activo.
+- Sin cambios funcionales ni de datos: bloqueo de activación externo continúa. No se ejecutan nuevas pruebas redundantes ni se duplican despliegues.
+
+## 2026-10-28 — Consulta de plazo OCR
+- Revisión de status.railway.com: no se publica ETA para el bloqueo de despliegues. No cambios funcionales; activación sigue pendiente y requiere despliegue/modelo/prueba antes de confirmarse.
+
+
+## 2026-10-28 — OCR: servidor y modelo listos
+- Despliegue Railway 32f62b2d-5069-4c13-811b-852d1ea21b3b SUCCESS, commit 3c738de. Modelo listo confirmado por log a 19:03:44 UTC (15:03 Miami). Sustituye estado pendiente anterior.
+- Sin cambios de código/datos ni nuevas pruebas redundantes. Inferencia autenticada de producción no ejercitada; lectura manuscrita y descarga comprobadas previamente en local. Recargar interfaz e importar foto de nuevo para reintentar.
+
+## 2026-10-28 — Corregir localización de nombre en Scanner
+- Estado: diagnóstico reproducido, rama codex/fix-drug-name-field.
+- Hallazgo: foto/encabezado a resolución del navegador no reconoce el texto del campo derecho, por lo que no crea recorte ni llama a Python. La lectura anterior de página completa no reproducía ese paso.
+- Plan: reintento local acotado de OCR de etiquetas sin adivinar recortes ni subir página completa; probar mismo camino del navegador y regresiones. Mensaje concreto del usuario pendiente.
+- Implementación: lectura local explícita AUTO + reintento SPARSE_TEXT y combinación de límites confirmados sobre mismos píxeles. Sin recortes adivinados ni cambios de backend/privacidad. Usuario confirmó mensaje reproducido.
+- Harness PASS: 59 pruebas, build y 0 TS nuevos (21 conocidos). Mismo encabezado del ejemplo pasa de recorte null a válido y Python reconoce nombre correcto en local. Navegador en curso antes de publicación.
+- Navegador local completo con imagen del documento real y motor Python: reconocimiento automático y campo completado correctamente, comparación exacta con resultado revisado. Sin imagen/nombre real en Git ni capturas. Publicación pendiente.
