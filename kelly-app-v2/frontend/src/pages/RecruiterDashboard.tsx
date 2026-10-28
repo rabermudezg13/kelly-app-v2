@@ -41,6 +41,7 @@ import EventManagement from '../components/EventManagement'
 import PCListCheck from '../components/PCListCheck'
 import TextTalentsPanel from '../components/TextTalentsPanel'
 import AlfredPanel from '../components/AlfredPanel'
+import TrackerFrame from '../components/TrackerFrame'
 import * as XLSX from 'xlsx'
 
 type RecruiterTabType = 'sessions' | 'all-info-sessions' | 'new-hire-orientation' | 'fingerprints' | 'badges' | 'my-visits' | 'statistics' | 'chr' | 'event' | 'ksn-tool' | 'pc-check' | 'smart-capture' | 'dashtracker' | 'text-talents' | 'alfred'
@@ -2186,7 +2187,7 @@ function RecruiterDashboard() {
         <TextTalentsPanel active={activeTab === 'text-talents'} />
         <AlfredPanel active={activeTab === 'alfred'} />
         {trackerOpened && <div hidden={activeTab !== 'dashtracker'}>
-          <iframe key={recruiterId} title="Kelly Onboarding Tracker" src={`/dashtracker/index.html#${encodeURIComponent(JSON.stringify({id:recruiterId,name:recruiter.name,email:recruiter.email}))}`} allow="clipboard-write" style={{width:'100%',height:'90vh',minHeight:700,border:0,borderRadius:18}} />
+          <TrackerFrame key={recruiterId} src={`/dashtracker/index.html#${encodeURIComponent(JSON.stringify({id:recruiterId,name:recruiter.name,email:recruiter.email}))}`} />
         </div>}
         {activeTab === 'alfred' || activeTab === 'text-talents' || activeTab === 'dashtracker' ? null : activeTab === 'smart-capture' ? (
           <iframe title="Kelly Smart Capture" src="/smart-capture.html" allow="clipboard-read" style={{width:'100%',height:'min(1100px, 90vh)',minHeight:700,border:0,borderRadius:18}} />

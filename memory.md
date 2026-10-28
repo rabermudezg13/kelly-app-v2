@@ -1,9 +1,9 @@
 # Memoria del proyecto — Kelly App v2
 
-Última actualización: 2026-10-23 (America/New_York).
+Última actualización: 2026-10-28 (America/New_York).
 
 ## Estado actual — 2026-10-23
-- Alfred implementado/verificado localmente en siete dashboards, pendiente publicación; Stream Deck solo enlaces/copia con preferencias locales por usuario.
+- Alfred publicado en siete dashboards, PR #23 (`93aedf2`), Vercel READY; Stream Deck solo enlaces/copia con preferencias locales por usuario. Harness/CI y pruebas locales correctos; recursos publicados y health comprobados.
 - Text Talents publicado en los siete dashboards, PR #22 (`252d87b`), Vercel READY: Excel local a CSV Name/Phone de máximo 180 contactos y plantilla de prompt de invitación. Harness/CI y navegador local correctos; Sense real no probado.
 - TV Kiosk y Storage retirados de los seis dashboards y pantallas frontend. PR #21 (`163c4cd`), Vercel READY. Datos y backend históricos conservados; Info Session Progress normal permanece.
 - Inicio: Register Visit y Staff visibles directamente en móvil y escritorio. Categorías solo después de Register Visit. Publicado PR #20 (`2b5d8fd`), Vercel READY, navegación comprobada.
@@ -394,3 +394,23 @@ y cubrió automáticamente el marco de foto. Solo falta la selección nativa de 
 - Navegador con API/perfiles ficticios: siete roles abren Alfred; crear/editar/copiar al clipboard, persistencia tras recarga, crear/renombrar grupo, búsqueda, exportación y restauración confirmada, enlace nativo en nueva pestaña correctos. Móvil 390px sin overflow. Capturas solo con contenido ficticio. No sesiones reales ni datos de producción usados.
 - Verificación final local PASS: 16 backend, 9 Smart Capture, 11 Tracker, 6 Text Talents y 6 Alfred; build correcto, 21 TS conocidos y 0 nuevos. Segundo usuario ficticio con ID distinto no recibe botón personalizado del primero. URL javascript rechazada en editor, Escape cierra diálogo y columnas se guardan. Admin vuelve a herramientas previas.
 - Revisión React: carga diferida, sin listeners globales ni HTML inyectado, diálogos nativos con teclado/foco, CSS acotado; enlaces nativos target=_blank con noopener/noreferrer. Publicación pendiente.
+
+
+## Cierre — Alfred, 2026-10-23
+- PR #23 integrado: `93aedf274e80c0c48c9d42826e92487657e99e22`; head verificado `0e443e215525ccc1436252d43dec677085519adc`. CI `39998937926` PASS. Vercel producción READY `dpl_6BoMxm5A8kTcS29aejq4d6AjRztF`, alias kelly-app-v2.vercel.app asignado. Backend health 200.
+- Recursos JS/CSS publicados HTTP 200. CSS idéntico al local; código Alfred idéntico al normalizar nombres de dependencias generados por build. Dos acciones publicadas Copy text/Open link. No ejecución de scripts.
+- Harness final 48 pruebas PASS, build correcto y 21 TS conocidos/0 nuevos. Navegador con siete roles ficticios y API local; dos IDs diferentes aislados; persistencia, clipboard, edición, grupos, backup, enlace, teclado, columnas y móvil 390px comprobados. No sesión autenticada real de producción ni pruebas nativas Windows.
+- Sin cambios de backend/datos. Botones locales por usuario/navegador; respaldo para otro equipo, sin sincronización automática. Plan e implementación publicados en PR #23; cierre posterior al despliegue guardado localmente para próxima sincronización documental.
+
+## 2026-10-28 — Nombre manuscrito en Drug Screening (plan)
+- Solicitud: al tomar/elegir foto Drug Screening en Scanner, leer Kelly Candidate Name y completar nombre/archivo PDF; OCR Python gratuito. Usuario aclara procesar al tomar foto y no guardar documento en servidor. Se explicó envío exclusivamente del recorte de nombre, temporal en RAM, documento completo permanece local.
+- Plan explícito: probar primero OCR de manuscritos abierto sobre recorte local del ejemplo, sin PII en Git/logs. Evaluar recursos/calidad antes de añadir motor al backend. Interfaz English, propuesta editable y confirmación; no adivinar nombres ni sobrescribir correcciones manuales. Mantener Education/RFPI y PDF local.
+- Integración prevista: detectar/ajustar recorte de la casilla, endpoint autenticado con cuerpo pequeño en memoria sin archivos/DB/logs, límites de concurrencia/tamaño/tiempo; modelo descargado durante preparación, sin enviar imágenes a terceros. Revisión de impacto en servidor antes de publicar. OCR gratuito no implica infraestructura de alojamiento sin costo.
+- Criterios: nombre manuscrito correcto en ejemplo local y casos ficticios; archivo Name Drug Screening.pdf seguro, fallos/timeout/cambio de documento sin resultados tardíos, revisión manual, cámara/galería y PDF sin cambios; pruebas backend/frontend, navegador y harness. No publicar sin validación necesaria.
+- Prueba local de TrOCR base handwritten (revision eaacaf4) correcta sobre recorte del PDF proporcionado y sobre recorte automático por etiquetas; nombre comprobado visualmente, sin datos del candidato en Git ni logs. Inferencia inicial ~8 s con modelo cargado; proceso corto libera recursos. Recursos producción revisados de solo lectura: límite 24 GB, uso base ~0.19 GB, sin cambiar plan/servicios.
+- Implementado: Tesseract local para límites de casilla, puente seguro iframe→parent, endpoint staff con cuerpo binario en RAM ≤256KiB, proceso Python offline por solicitud, 1 concurrente, límites lectura/inferencia y respuesta no-store. Fotos y PDF completos no se suben. Modelos estáticos se preparan aparte al arrancar PostgreSQL; no son documentos de candidatos.
+- Navegador local con API/cuenta ficticia y motor Python real: galería y handler Take Photo reconocen Alex Example, completan archivo Name Drug Screening.pdf, revisión y PDF generado. Descarga desde iframe no soportada por herramienta IAB; descarga directa del mismo Scanner comprobada con lector independiente: 1 página, 1 imagen, 594×792, 38249 bytes. Enlace visible permite repetir descarga. No se prueba cámara física ni Windows.
+- Prueba de corrección manual/respuesta tardía añadida al harness. Fallo inicial de sintaxis de esa prueba corregido; no fallo funcional del OCR. Harness final pendiente; no publicado todavía. No aprobación humana pendiente: usuario aclaró procesamiento al tomar foto sin guardar documentos.
+
+- Harness final PASS: 22 backend, 9 Smart Capture, 14 Tracker/Scanner, 6 Text Talents, 6 Alfred (57 total), build correcto y 21 TS conocidos/0 nuevos. Corrección tardía protegida en prueba de comportamiento; descarga real del PDF ficticio comprobada. Fuente del documento real solo se examinó/procesó localmente.
+- Preparado para PR/publicación, sin aprobación humana pendiente. Se agrega log genérico de modelo listo para verificar preparación en producción sin inferencias sobre candidatos reales. No hay nombres/documentos en ese log.

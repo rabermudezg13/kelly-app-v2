@@ -98,3 +98,11 @@ Shared lazy AlfredPanel in seven role dashboards. Browser-local versioned prefer
 scoped by authenticated user ID; copy text/open http(s) links only. Groups, search,
 JSON backups with schema/size validation; legacy KeyForge script becomes text.
 No API/schema changes or command execution. See ALFRED.md.
+
+## Drug Screening handwritten name OCR — 2026-10-28
+Scanner's name recognition is an explicit exception to Tracker's original local-only
+processing. Only a name strip is sent via a same-origin/source-checked parent bridge
+to the authenticated Python endpoint. Short-lived offline TrOCR worker, bounded body,
+concurrency and runtime; no document/name persistence. Original images/PDF and other
+Tracker flows stay local. Static model cache prepares in background on PostgreSQL
+services; SQLite harness does not fetch weights. See DRUG_SCREEN_OCR.md.

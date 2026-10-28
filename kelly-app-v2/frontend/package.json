@@ -11,7 +11,7 @@
     "predev": "node scripts/prepare-capture.mjs && node scripts/prepare-dashtracker.mjs",
     "prebuild": "node scripts/prepare-capture.mjs && node scripts/prepare-dashtracker.mjs",
     "test:capture": "node --experimental-strip-types --test src/smart-capture/*.test.mjs",
-    "test:tracker": "node --test tests/dashtracker.test.mjs",
+    "test:tracker": "node --test tests/dashtracker.test.mjs tests/scan-name.test.mjs",
     "test:text-talents": "node --experimental-strip-types --test src/text-talents/*.test.mjs",
     "test:alfred": "node --experimental-strip-types --test src/alfred/core.test.mjs"
   },

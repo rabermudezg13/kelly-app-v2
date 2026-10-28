@@ -94,3 +94,11 @@ El harness incluye test:text-talents: partición en máximo 180, formato CSV, te
 URL protocols/credentials, content preservation and user key isolation. Browser
 checks use synthetic data across seven roles, edit/copy/reload, groups, backup,
 links and mobile layout. No production data writes.
+
+## Drug Screening name OCR
+Backend tests mock inference to remain offline: auth, crop body/type/dimensions,
+busy/preparing/timeout, concurrency cleanup and name normalization. Tracker tests
+also cover printed-label crop bounds and safe Drug Screening filenames. Real-model
+trial uses only local supplied/synthetic data outside Git. Browser: camera/gallery
+handler, automatic suggestion, correction/late response, review, PDF download,
+Education/RFPI and tab retention; do not upload full documents to production tests.
