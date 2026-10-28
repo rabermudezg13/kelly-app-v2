@@ -102,3 +102,7 @@ also cover printed-label crop bounds and safe Drug Screening filenames. Real-mod
 trial uses only local supplied/synthetic data outside Git. Browser: camera/gallery
 handler, automatic suggestion, correction/late response, review, PDF download,
 Education/RFPI and tab retention; do not upload full documents to production tests.
+
+Scanner regression also covers complementary label results from two local OCR
+layouts, early success, bounded retry and cancellation. Real-photo verification
+must use the browser's actual top-half crop/resolution, not a whole-page OCR trial.
