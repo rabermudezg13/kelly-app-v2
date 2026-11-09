@@ -6,9 +6,11 @@
  }
  function locateNameCrop(words,width,height){
   const clean=w=>String(w.text||'').replace(/[^a-z]/gi,'').toLowerCase();
-  for(let i=0;i<words.length-2;i++){
-   const a=words[i],b=words[i+1],c=words[i+2];
-   if(clean(a)!=='kelly'||clean(b)!=='candidate'||clean(c)!=='name')continue;
+  const adjacent=(a,b)=>{
+   const h=Math.max(a.bbox.y1-a.bbox.y0,b.bbox.y1-b.bbox.y0);
+   return b.bbox.x0>=a.bbox.x1-2&&b.bbox.x0-a.bbox.x1<h*3&&Math.abs((a.bbox.y0+a.bbox.y1-b.bbox.y0-b.bbox.y1)/2)<h*.75;
+  };
+  for(const a of words.filter(w=>clean(w)==='kelly'))for(const b of words.filter(w=>clean(w)==='candidate'&&adjacent(a,w)))for(const c of words.filter(w=>clean(w)==='name'&&adjacent(b,w))){
    const label={x0:a.bbox.x0,y0:Math.min(a.bbox.y0,b.bbox.y0,c.bbox.y0),x1:c.bbox.x1,y1:Math.max(a.bbox.y1,b.bbox.y1,c.bbox.y1)};
    const lineH=label.y1-label.y0;
    if(lineH<5||label.y0>height*.5)continue;
@@ -60,7 +62,7 @@
  root.drugScreenFilename=drugScreenFilename;
  root.locateDrugNameCrop=locateNameCrop;
  if(typeof document==='undefined')return;
- let generation=0,lastPhoto=null,lastType=null,suggested='',worker=null,pending=null;
+ let generation=0,lastPhoto=null,lastType=null,suggested='',worker=null,pending=null,cachedPhoto=null,cachedCrop=null;
  const get=id=>document.getElementById(id),status=text=>{get('scan-ocr-status').textContent=text};
  function cancel(){generation++;if(worker){worker.terminate();worker=null}if(pending){clearTimeout(pending.timer);pending.reject(Error('cancelled'));pending=null}}
  function imageOf(url){return new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(Error('Photo could not be opened.'));im.src=url})}
@@ -82,6 +84,8 @@
   status('Finding Kelly Candidate Name in your photo…');
   let ownWorker;
   try{
+   let crop=cachedPhoto===photo?cachedCrop:null;
+   if(!crop){
    const image=await imageOf(photo.dataURL);if(ticket!==generation)return;
    const scale=Math.min(1,1800/image.naturalWidth),canvas=document.createElement('canvas');canvas.width=Math.round(image.naturalWidth*scale);canvas.height=Math.round(image.naturalHeight*scale*.5);
    canvas.getContext('2d').drawImage(image,0,0,image.naturalWidth,image.naturalHeight*.5,0,0,canvas.width,canvas.height);
@@ -103,7 +107,9 @@
    const strip=document.createElement('canvas'),outScale=Math.min(1,1600/(box.width/scale));strip.width=Math.round(box.width/scale*outScale);strip.height=Math.round(box.height/scale*outScale);
    if(strip.height>320||strip.height<16){status('The name line is too small or unclear. Enter it manually or retake the photo.');return}
    strip.getContext('2d').drawImage(image,box.x/scale,box.y/scale,box.width/scale,box.height/scale,0,0,strip.width,strip.height);
-   const crop=strip.toDataURL('image/jpeg',.92);if(crop.length>350000)throw Error('Name crop is too large. Enter the name manually.');
+   crop=strip.toDataURL('image/jpeg',.92);if(crop.length>350000)throw Error('Name crop is too large. Enter the name manually.');
+   cachedPhoto=photo;cachedCrop=crop;
+   }
    get('scan-name-crop').src=crop;get('scan-name-crop').hidden=false;status('Reading handwriting with Kelly App…');
    const name=await requestName(crop);
    if(ticket!==generation||scanDocType!=='drug'||scanPhotos[0]!==photo||field.value!==original)return;
@@ -117,6 +123,7 @@
   get('scan-name-ocr').hidden=scanDocType!=='drug';
   if(lastPhoto===scanPhotos[0]&&lastType===scanDocType)return;
   cancel();const photoChanged=lastPhoto!==scanPhotos[0];lastPhoto=scanPhotos[0];lastType=scanDocType;
+  cachedPhoto=null;cachedCrop=null;
   get('scan-name-reviewed').checked=false;
   if(photoChanged&&get('scan-name').value===suggested){get('scan-name').value='';suggested='';updateScanFilename()}
   if(scanDocType==='drug'&&scanPhotos.length)void readName();else{get('scan-name-crop').hidden=true;get('scan-name-crop').removeAttribute('src');status('Add a photo to read Kelly Candidate Name.')}

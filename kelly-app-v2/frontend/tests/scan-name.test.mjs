@@ -73,3 +73,27 @@ test('smaller header recovers table labels and maps crop back to original pixels
  const cancelWorker={async setParameters(){},async recognize(){calls++;if(calls===3)current=false;return {data:{blocks:[]}}}};
  assert.equal(await ctx.readDrugNameField(cancelWorker,large,1800,2400,()=>current,()=>{},resize),null);assert.equal(calls,3);
 })
+
+test('label detection follows adjacent word geometry rather than OCR array order',()=>{
+ const scrambled=[words[3],words[2],words[4],words[0],words[1]];
+ assert.deepEqual(ctx.locateDrugNameCrop(scrambled,900,1200),ctx.locateDrugNameCrop(words,900,1200));
+ const mismatched=words.map(x=>({...x,bbox:{...x.bbox}}));mismatched[1].bbox.y0+=80;mismatched[1].bbox.y1+=80;
+ assert.equal(ctx.locateDrugNameCrop(mismatched,900,1200),null);
+ const distant=words.map(x=>({...x,bbox:{...x.bbox}}));distant[1].bbox.x0+=200;distant[1].bbox.x1+=200;
+ assert.equal(ctx.locateDrugNameCrop(distant,900,1200),null);
+})
+
+test('retry reuses only the current photo crop and new photos invalidate it',async()=>{
+ const nodes=new Map(),events=new Map(),requests=[];let created=0;
+ const node=()=>({value:'',checked:false,hidden:true,textContent:'',removeAttribute(){},getContext(){return {drawImage(){}}},toDataURL(){return 'data:image/jpeg;base64,QQ=='}});
+ const parent={postMessage(message){requests.push(message)}};
+ const browser=vm.createContext({document:{getElementById(id){if(!nodes.has(id))nodes.set(id,node());return nodes.get(id)},createElement:node},scanPhotos:[{dataURL:'demo'}],scanDocType:'drug',location:{origin:'https://example.test'},parent,crypto:{randomUUID:()=>String(requests.length+1)},setTimeout,clearTimeout,updateScanFilename(){},Image:class{naturalWidth=900;naturalHeight=1200;set src(value){queueMicrotask(()=>this.onload())}},Tesseract:{async createWorker(){created++;return {async terminate(){},async setParameters(){},async recognize(){return {data:{blocks:[{paragraphs:[{lines:[{words}]}]}]}}}}}}});
+ browser.window=browser;browser.addEventListener=(name,fn)=>events.set(name,fn);
+ vm.runInContext(readFileSync(new URL('../public/dashtracker/scan-name.js',import.meta.url),'utf8'),browser);
+ const settle=()=>new Promise(resolve=>setImmediate(resolve));
+ const reply=()=>events.get('message')({origin:'https://example.test',source:parent,data:{type:'kelly:drug-name-result',id:requests.at(-1).id,name:'Alex Example'}});
+ browser.scanNameChanged();await settle();assert.equal(created,1);reply();await settle();
+ nodes.get('scan-ocr-retry').onclick();await settle();assert.equal(requests.length,2);assert.equal(created,1);reply();await settle();
+ browser.scanPhotos[0]={dataURL:'other'};browser.scanNameChanged();await settle();assert.equal(created,2);assert.equal(requests.length,3);
+ events.get('pagehide')();await settle();
+})
