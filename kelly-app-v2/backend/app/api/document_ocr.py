@@ -1,14 +1,13 @@
 """Authenticated, bounded in-memory name-strip OCR. No UploadFile/disk/DB writes."""
 import asyncio
 import io
-import json
-import sys
 import threading
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from PIL import Image, UnidentifiedImageError
 from app.api.auth import get_current_user
 from app.services.handwriting_model import ready
+from app.services.handwriting_process import reader
 
 router = APIRouter()
 _gate = threading.Lock()
@@ -25,17 +24,7 @@ def validate_crop(data):
         raise HTTPException(422, 'Send only a cropped name line (JPEG or PNG).')
 
 async def recognize(data):
-    process = await asyncio.create_subprocess_exec(sys.executable, '-m', 'app.services.handwriting_worker',
-        stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
-    try:
-        output, _ = await asyncio.wait_for(process.communicate(data), timeout=60)
-        if process.returncode or len(output) > 2048:
-            raise ValueError()
-        return json.loads(output)['name']
-    finally:
-        if process.returncode is None:
-            process.kill()
-        await process.wait()
+    return await reader.recognize(data)
 
 @router.post('/drug-screen-name')
 async def drug_screen_name(request: Request, user=Depends(get_current_user)):

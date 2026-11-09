@@ -284,5 +284,9 @@ def prepare_document_name_model():
         threading.Thread(target=background_prepare, daemon=True).start()
 
 
+@app.on_event("shutdown")
+async def stop_document_name_reader():
+    await document_ocr.reader.close()
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=3026, reload=True)

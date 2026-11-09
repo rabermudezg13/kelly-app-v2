@@ -18,8 +18,8 @@ Education/RFPI retain their existing names and manual flows.
   80–1800px wide, 16–320px high, aspect ratio 2–30. It rejects whole-page images,
   PDFs, unknown content types and inactive/unauthorized accounts.
 - Request body is bounded in memory (10-second read deadline). Single inference
-  per API process; busy returns 429. Short-lived Python worker receives bytes via
-  stdin, returns JSON through a pipe and exits. 60-second process timeout kills
+  per API process; busy returns 429. Isolated Python worker receives bounded framed bytes via
+  stdin and returns bounded JSON through a pipe. The model process is reused for up to five minutes of inactivity; each crop/result is released after its response. A 60-second request timeout kills
   and reaps it. No UploadFile, temporary image files, document DB/storage writes
   or image/name logging. Response Cache-Control no-store. No third-party image API.
 - Original photos/PDF stay in browser. Closing/reloading releases that state.
@@ -36,9 +36,9 @@ A startup background thread prepares STATIC model assets for PostgreSQL services
 at /app/.cache/drug-name-model (override DRUG_OCR_MODEL_DIR). Harness SQLite does
 not download anything. Static model cache is not candidate/document storage.
 Inference is local_files_only/offline, max 48 output tokens, 3 beams, 2 CPU threads;
-process exit releases model/image memory after each request. Initial deployment
+crop/image/tensor memory is released after each request. Model weights alone stay resident between nearby requests; the worker exits after five idle minutes or on errors, timeout, cancellation and API shutdown. Initial deployment
 needs network/disk for weights. Until ready or on failure, API returns 503 and
-Scanner permits manual entry/retry. No effect on backend /health availability.
+Scanner permits manual entry/retry. No effect on backend /health availability. The first request after startup/idle is still a cold read; repeated reads avoid model import/load overhead. A single request remains allowed per API process; no queue, result cache or image cache is added to the server.
 
 This uses free OCR software/model, not a paid recognition API. Existing hosting
 CPU/RAM/disk usage may affect the hosting bill. Production resource review before
@@ -69,3 +69,6 @@ within the existing deadline; a cancelled generation skips the retry/response.
 
 ## OCR-only table rule cleanup — 2026-10-28
 Python detects a long rule (at least 65% strip width) across the lower half, removes it from a temporary grayscale copy while preserving strokes crossing the rule, filters tiny/edge/vertical remnants, and trims whitespace around remaining ink. Strips without a confirmed rule or enough remaining ink retain the original pixels. The original image/PDF and browser preview are unchanged. All preprocessing stays in worker RAM, within existing limits; no new dependencies or external calls. Detection/cleanup tests use synthetic strokes only.
+
+## Faster nearby reads — 2026-11-09
+The browser locates printed label words by adjacent geometry, not OCR array order. All three boundary labels are still required. Read name again reuses only the validated crop for the exact current photo, avoiding local OCR startup. Photo/document-type changes invalidate that crop, and manual edits/late replies remain protected. Python keeps one framed-protocol isolated worker warm for a five-minute idle window; input <=256KiB and response <=2048 bytes, with unchanged 60s deadline. Errors/cancellation/timeout reap it before the next read. Only static model weights survive, no candidate data or result cache. More idle RAM is expected, with no infrastructure or plan changes.
