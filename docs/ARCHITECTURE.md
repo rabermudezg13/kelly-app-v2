@@ -99,10 +99,5 @@ scoped by authenticated user ID; copy text/open http(s) links only. Groups, sear
 JSON backups with schema/size validation; legacy KeyForge script becomes text.
 No API/schema changes or command execution. See ALFRED.md.
 
-## Drug Screening handwritten name OCR — 2026-10-28
-Scanner's name recognition is an explicit exception to Tracker's original local-only
-processing. Only a name strip is sent via a same-origin/source-checked parent bridge
-to the authenticated Python endpoint. Isolated offline TrOCR worker reused across nearby requests (five-minute idle shutdown), bounded body,
-concurrency and runtime; no document/name persistence. Original images/PDF and other
-Tracker flows stay local. Static model cache prepares in background on PostgreSQL
-services; SQLite harness does not fetch weights. See DRUG_SCREEN_OCR.md.
+## Scanner manual naming — 2026-11-11
+Scanner in recruiter Onboarding Tracker processes photos/PDFs locally. The user enters the candidate name; Drug Screening uses Name Drug Screening.pdf. Education/RFPI keep their existing filenames. The previous OCR endpoint, message bridge, frontend reader and server model/worker/startup hooks have been removed. No Torch/Transformers/SentencePiece dependencies or model downloads remain in the backend. Smart Capture browser-local OCR is independent and unchanged. See DRUG_SCREEN_OCR.md for removal context.

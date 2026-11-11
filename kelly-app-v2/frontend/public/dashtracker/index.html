@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
 <script src="integration.js"></script>
-<script src="/capture-assets/tesseract.min.js"></script>
 <script src="scan-name.js" defer></script>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -1441,7 +1440,6 @@ function selectDocType(type) {
     document.querySelectorAll('.edu-sub-btn').forEach(b => b.classList.remove('selected'));
   }
   updateScanFilename();
-  if (window.scanNameChanged) window.scanNameChanged();
 }
 
 function selectEduSub(btn, sub) {
@@ -1477,7 +1475,6 @@ function handleScanFiles(files) {
     reader.onload = e => {
       scanPhotos.push({ dataURL: e.target.result, name: file.name });
       renderScanPreviews();
-      if (window.scanNameChanged) window.scanNameChanged();
     };
     reader.onerror = () => toast('Could not read file: ' + file.name);
     reader.readAsDataURL(file);
@@ -1520,13 +1517,11 @@ function renderScanPreviews() {
 function removeScanPhoto(idx) {
   scanPhotos.splice(idx, 1);
   renderScanPreviews();
-  if (window.scanNameChanged) window.scanNameChanged();
 }
 
 function clearScanPhotos() {
   scanPhotos = [];
   renderScanPreviews();
-  if (window.scanNameChanged) window.scanNameChanged();
 }
 
 function getScanFilename() {
@@ -1544,7 +1539,6 @@ async function generateScanPDF() {
   if (!scanDocType) { toast('⚠️ Please select a document type'); return; }
   if (scanDocType === 'edu' && !scanEduSub) { toast('⚠️ Please select the education type'); return; }
   if (!scanPhotos.length) { toast('⚠️ Please add at least one photo'); return; }
-  if (scanDocType === 'drug' && !document.getElementById('scan-name-reviewed').checked) { toast('Please review the candidate name and check the confirmation.'); return; }
   if (!document.getElementById('scan-name').value.trim()) { toast('⚠️ Please enter the candidate name'); return; }
 
   const btn = document.getElementById('scan-gen-btn');
@@ -1679,23 +1673,12 @@ function printScanPDF() {
     <div class="form-card-title">2️⃣ Candidate Name</div>
     <div class="field-group">
       <input class="field-input" id="scan-name" type="text" placeholder="e.g. John Smith"
-        oninput="updateScanFilename(); if(window.scanNameEdited) window.scanNameEdited()">
+        oninput="updateScanFilename()">
       <div style="margin-top:.5rem;font-size:.75rem;color:var(--muted);">
         File name: <span id="scan-filename" style="color:var(--text);font-weight:500;">—</span>
       </div>
     </div>
-  </div>
-
-  <div class="form-card" id="scan-name-ocr" hidden>
-    <div class="form-card-title">Read handwritten candidate name</div>
-    <p style="font-size:.78rem;color:var(--muted);margin-bottom:.75rem;">The name is read from the first photo. Only the name crop is sent to Kelly App for temporary processing. Photos and the PDF stay in your browser. Review the name before downloading.</p>
-    <p id="scan-ocr-status" role="status" style="font-size:.8rem;margin-bottom:.75rem;">Add a photo to read Kelly Candidate Name.</p>
-    <p style="font-size:.75rem;color:var(--muted);margin-bottom:.75rem;">The first read may take longer while the handwriting reader starts. If recognition fails, use Read name again; a retry reuses the detected name area. You can always enter or correct the name before downloading.</p>
-    <img id="scan-name-crop" alt="Candidate name crop for recognition" hidden style="max-width:100%;max-height:100px;background:white;border-radius:8px;margin-bottom:.75rem;">
-    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-      <button class="btn btn-ghost btn-sm" type="button" id="scan-ocr-retry">Read name again</button>
-    </div>
-    <label style="display:block;font-size:.8rem;margin-top:.75rem;"><input type="checkbox" id="scan-name-reviewed"> I checked the candidate name</label>
+    <p style="font-size:.78rem;color:var(--muted);margin-top:.75rem;">Enter the candidate name manually and check the file name before downloading. Photos and PDFs are processed in this browser.</p>
   </div>
 
   <!-- STEP 3: Photos -->
