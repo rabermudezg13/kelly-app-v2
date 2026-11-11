@@ -95,18 +95,5 @@ URL protocols/credentials, content preservation and user key isolation. Browser
 checks use synthetic data across seven roles, edit/copy/reload, groups, backup,
 links and mobile layout. No production data writes.
 
-## Drug Screening name OCR
-Backend tests mock inference to remain offline: auth, crop body/type/dimensions,
-busy/preparing/timeout, concurrency cleanup and name normalization. Tracker tests
-also cover printed-label crop bounds and safe Drug Screening filenames. Real-model
-trial uses only local supplied/synthetic data outside Git. Browser: camera/gallery
-handler, automatic suggestion, correction/late response, review, PDF download,
-Education/RFPI and tab retention; do not upload full documents to production tests.
-
-Scanner regression also covers complementary label results from two local OCR
-layouts, early success, bounded retry and cancellation. Real-photo verification
-must use the browser's actual top-half crop/resolution, not a whole-page OCR trial.
-
-Scanner photo regression: third local label pass at 1200px remaps geometry and respects cancellation; Python tests clean a synthetic tilted table rule without changing source, and preserve no-rule/blank strips. Real-photo/model checks stay local and outside committed fixtures.
-
-OCR speed: fake subprocess protocol tests cover per-crop results/model-process reuse, idle release/restart, malformed/oversized responses, crash, timeout/cancellation cleanup and recovery. No weights/network in harness. Browser tests cover current-photo crop reuse on retry and invalidation on new photos, plus spatial label order. Local real-model timing remains separate from CI and is not a production SLA.
+## Manual Scanner (OCR removed, 2026-11-11)
+Tests cover safe Drug Screening filenames, manual naming for Drug/Education/RFPI, and PDF generation without the former OCR review checkbox. Backend startup confirms health200, retired OCR route404 and no Torch/Transformers/SentencePiece loaded. Old recognition/protocol tests were removed with the deleted feature. Browser: synthetic image, manual name, actual PDF download/readback; camera hardware remains device-specific. Smart Capture tests and browser-local OCR remain independent.

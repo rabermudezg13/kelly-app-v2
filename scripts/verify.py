@@ -61,7 +61,10 @@ def main():
         run("backend-startup", [args.python, "-c", "from fastapi.testclient import TestClient; "
             "from main import app; "
             "client = TestClient(app); response = client.get('/health'); "
-            "assert response.status_code == 200, response.status_code; print('Startup and health OK')"], temporary)
+            "assert response.status_code == 200, response.status_code; "
+            "assert client.post('/api/document-ocr/drug-screen-name', content=b'not-an-image').status_code == 404; "
+            "import sys; assert not any(name in sys.modules for name in ('torch', 'transformers', 'sentencepiece')); "
+            "print('Startup/health OK; Scanner OCR absent and heavy readers not loaded')"], temporary)
         run("smart-capture-tests", ["npm", "run", "test:capture"], FRONTEND)
         run("dashtracker-tests", ["npm", "run", "test:tracker"], FRONTEND)
         run("text-talents-tests", ["npm", "run", "test:text-talents"], FRONTEND)

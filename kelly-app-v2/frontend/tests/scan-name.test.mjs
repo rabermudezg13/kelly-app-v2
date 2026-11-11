@@ -2,98 +2,36 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import vm from 'node:vm'
 import {readFileSync} from 'node:fs'
-const ctx=vm.createContext({});vm.runInContext(readFileSync(new URL('../public/dashtracker/scan-name.js',import.meta.url),'utf8'),ctx)
-const w=(text,x,y,width=40,height=12)=>({text,bbox:{x0:x,y0:y,x1:x+width,y1:y+height}})
-const words=[w('Kelly',50,100),w('Candidate',95,100,65),w('Name',165,100),w('Candidate',400,100,65),w('Reason',50,155)]
-test('crop is bounded by printed fields and excludes adjacent ID and next row',()=>{
- const b=ctx.locateDrugNameCrop(words,900,1200);assert.ok(b);assert.ok(b.y>112);assert.ok(b.y+b.height<155);assert.ok(b.x+b.width<400)
- for(const invalid of [words.filter(w=>w.text!=='Reason'),words.slice(0,3),[]])assert.equal(ctx.locateDrugNameCrop(invalid,900,1200),null)
-})
-test('filename preserves readable names and removes path/control characters',()=>{
+const code=readFileSync(new URL('../public/dashtracker/scan-name.js',import.meta.url),'utf8')
+const ctx=vm.createContext({});vm.runInContext(code,ctx)
+test('manual Drug Screening filename preserves readable names and removes unsafe characters',()=>{
  assert.equal(ctx.drugScreenFilename(' Alex Example '),'Alex Example Drug Screening.pdf')
  assert.equal(ctx.drugScreenFilename('Alex / Example:*\n'),'Alex Example Drug Screening.pdf')
  assert.equal(ctx.drugScreenFilename(''),'Candidate Drug Screening.pdf')
  assert.ok(ctx.drugScreenFilename('x'.repeat(200)).length<130)
 })
-test('manual correction cancels pending OCR and late results cannot overwrite it',async()=>{
- const nodes=new Map(),events=new Map(),requests=[];
- const node=()=>({value:'',checked:false,hidden:true,textContent:'',removeAttribute(){},getContext(){return {drawImage(){}}},toDataURL(){return 'data:image/jpeg;base64,QQ=='}})
- const parent={postMessage(message){requests.push(message)}}
- const browser=vm.createContext({
-  document:{getElementById(id){if(!nodes.has(id))nodes.set(id,node());return nodes.get(id)},createElement:node},
-  scanPhotos:[{dataURL:'demo'}],scanDocType:'drug',location:{origin:'https://example.test'},parent,
-  crypto:{randomUUID:()=> 'test-request'},setTimeout,clearTimeout,updateScanFilename(){},
-  Image:class{naturalWidth=900;naturalHeight=1200;set src(value){queueMicrotask(()=>this.onload())}},
-  Tesseract:{async createWorker(){return {
-   async terminate(){},
-   async setParameters(){},
-   async recognize(){return {data:{blocks:[{paragraphs:[{lines:[{words}]}]}]}}}
-  }}}
- })
- browser.window=browser;browser.addEventListener=(name,fn)=>events.set(name,fn)
- vm.runInContext(readFileSync(new URL('../public/dashtracker/scan-name.js',import.meta.url),'utf8'),browser)
- browser.scanNameChanged();await new Promise(resolve=>setImmediate(resolve));assert.equal(requests.length,1)
- nodes.get('scan-name').value='Jordan Example';nodes.get('scan-name-reviewed').checked=true;browser.scanNameEdited()
- events.get('message')({origin:'https://example.test',source:parent,data:{type:'kelly:drug-name-result',id:'test-request',name:'Wrong Example'}})
- await new Promise(resolve=>setImmediate(resolve));assert.equal(nodes.get('scan-name').value,'Jordan Example');assert.equal(nodes.get('scan-name-reviewed').checked,false)
- events.get('pagehide')()
+function scanner(){
+ const html=readFileSync(new URL('../public/dashtracker/index.html',import.meta.url),'utf8')
+ const script=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(x=>x[1]).find(x=>x.includes('function generateScanPDF'))
+ const nodes=new Map(),messages=[],pages=[]
+ const node=()=>({value:'',textContent:'',style:{},hidden:true,removeAttribute(){},click(){this.clicked=true},getContext(){return {fillRect(){},drawImage(){}}},toDataURL(){return 'data:image/jpeg;base64,QQ=='}})
+ const browser=vm.createContext({document:{getElementById(id){if(id.startsWith('scan-ocr')||id==='scan-name-reviewed')throw Error('Removed OCR control accessed');if(!nodes.has(id))nodes.set(id,node());return nodes.get(id)},createElement:node},toast:x=>messages.push(x),setTimeout,Blob,atob,URL:{createObjectURL:()=> 'blob:synthetic-pdf',revokeObjectURL(){}},Image:class{naturalWidth=600;naturalHeight=800;set src(x){queueMicrotask(()=>this.onload())}},PDFLib:{PDFDocument:{async create(){return {async embedJpg(){return {width:600,height:800}},addPage(dimensions){pages.push(dimensions);return {drawImage(){}}},async save(){return new Uint8Array([37,80,68,70])}}}}},console})
+ vm.runInContext(code,browser);vm.runInContext(script,browser)
+ return {browser,nodes,messages,pages}
+}
+test('manual names keep Drug Screening, Education and RFPI filenames',()=>{
+ const {browser}=scanner();browser.document.getElementById('scan-name').value='Alex Example'
+ for(const [type,sub,expected] of [['drug',null,'Alex Example Drug Screening.pdf'],['rfpi',null,'RFPI_Alex_Example.pdf'],['edu','Bachelors','Education_Bachelors_Alex_Example.pdf']]){
+  browser.type=type;browser.sub=sub;vm.runInContext('scanDocType=type;scanEduSub=sub;updateScanFilename()',browser)
+  assert.equal(vm.runInContext('getScanFilename()',browser),expected)
+ }
 })
-
-test('two layouts combine verified boundaries when neither alone identifies the field',async()=>{
- const page=words.filter(w=>!(w.text==='Candidate'&&w.bbox.x0===400));
- const sparse=[words.find(w=>w.text==='Candidate'&&w.bbox.x0===400)];
- assert.equal(ctx.locateDrugNameCrop(page,900,1200),null);assert.equal(ctx.locateDrugNameCrop(sparse,900,1200),null);
- const modes=[],results=[page,sparse];let calls=0,retries=0;
- const worker={async setParameters(p){modes.push(p.tessedit_pageseg_mode)},async recognize(){calls++;return {data:{blocks:[{paragraphs:[{lines:[{words:results.shift()}]}]}]}}}};
- const box=await ctx.readDrugNameField(worker,{},900,1200,()=>true,()=>retries++);
- assert.ok(box);assert.ok(box.x+box.width<400);assert.deepEqual(modes,['3','11']);assert.equal(calls,2);assert.equal(retries,1);
-})
-test('layout retry stops on success, missing labels and cancelled generation',async()=>{
- let calls=0,current=true;
- const good={async setParameters(){},async recognize(){calls++;return {data:{blocks:[{paragraphs:[{lines:[{words}]}]}]}}}};
- assert.ok(await ctx.readDrugNameField(good,{},900,1200));assert.equal(calls,1);
- calls=0;
- const empty={async setParameters(){},async recognize(){calls++;return {data:{blocks:[]}}}};
- assert.equal(await ctx.readDrugNameField(empty,{},900,1200),null);assert.equal(calls,2);
- calls=0;
- const cancelled={async setParameters(){},async recognize(){calls++;current=false;return {data:{blocks:[]}}}};
- assert.equal(await ctx.readDrugNameField(cancelled,{},900,1200,()=>current),null);assert.equal(calls,1);
-})
-
-test('smaller header recovers table labels and maps crop back to original pixels',async()=>{
- const large={},small={width:1200},seen=[];let calls=0;
- const worker={async setParameters(){},async recognize(canvas){seen.push(canvas);calls++;return {data:{blocks:[{paragraphs:[{lines:[{words:calls===3?words:[]}]}]}]}}}};
- const resize=(canvas,width)=>{assert.equal(canvas,large);assert.equal(width,1200);return small};
- const box=await ctx.readDrugNameField(worker,large,1800,2400,()=>true,()=>{},resize);
- const expected=ctx.locateDrugNameCrop(words,1200,1600);
- assert.equal(calls,3);assert.deepEqual(seen,[large,large,small]);
- for(const key of ['x','y','width','height'])assert.ok(Math.abs(box[key]-expected[key]*1.5)<1e-8);
- calls=0;assert.equal(await ctx.readDrugNameField(worker,large,1200,1600,()=>true,()=>{},()=>{throw Error('unnecessary resize')}),null);assert.equal(calls,2);
- let current=true;calls=0;
- const cancelWorker={async setParameters(){},async recognize(){calls++;if(calls===3)current=false;return {data:{blocks:[]}}}};
- assert.equal(await ctx.readDrugNameField(cancelWorker,large,1800,2400,()=>current,()=>{},resize),null);assert.equal(calls,3);
-})
-
-test('label detection follows adjacent word geometry rather than OCR array order',()=>{
- const scrambled=[words[3],words[2],words[4],words[0],words[1]];
- assert.deepEqual(ctx.locateDrugNameCrop(scrambled,900,1200),ctx.locateDrugNameCrop(words,900,1200));
- const mismatched=words.map(x=>({...x,bbox:{...x.bbox}}));mismatched[1].bbox.y0+=80;mismatched[1].bbox.y1+=80;
- assert.equal(ctx.locateDrugNameCrop(mismatched,900,1200),null);
- const distant=words.map(x=>({...x,bbox:{...x.bbox}}));distant[1].bbox.x0+=200;distant[1].bbox.x1+=200;
- assert.equal(ctx.locateDrugNameCrop(distant,900,1200),null);
-})
-
-test('retry reuses only the current photo crop and new photos invalidate it',async()=>{
- const nodes=new Map(),events=new Map(),requests=[];let created=0;
- const node=()=>({value:'',checked:false,hidden:true,textContent:'',removeAttribute(){},getContext(){return {drawImage(){}}},toDataURL(){return 'data:image/jpeg;base64,QQ=='}});
- const parent={postMessage(message){requests.push(message)}};
- const browser=vm.createContext({document:{getElementById(id){if(!nodes.has(id))nodes.set(id,node());return nodes.get(id)},createElement:node},scanPhotos:[{dataURL:'demo'}],scanDocType:'drug',location:{origin:'https://example.test'},parent,crypto:{randomUUID:()=>String(requests.length+1)},setTimeout,clearTimeout,updateScanFilename(){},Image:class{naturalWidth=900;naturalHeight=1200;set src(value){queueMicrotask(()=>this.onload())}},Tesseract:{async createWorker(){created++;return {async terminate(){},async setParameters(){},async recognize(){return {data:{blocks:[{paragraphs:[{lines:[{words}]}]}]}}}}}}});
- browser.window=browser;browser.addEventListener=(name,fn)=>events.set(name,fn);
- vm.runInContext(readFileSync(new URL('../public/dashtracker/scan-name.js',import.meta.url),'utf8'),browser);
- const settle=()=>new Promise(resolve=>setImmediate(resolve));
- const reply=()=>events.get('message')({origin:'https://example.test',source:parent,data:{type:'kelly:drug-name-result',id:requests.at(-1).id,name:'Alex Example'}});
- browser.scanNameChanged();await settle();assert.equal(created,1);reply();await settle();
- nodes.get('scan-ocr-retry').onclick();await settle();assert.equal(requests.length,2);assert.equal(created,1);reply();await settle();
- browser.scanPhotos[0]={dataURL:'other'};browser.scanNameChanged();await settle();assert.equal(created,2);assert.equal(requests.length,3);
- events.get('pagehide')();await settle();
+test('manual Scanner generates one page per photo without OCR confirmation and still requires a name',async()=>{
+ const {browser,nodes,messages,pages}=scanner()
+ vm.runInContext("scanDocType='drug';scanPhotos=[{dataURL:'demo'},{dataURL:'demo2'}]",browser)
+ await browser.generateScanPDF();assert.equal(pages.length,0);assert.match(messages.at(-1),/enter the candidate name/)
+ browser.document.getElementById('scan-name').value='Alex Example'
+ await browser.generateScanPDF();assert.equal(pages.length,2)
+ const link=nodes.get('scan-download-link');assert.equal(link.download,'Alex Example Drug Screening.pdf');assert.equal(link.hidden,false);assert.equal(link.clicked,true)
+ assert.equal(nodes.get('scan-gen-btn').disabled,false)
 })
